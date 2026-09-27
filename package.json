@@ -1,0 +1,43 @@
+{
+  "name": "indizio",
+  "private": true,
+  "version": "2026.4",
+  "type": "module",
+  "description": "Indizio — Logikrätsel am Tatort",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -b --noEmit",
+    "curate": "tsx scripts/curate.ts",
+    "art": "tsx scripts/build-art.ts",
+    "art:sheet": "tsx scripts/art-sheet.ts",
+    "bump": "tsx scripts/bump-version.ts",
+    "build:lib": "npm run build -w @indizio/puzzle",
+    "test:lib": "npm run test -w @indizio/puzzle",
+    "test:all": "npm run test:lib && npm test",
+    "lint:lib": "npm run lint -w @indizio/puzzle",
+    "test:deep": "npm run test:deep -w @indizio/puzzle",
+    "verify": "npm run typecheck && npm run lint:lib && npm run test:all"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "@indizio/puzzle": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vite": "^6.4.3",
+    "vitest": "^3.2.7"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
+}

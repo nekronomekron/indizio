@@ -1,0 +1,52 @@
+[
+  {
+    "seed": "v3-garage-5-vl-11pr",
+    "difficulty": "veryEasy",
+    "sha256": "fcf0983ea463228175f3d950aade5e2c816db8140960829ec88c9b92ba85a1fe"
+  },
+  {
+    "seed": "v3-flat-6-vl-17tq",
+    "difficulty": "veryEasy",
+    "sha256": "58fe046bf2e2ee724c779add4f400e43dab9e5a594a4ccdc26ec9da23b002053"
+  },
+  {
+    "seed": "v3-garage-7-l-11pr",
+    "difficulty": "easy",
+    "sha256": "2e2735d3652e3a1d5c57c50f553234d382318a81a33d10727cfd6c596c3d6e6c"
+  },
+  {
+    "seed": "v3-flat-7-l-17tq",
+    "difficulty": "easy",
+    "sha256": "4e29cc407a58f9392cea3ae6d357a312b3c9bbcb86a4b458bc092af77560bf4a"
+  },
+  {
+    "seed": "v3-garage-8-m-11pr",
+    "difficulty": "medium",
+    "sha256": "1a640d13bee663c8ec7e7cc6eb09cc38357d70ef18648ce873acd67152a89464"
+  },
+  {
+    "seed": "v3-flat-8-m-17tq",
+    "difficulty": "medium",
+    "sha256": "7ffe6c8ad6300a0570043ea40262e9c8b6f3cebb5a4ce84cec6413fc8d247de1"
+  },
+  {
+    "seed": "v3-garage-9-s-11pr",
+    "difficulty": "hard",
+    "sha256": "429326286aef37748977d186dcf585c17b290303e0c41523bdff213516231d9c"
+  },
+  {
+    "seed": "v3-flat-9-s-17tq",
+    "difficulty": "hard",
+    "sha256": "3912683bb18a6e27838553f3e237d2b036399177581865375d64bf3d203ef021"
+  },
+  {
+    "seed": "v3-garage-10-x-11pr",
+    "difficulty": "expert",
+    "sha256": "416e27df844b5532b9d3df53b1d57267961eed7926ce8ac253656363bb0e2461"
+  },
+  {
+    "seed": "v3-flat-10-x-17tq",
+    "difficulty": "expert",
+    "sha256": "202b3ca7f7dc4797e6e3364705928ff8c7078300e6b93366449be870455bbff8"
+  }
+]

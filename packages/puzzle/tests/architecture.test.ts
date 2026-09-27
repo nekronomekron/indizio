@@ -1,0 +1,181 @@
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join, relative } from 'node:path';
+import { describe, expect, it } from 'vitest';
+
+/**
+ * Structural guarantees.
+ *
+ * These are the promises the library makes about *itself* rather than about
+ * puzzles: it depends on nothing, it reaches for no platform, its layers point
+ * one way, and it is written in one language. Each of those is easy to break
+ * accidentally and impossible to notice by reading a diff, so each is a test.
+ */
+
+const SOURCE_ROOT = new URL('../src', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
+const PACKAGE_ROOT = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
+
+function sourceFiles(directory: string = SOURCE_ROOT): string[] {
+  const found: string[] = [];
+  for (const entry of readdirSync(directory)) {
+    const path = join(directory, entry);
+    if (statSync(path).isDirectory()) found.push(...sourceFiles(path));
+    else if (entry.endsWith('.ts')) found.push(path);
+  }
+  return found;
+}
+
+/**
+ * Comments may discuss what the code must not do — that is what they are for.
+ * The structural checks therefore look at code only.
+ */
+function withoutComments(source: string): string {
+  const blockComments = /\/\*[\s\S]*?\*\//g;
+  const lineComments = /\/\/.*$/gm;
+  return source.replace(blockComments, '').replace(lineComments, '');
+}
+
+const files = sourceFiles();
+const contents = new Map(files.map((path) =>
+  [relative(SOURCE_ROOT, path).replaceAll('\\', '/'), readFileSync(path, 'utf8')]));
+
+/** The same files with comments stripped, for checks about what the code does. */
+const codeOnly = new Map([...contents].map(([path, source]) => [path, withoutComments(source)]));
+
+/**
+ * Code with module specifiers removed as well. Needed for the platform check,
+ * where a path like `./io/document.js` would otherwise read as DOM access.
+ * Imports are covered by the layering check instead.
+ */
+const bodyOnly = new Map([...codeOnly].map(([path, source]) =>
+  [path, source.replace(/^\s*(import|export)[\s\S]*?from\s+'[^']+';/gm, '')]));
+
+/** Layers, in dependency order. A layer may import from itself and anything above it. */
+const LAYERS = ['core', 'clues', 'solving', 'content', 'generation', 'io', 'i18n'] as const;
+const ALLOWED_IMPORTS: Record<(typeof LAYERS)[number], readonly string[]> = {
+  core: ['core'],
+  clues: ['core', 'clues'],
+  solving: ['core', 'clues', 'solving'],
+  content: ['core', 'content'],
+  generation: ['core', 'clues', 'solving', 'content', 'generation'],
+  io: ['core', 'io'],
+  i18n: ['core', 'i18n'],
+};
+
+function layerOf(path: string): string | null {
+  const top = path.split('/')[0];
+  return top !== undefined && (LAYERS as readonly string[]).includes(top) ? top : null;
+}
+
+function importedPaths(source: string): string[] {
+  return [...source.matchAll(/from\s+'(\.[^']+)'/g)].map((match) => match[1]!);
+}
+
+describe('library structure', () => {
+  it('has source files', () => {
+    expect(files.length).toBeGreaterThan(15);
+  });
+
+  it('brings no runtime dependencies in the core', () => {
+    const manifest = JSON.parse(readFileSync(join(PACKAGE_ROOT, 'package.json'), 'utf8')) as {
+      dependencies?: Record<string, string>;
+      peerDependencies?: Record<string, string>;
+      peerDependenciesMeta?: Record<string, { optional?: boolean }>;
+    };
+    expect(manifest.dependencies ?? {}).toEqual({});
+    // i18next is allowed, but only as an optional peer used by the i18n subpath.
+    for (const name of Object.keys(manifest.peerDependencies ?? {})) {
+      expect(manifest.peerDependenciesMeta?.[name]?.optional, `${name} must be optional`).toBe(true);
+    }
+  });
+
+  it('imports i18next only from the i18n layer', () => {
+    for (const [path, source] of codeOnly) {
+      if (path.startsWith('i18n/')) continue;
+      expect(source, `${path} must not import i18next`).not.toMatch(/from\s+'i18next'/);
+    }
+  });
+
+  it('imports no framework and no node built-in', () => {
+    for (const [path, source] of codeOnly) {
+      expect(source, `${path} must not import react`).not.toMatch(/from\s+'react/);
+      expect(source, `${path} must not import a node built-in`).not.toMatch(/from\s+'node:/);
+    }
+  });
+
+  it('touches no platform global', () => {
+    const forbidden = [/\bdocument\./, /\bwindow\./, /\bprocess\./, /\bnavigator\./, /\blocalStorage\b/];
+    for (const [path, source] of bodyOnly) {
+      for (const pattern of forbidden) {
+        expect(source, `${path} must stay platform-neutral (${String(pattern)})`).not.toMatch(pattern);
+      }
+    }
+  });
+
+  it('never uses Math.random — every choice flows through the seed', () => {
+    for (const [path, source] of codeOnly) {
+      expect(source, `${path} must use the seeded Rng`).not.toMatch(/Math\.random/);
+    }
+  });
+
+  it('keeps time out of the deterministic core', () => {
+    for (const [path, source] of codeOnly) {
+      // Only the generator may read the clock, and only for the meta block.
+      if (path === 'generation/generate.ts') continue;
+      expect(source, `${path} must not read the clock`).not.toMatch(/Date\.now|new Date\(/);
+    }
+  });
+
+  it('lets layers depend only downwards', () => {
+    const violations: string[] = [];
+    for (const [path, source] of codeOnly) {
+      const layer = layerOf(path);
+      if (!layer) continue;
+      for (const specifier of importedPaths(source)) {
+        const resolved = specifier.startsWith('../')
+          ? specifier.replace(/^\.\.\//, '')
+          : `${path.split('/').slice(0, -1).join('/')}/${specifier.replace('./', '')}`;
+        const target = layerOf(resolved.replace(/^\.\//, ''));
+        if (!target) continue;
+        const allowed = ALLOWED_IMPORTS[layer as (typeof LAYERS)[number]];
+        if (!allowed.includes(target)) violations.push(`${path} → ${target}`);
+      }
+    }
+    expect(violations).toEqual([]);
+  });
+});
+
+describe('language', () => {
+  /**
+   * Words that would only appear in German prose or identifiers. Deliberately
+   * a small, unambiguous list: the point is to catch a relapse, not to prove
+   * a negative.
+   */
+  const GERMAN_MARKERS = [
+    'ae', 'oe', 'ue', // transliterated umlauts, as previously used in identifiers
+    'raum', 'zelle', 'hinweis', 'loesung', 'verdaecht', 'moerder', 'opfer',
+    'gitter', 'regel', 'pruef', 'aufzaehl', 'schluessel', 'anzahl', 'weil',
+    'nicht', 'jede', 'eine', 'kein', 'wird', 'muss', 'dass', 'oder', 'und',
+  ];
+
+  it('is written in English throughout', () => {
+    const offenders: string[] = [];
+    for (const [path, source] of contents) {
+      // Umlauts only belong in the German resource bundle.
+      if (path !== 'i18n/resources/de.ts' && /[äöüßÄÖÜ]/.test(source)) {
+        offenders.push(`${path}: contains umlauts`);
+      }
+      if (path.startsWith('i18n/resources/')) continue;
+
+      for (const line of source.split('\n')) {
+        const lower = line.toLowerCase();
+        for (const marker of GERMAN_MARKERS) {
+          // Whole-word match, so English words containing these letters pass.
+          if (new RegExp(`\\b${marker}\\b`).test(lower)) {
+            offenders.push(`${path}: "${marker}" in ${line.trim().slice(0, 60)}`);
+          }
+        }
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+});

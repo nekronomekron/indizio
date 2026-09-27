@@ -1,0 +1,119 @@
+import { useMemo } from 'react';
+import { columnOf, rowOf } from '@indizio/puzzle';
+
+export interface BoardLinesProps {
+  size: number;
+  cellPx: number;
+  /** Raum-Id je Zelle. Räume sind beliebig geformt, deshalb zellweise. */
+  roomOfCell: Int32Array;
+  /** Raum unter der Maus, oder `null`. Auf Touch-Geräten immer `null`. */
+  hoverRoom: number | null;
+}
+
+/**
+ * Dicke der Linien, gemessen am Feld statt fest in Pixeln.
+ *
+ * Eine feste Stärke wäre auf dem Handy zu zart und auf dem Schreibtisch zu
+ * grob. Die Untergrenzen sorgen dafür, dass beide Linien auch auf dem kleinsten
+ * Gitter (10×10 auf 360 px, Feld ≈ 32 px) noch als zwei verschiedene Stärken
+ * lesbar sind — genau darauf kommt es an: die Raumgrenze muss sich vom
+ * Feldraster **unterscheiden**, nicht nur vorhanden sein.
+ */
+export function wallWidth(cellPx: number): number {
+  return Math.max(4, Math.round(cellPx * 0.1));
+}
+
+export function gridWidth(cellPx: number): number {
+  return Math.max(1, Math.round(cellPx * 0.035));
+}
+
+/**
+ * Die Linien des Brettes: dünn zwischen Feldern, **dick um jeden Raum**.
+ *
+ * Raumgrenzen sind Spielinformation, keine Verzierung — fast jeder Hinweis
+ * nimmt auf Räume Bezug („allein im Raum", „im selben Raum wie"). Wer die
+ * Grenze nicht sieht, kann den Hinweis nicht anwenden.
+ *
+ * Deshalb sind die Grenzen **immer** sichtbar und nicht erst beim Darüberfahren:
+ * auf dem Handy gibt es kein Schweben, und eine Information, die nur der Maus
+ * zugänglich ist, fehlt der Hälfte der Spieler. Die farbige Hervorhebung beim
+ * Schweben kommt am Schreibtisch obendrauf, sie ersetzt nichts.
+ *
+ * Alles in **einem** SVG statt als Schatten je Zelle: eine geteilte Kante wird
+ * damit einmal gezeichnet und nicht zweimal halb, und die Strichstärke ist
+ * genau die angegebene — bei Kachelschatten wäre sie an Raumgrenzen doppelt so
+ * dick wie am Brettrand.
+ */
+export function BoardLines({ size, cellPx, roomOfCell, hoverRoom }: BoardLinesProps) {
+  const boardPx = size * cellPx;
+  const thick = wallWidth(cellPx);
+  const thin = gridWidth(cellPx);
+
+  const paths = useMemo(() => {
+    const walls: string[] = [];
+    const grid: string[] = [];
+
+    // Je Zelle nur die obere und die linke Kante: so wird jede innere Kante
+    // genau einmal gezeichnet. Der Brettrand ist unten ein eigenes Rechteck.
+    for (let cell = 0; cell < size * size; cell++) {
+      const room = roomOfCell[cell];
+      const r = rowOf(cell, size);
+      const c = columnOf(cell, size);
+      const x = c * cellPx;
+      const y = r * cellPx;
+
+      if (r > 0) {
+        const line = 'M' + String(x) + ' ' + String(y) + 'h' + String(cellPx);
+        (roomOfCell[cell - size] === room ? grid : walls).push(line);
+      }
+      if (c > 0) {
+        const line = 'M' + String(x) + ' ' + String(y) + 'v' + String(cellPx);
+        (roomOfCell[cell - 1] === room ? grid : walls).push(line);
+      }
+    }
+
+    return { walls: walls.join(''), grid: grid.join('') };
+  }, [roomOfCell, size, cellPx]);
+
+  /** Grenze des Raumes unter der Maus, als eigener Zug über der schwarzen Linie. */
+  const hovered = useMemo(() => {
+    if (hoverRoom === null) return '';
+    const segments: string[] = [];
+    for (let cell = 0; cell < size * size; cell++) {
+      if (roomOfCell[cell] !== hoverRoom) continue;
+      const r = rowOf(cell, size);
+      const c = columnOf(cell, size);
+      const x = c * cellPx;
+      const y = r * cellPx;
+      if (r === 0 || roomOfCell[cell - size] !== hoverRoom) segments.push('M' + String(x) + ' ' + String(y) + 'h' + String(cellPx));
+      if (r === size - 1 || roomOfCell[cell + size] !== hoverRoom) segments.push('M' + String(x) + ' ' + String(y + cellPx) + 'h' + String(cellPx));
+      if (c === 0 || roomOfCell[cell - 1] !== hoverRoom) segments.push('M' + String(x) + ' ' + String(y) + 'v' + String(cellPx));
+      if (c === size - 1 || roomOfCell[cell + 1] !== hoverRoom) segments.push('M' + String(x + cellPx) + ' ' + String(y) + 'v' + String(cellPx));
+    }
+    return segments.join('');
+  }, [hoverRoom, roomOfCell, size, cellPx]);
+
+  return (
+    <svg
+      className="board-lines"
+      width={boardPx}
+      height={boardPx}
+      viewBox={'0 0 ' + String(boardPx) + ' ' + String(boardPx)}
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path className="line-grid" d={paths.grid} strokeWidth={thin} shapeRendering="crispEdges" />
+      <path className="line-wall" d={paths.walls} strokeWidth={thick} />
+      {/* Der Brettrand liegt halb innen, sonst schneidet ihn die Kante ab. */}
+      <rect
+        className="line-wall"
+        x={thick / 2}
+        y={thick / 2}
+        width={boardPx - thick}
+        height={boardPx - thick}
+        strokeWidth={thick}
+      />
+      {hovered !== '' && <path className="line-hover" d={hovered} strokeWidth={thick} />}
+    </svg>
+  );
+}

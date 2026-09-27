@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Indizio">
+  <rect width="512" height="512" rx="112" fill="#1c1828"/>
+  <g transform="translate(88 88)">
+    <rect x="0" y="0" width="336" height="336" rx="28" fill="#2b2540"/>
+    <g fill="#3a3350">
+      <rect x="112" y="16" width="8" height="304"/>
+      <rect x="216" y="16" width="8" height="304"/>
+      <rect x="16" y="112" width="304" height="8"/>
+      <rect x="16" y="216" width="304" height="8"/>
+    </g>
+    <rect x="28" y="28" width="76" height="76" rx="16" fill="#e2604f"/>
+    <rect x="232" y="132" width="76" height="76" rx="16" fill="#48b1b9"/>
+    <rect x="132" y="232" width="76" height="76" rx="16" fill="#f2c94c"/>
+    <g transform="translate(150 150)">
+      <circle cx="86" cy="86" r="74" fill="#f3f1f7" opacity="0.14"/>
+      <circle cx="86" cy="86" r="60" fill="none" stroke="#f3f1f7" stroke-width="22"/>
+      <rect x="126" y="126" width="86" height="26" rx="13" transform="rotate(45 126 126)" fill="#f3f1f7"/>
+    </g>
+  </g>
+</svg>

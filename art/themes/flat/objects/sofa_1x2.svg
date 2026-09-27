@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 48" width="24" height="48">
+  <!-- indizio:placeholder -->
+  <rect x="2" y="2" width="20" height="44" rx="4" fill="#48b1b9" fill-opacity="0.55"/><g transform="translate(0 12)"><rect x="2" y="7" width="20" height="11" rx="3" fill="#48b1b9"></rect><rect x="2" y="7" width="4" height="11" rx="2" fill="#3b939a"></rect><rect x="18" y="7" width="4" height="11" rx="2" fill="#3b939a"></rect><rect x="6" y="9" width="5" height="6" rx="1.5" fill="#63c9d1"></rect><rect x="13" y="9" width="5" height="6" rx="1.5" fill="#63c9d1"></rect><rect x="4" y="18" width="2.5" height="3" rx="1" fill="#8f6339"></rect><rect x="17.5" y="18" width="2.5" height="3" rx="1" fill="#8f6339"></rect></g>
+</svg>

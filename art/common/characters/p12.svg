@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <!-- indizio:placeholder -->
+  <path d="M3.2 22v-3.4A6.4 6.4 0 0 1 9.6 12.2h4.8a6.4 6.4 0 0 1 6.4 6.4V22Z" fill="#7a6bbf"></path><path d="M10.6 12.2h2.8v2.2a1.4 1.4 0 0 1-2.8 0Z" fill="#5f52a0"></path><rect x="10.9" y="10.4" width="2.2" height="2.6" fill="#8d5f3c"></rect><circle cx="12" cy="8.4" r="5.1" fill="#8d5f3c"></circle><path d="M6.2 9.4h11.6V8.2a5.8 5.8 0 0 0-11.6 0Z" fill="#8b8898"></path><rect x="5.8" y="9" width="12.4" height="1.8" rx="0.9" fill="#8b8898"></rect><circle cx="12" cy="2.6" r="1.7" fill="#8b8898"></circle>
+</svg>
