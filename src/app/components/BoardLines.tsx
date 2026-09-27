@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { columnOf, rowOf } from '@indizio/puzzle';
+import { columnOf, rowOf } from '@engine';
 
 export interface BoardLinesProps {
   size: number;

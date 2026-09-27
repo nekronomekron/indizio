@@ -1,10 +1,12 @@
 # Prüfprotokoll zum Entwicklungsplan
 
 Der Plan wurde in Runden gegen eine feste Prüfliste gehalten. Jede Runde
-protokolliert die gefundenen Fehler und die Korrektur. Die Prüfung endete, als
-eine vollständige Runde ohne neuen Befund durchlief.
+protokolliert die gefundenen Fehler und die Korrektur. Die ersten Runden endeten,
+als eine vollständige Runde ohne neuen Befund durchlief; seither kommt mit jedem
+größeren Umbau eine weitere dazu.
 
-Ergebnis: **Plan v11 umgesetzt, keine offenen Befunde.** 39 Fehler gefunden und behoben.
+Ergebnis: **Plan v13 umgesetzt.** 48 Fehler gefunden und behoben; ein Punkt
+bleibt bewusst offen (§8.5, der Höhenabzug als Konstante).
 
 Die Runden 1 bis 4 sind Papierprüfungen des Plans gegen die Prüfliste. Runde 5
 kam aus der Umsetzung: zwei Planannahmen haben der Messung nicht standgehalten
@@ -1353,3 +1355,204 @@ kehrt es sich um.
 Stylesheet und meldete die Notizen in Türkis statt in der neuen Farbe. Erst ein
 vollständiges Neuladen zeigte den wahren Stand. Die Klassen stimmten von Anfang
 an — beinahe hätte ich eine Farbe „repariert", die nie falsch war.
+
+---
+
+## Runde 20 — Engine ins Projekt, Kalender statt Katalog, Spiel ohne Maus
+
+Der größte Umbau seit Runde 14, und in gewissem Sinn ihre Rücknahme: die
+Bibliothek, die dort aus der App herausgelöst wurde, kehrt zurück — aber mit
+einer Grenze, die diesmal ausgesprochen ist statt geerbt. Dazu ersetzt ein
+Kalender die kuratierte Fallliste, und das Spiel lässt sich ohne Maus bedienen.
+
+**Neun Befunde, davon vier selbst eingebaut und im Browser wieder gefunden.**
+
+### V20-1 — Die Paketgrenze fiel weg, und mit ihr der Schutz
+
+`packages/puzzle/` ist nach `src/engine/` gewandert, 30 Aufrufstellen zeigen
+jetzt auf `@engine` beziehungsweise `@engine/i18n`. Damit verschwand die
+`exports`-Klausel, die bis dahin verhinderte, dass jemand an `solving/solve.js`
+greift.
+
+Ersatz sind zwei Wächter (§8.1.1): eine Lint-Regel, die beim Schreiben greift,
+und `tests/boundary.test.ts`, der auch dann greift, wenn jemand den Linter
+überspringt. **Der Test meldete beim ersten Lauf drei Verstöße — einen davon
+hatte ich zehn Minuten zuvor selbst eingebaut**, indem ich `write-reference.ts`
+beim Umzug auf einen relativen Pfad statt auf die Tür setzte.
+
+Ein zweiter Befund fiel dabei auf: die Bibliothek fuhr unter **strengeren
+Compilerschaltern** als die App. Eine gemeinsame `tsconfig.json` hätte die
+Engine entschärft. Es gibt jetzt zwei.
+
+### V20-2 — Der erste Lint der App: 21 Befunde, 17 davon irreführend
+
+Die App war nie gelintet worden. Von den 21 Befunden waren 17 derselbe:
+`no-unnecessary-type-assertion` auf Feldzugriffen wie `parts[parts.length - 1]!`.
+Diese Zusicherungen sind nur „unnötig", weil die App `noUncheckedIndexedAccess`
+aus hatte — in der Engine wären dieselben Zeilen Pflicht.
+
+Statt die Regel abzuschalten, wurde gemessen, was der Schalter kostet: **ein
+einziger Fehler.** Also angeschaltet. Die 17 Zusicherungen sind damit wieder
+Pflicht, und die Regel behält ihre Zähne.
+
+Die restlichen vier waren echt: ein Versprechen an `onClick`, zwei
+Zustandssetzungen in Effekten, ein wirkungsloses `void`.
+
+### V20-3 — Eine Ref beim Zeichnen, und der Spielstand war weg
+
+Beim Beheben einer dieser Zustandssetzungen wurde `restored` von `useState` auf
+`useRef` umgestellt — **und das Speichern ging kaputt.** Der schreibende Effekt
+sieht den Zustand des Renders, der gerade fertig wurde, und das ist beim ersten
+Durchlauf das leere Brett. Er überschrieb den geladenen Spielstand, bevor er
+sichtbar wurde.
+
+Die Tests blieben dabei grün. Aufgefallen ist es erst, als im Browser eine Figur
+gesetzt und neu geladen wurde.
+
+Zurückgebaut wurde nicht: der gespeicherte Stand ist jetzt der **Anfangszustand**
+der Sitzung (§8.4). Kein Merker, kein Wettlauf, ein Render weniger — und die
+`restore`-Aktion im Reducer ist ersatzlos entfallen.
+
+Dabei fiel eine zweite Sache auf: seit ein zwischengespeichertes Rätsel ohne
+Ladebildschirm erscheint, bleibt `GameScreen` beim Rätselwechsel montiert und
+hätte den alten Spielstand weitergetragen. Deshalb `key={core.seed}`.
+
+### V20-4 — Zwei Dinge, die der Umzug gebrochen hätte
+
+- **Beide Dockerfiles** kopierten `packages` — ein Ordner, den es nicht mehr
+  gibt. `COPY` auf einen fehlenden Pfad bricht den Bau ab. Zeilen entfernt;
+  nebenbei verschwindet das überflüssige `/app/puzzle/`, das in Runde 19 als
+  harmlos vermerkt war.
+- **`npm run reference` schrieb in den falschen Ordner** — derselbe Fehler wie
+  in Runde 18, durch den Umzug wiederbelebt, weil der Pfad an der Skriptdatei
+  hängt und die umgezogen ist. Die Verankerung allein hat ihn also nicht
+  verhindert, nur verschoben. Diesmal mit Riegel: fehlt das Zielverzeichnis,
+  bricht das Skript ab, statt still ein neues anzulegen. Der Riegel wurde mit
+  einem absichtlich falschen Pfad ausgelöst und schlug zu.
+
+### V20-5 — Jeder Tagesfall war „sehr leicht", für immer
+
+`dailySeed` bekam die Gittergröße 6 fest eingetragen, und die Stufe folgt aus
+der Größe. Ein Kalender hätte damit 365 gleiche Tage gezeigt. Jetzt bestimmt der
+Wochentag die Stufe (§6.1.1), rückwirkend für alle Tage.
+
+`dailySeed` nimmt dafür drei blanke Zahlen statt eines `Date`: die Zeitzone ist
+keine Frage, zu der die Engine eine Meinung haben darf. Der Wochentag wird
+gerechnet, nicht gelesen — die Engine liest keine Uhr. Weil eine selbstgebaute
+Formel sich selbst bestätigen würde, prüft ein Test sie **gegen die Plattform,
+366 Tage lang**.
+
+Der kuratierte Katalog ist ersatzlos entfallen: `catalog.ts` (254 Zeilen),
+`CatalogScreen.tsx`, `scripts/curate.ts`, `tests/catalog.test.ts` und der
+zugehörige npm-Befehl. Der Test, der den Katalog auf die Generatorversion
+prüfte, prüft jetzt **400 Kalendertage und alle fünf Stufen** auf dieselbe
+Zusage.
+
+Vorher gemessen, damit der Kalender keine Ausweichmechanik braucht: **0
+Fehlschläge** bei 90 Tagen 6×6 und 40 Tagen über alle Stufen, langsamster Fall
+615 ms.
+
+### V20-6 — Der Speicher versprach eine Version, die nicht stimmte
+
+Alle Schlüssel standen unter `indizio:v2:`, während der Generator bei 3 steht —
+beim Schritt auf 3 war das Mitziehen unterblieben. Schaden machte es nicht, weil
+`loadPuzzle` zusätzlich die Version im Rätsel selbst prüft, aber der
+Schlüsselname log. Nachgeholt, und ein einmaliger Lauf beim Start räumt die
+alten Einträge weg.
+
+### V20-7 — Eine Klassennamenkollision, dieselbe Sorte wie in Runde 15
+
+`.tier-veryEasy` bedeutete am Kalendertag „schmaler Balken, 20 % breit" und am
+Zufallsknopf „grüner Rand links". Die Knöpfe wurden dadurch zu grünen Blöcken
+mit abgeschnittener Schrift. In Runde 15 war es `carpet` als Objekt **und**
+Boden; der Mechanismus ist derselbe — ein Name, zwei Bedeutungen, und die
+speziellere Regel gewinnt nicht automatisch.
+
+Dabei fiel auf, dass gesperrte Tage ihre Stufe im Vorlesetext nannten, aber
+nicht zeigten. Statt den Text zu kürzen zeigen künftige Tage den Balken jetzt
+auch: dass Sonntag der große Fall wird, darf man vorher sehen. Aus „gesperrt"
+wurden dafür zwei Zustände — vor dem Starttag und nach heute bedeuten
+Verschiedenes.
+
+### V20-8 — Drei Fehler in der Tastaturbedienung, alle erst im Browser sichtbar
+
+- Die Schlusszeile setzte den Rahmen **nach** jeder Bewegung auf das Startfeld
+  zurück. Fünf Pfeiltasten, und er stand wieder auf Feld 0.
+- Der Rahmen wurde beim Fokusverlust verworfen; schon ein Flackern kostete die
+  Position. Jetzt überlebt sie, nur die Anzeige hängt am Fokus.
+- `focusin` feuert im Vorschaufenster **null mal**, obwohl `activeElement`
+  stimmt. Der Rahmen erscheint deshalb beim ersten Tastendruck statt beim
+  Fokusereignis — was ohnehin richtiger ist: wer mit der Maus klickt, braucht
+  ihn nicht.
+
+**Ein vierter Verdacht war keiner.** Eingabe und `X` taten nichts, und es sah
+nach einem Fehler in der Tastenbehandlung aus. Die Felder 8 und 14 waren
+schlicht **gesperrt**. Der Code hatte recht, die Testfelder waren schlecht
+gewählt — auf einem freien Feld platziert er sauber.
+
+Die Randarithmetik steht als `moveCursor` für sich und ist geprüft: alle sechs
+Tasten auf **jedem** Feld aller sechs Gittergrößen bleiben im Brett, und am
+rechten Rand bricht nichts in die nächste Zeile um.
+
+Nebenbei behoben: `vibrate` lag seit Runde 11 im Speicher und **wirkte nicht** —
+das Brett rüttelte unabhängig von der Einstellung. Jetzt gibt es dafür auch eine
+Oberfläche; vorher ließ sich die Einstellung nur ändern, indem man den
+Browserspeicher von Hand bearbeitete.
+
+### V20-9 — Der Höhenabzug musste zum zweiten Mal von Hand nachgezogen werden
+
+Der dritte Knopf in der Kopfzeile ließ sie auf 375 px umbrechen; die Seite
+scrollte um 28 px.
+
+Der erste Versuch — den Höhenabzug im Spielbildschirm erhöhen — war
+**wirkungslos**, und zwar aus einem Grund, der vorher nicht gemessen war: auf
+dem Handy bindet die **Breite** (347 gegen 414 freie Pixel). Ein größerer
+Höhenabzug ändert dort gar nichts. Danach fehlten gerechnet acht Pixel; statt
+Breiten auf den Pixel nachzujustieren, was beim nächsten längeren Wort wieder
+bräche, darf die Kopfzeile nicht mehr umbrechen und der Titel notfalls
+abschneiden.
+
+**Offen und bewusst nicht stillschweigend festgenagelt:** dieser Abzug ist eine
+Konstante, die jede UI-Änderung falsch machen kann, und sie war jetzt zweimal
+falsch (Fußzeile in Runde 16, Knopf in dieser Runde). Ein gemessener Wert wäre
+ehrlicher. Das steht als offener Punkt in §8.5.
+
+### Nachweis
+
+| | Vorher (Runde 19) | Nachher |
+|---|---|---|
+| Tests gesamt | 223 | **253** |
+| davon App | 58 | 77 |
+| davon Engine | 165 | 176 |
+| Testdateien | 17 | 16 |
+| npm-Befehle | 17 | 13 |
+| `tsconfig`-Dateien | 3 | 2 |
+| Bündel (roh / gzip) | 319,9 kB / 89,5 kB | 326,5 kB / 92,4 kB |
+
+**Die Erzeugung ist nachweislich unverändert:** `npm run reference` schreibt die
+eingefrorenen Daten byte-identisch zurück, und der Referenztest meldet „still
+generates byte for byte the same". `GENERATOR_VERSION` bleibt 3, alle Links
+gelten weiter. Auch die 92 Grafiken kommen bei `npm run art` unverändert heraus.
+
+Im Browser geprüft, jeweils in einem frischen Tab ohne Altlasten des
+Hot-Reload:
+
+| | |
+|---|---|
+| Heutiger Fall (Sonntag) | Experte 10×10 — der Rhythmus greift |
+| September 2026 | 30 Tage, 27 spielbar, 3 gesperrt |
+| Samstag 26. | → `v3-garage-9-s-1tych8v` → Autowerkstatt 9×9 |
+| Zufallsfall „Mittel" | → `v3-garage-8-m-879hg0` → 8×8 |
+| Blättern | bis Januar 2026, dann gesperrt; „Zu heute" zurück |
+| Englisch | Monate und Wochentage über `Intl` |
+| Ziehen über das Brett | Auswahl leer |
+| Ziehen über den Hinweistext | Auswahl vollständig |
+| Spielbildschirm 10×10 und 6×6 | Seitenhöhe exakt 812, kein Scrollen |
+| Einstellungen | Schieber auf 550 ms, Vibration aus — beides gespeichert |
+| Spielstand | übersteht das Neuladen |
+
+**Nicht geprüft, und das ist so vermerkt:** der Nachwurf bei fehlgeschlagener
+Erzeugung ließ sich im Browser nicht auslösen, weil die Erzeugung nicht
+fehlschlägt. Die Regel dahinter — *ein eingetippter Seed wird niemals ersetzt* —
+ist deshalb als eigene Funktion `redrawFor` herausgezogen und mit vier Tests
+belegt. Eine Zusicherung, die nur im Kommentar steht, ist keine.

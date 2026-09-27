@@ -2,7 +2,7 @@ import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'nod
 import { dirname, join, relative } from 'node:path';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { THEMES } from '@indizio/puzzle';
+import { THEMES } from '@engine';
 import { DEFAULT_FLOOR, floorFor } from '../src/app/render/floors.js';
 import type { FloorMaterial } from '../src/app/render/floors.js';
 import { CHARACTER_SHAPES } from './art/characters.js';

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { GENERATOR_VERSION, generatePuzzle, makeSeed } from '@indizio/puzzle';
-import { CATALOG } from '../src/app/catalog.js';
+import { DIFFICULTY_ORDER, GENERATOR_VERSION, THEME_KEYS, dailySeed, generatePuzzle, makeSeed } from '@engine';
+import { randomSeed } from '../src/app/random.js';
 import { UI } from '../src/app/i18n.js';
 
 /**
@@ -42,12 +42,26 @@ describe('Generatorversion im Seed', () => {
   });
 });
 
-describe('Katalog', () => {
-  it('enthaelt ausschliesslich Seeds der aktuellen Generatorversion', () => {
-    // Nach einem Versionswechsel muss der Katalog neu erzeugt werden. Ohne
-    // diese Pruefung faellt das erst auf, wenn jemand einen Fall anklickt.
-    const fremd = CATALOG.filter((entry) => versionOf(entry.seed) !== GENERATOR_VERSION);
-    expect(fremd.map((entry) => entry.seed)).toEqual([]);
+describe('Tagesfaelle', () => {
+  it('tragen die aktuelle Generatorversion', () => {
+    // Fruher stand hier der kuratierte Katalog, der nach einem Versionswechsel
+    // von Hand neu erzeugt werden musste. Die Tagesfaelle entstehen jetzt aus
+    // dem Datum — die Zusicherung bleibt aber dieselbe: kein Tag im Kalender
+    // fuehrt auf einen Seed, den die App gleich wieder abweisen wuerde.
+    for (let tag = 0; tag < 400; tag++) {
+      const datum = new Date(Date.UTC(2026, 0, 1 + tag));
+      const seed = dailySeed(
+        { year: datum.getUTCFullYear(), month: datum.getUTCMonth() + 1, day: datum.getUTCDate() },
+        THEME_KEYS,
+      );
+      expect(versionOf(seed), seed).toBe(GENERATOR_VERSION);
+    }
+  });
+
+  it('gelten auch fuer ausgeloste Faelle', () => {
+    for (const stufe of DIFFICULTY_ORDER) {
+      expect(versionOf(randomSeed(stufe)), stufe).toBe(GENERATOR_VERSION);
+    }
   });
 });
 
@@ -73,6 +87,6 @@ describe('Texte zum alten Link', () => {
   it('sagen nicht, die Erzeugung sei fehlgeschlagen', () => {
     // Der alte Text behauptete das und war damit schlicht falsch.
     expect(UI.de.outdatedSeed).not.toContain('erzeugen');
-    expect(UI.en.outdatedSeed.toLowerCase()).not.toContain('could not');
+    expect(UI.en.outdatedSeed!.toLowerCase()).not.toContain('could not');
   });
 });

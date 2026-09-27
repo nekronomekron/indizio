@@ -1,4 +1,4 @@
-import type { Suspect } from '@indizio/puzzle';
+import type { Suspect } from '@engine';
 
 /**
  * Wie die Verdaechtigen dargestellt werden: welcher Buchstabe sie auf dem

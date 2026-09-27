@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { generatePuzzle, makeSeed } from '@indizio/puzzle';
-import type { Suspect } from '@indizio/puzzle';
+import { generatePuzzle, makeSeed } from '@engine';
+import type { Suspect } from '@engine';
 import { cardOrder, suspectLetters } from '../src/app/suspects.js';
 
 /**

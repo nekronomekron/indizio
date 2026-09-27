@@ -9,7 +9,6 @@ FROM node:${NODE_VERSION} AS dev
 WORKDIR /app
  
 # Copy package files
-COPY packages ./
 COPY package*.json ./
  
 # Install dependencies

@@ -9,8 +9,16 @@ Alles läuft im Browser: keine Anmeldung, kein Backend, nach dem ersten Laden
 auch offline. Jedes Rätsel entsteht aus seinem **Seed** — derselbe Link ergibt
 überall dasselbe Rätsel.
 
+**Jeder Tag hat seinen eigenen Fall.** Ein Kalender zeigt den Monat; der
+Wochentag bestimmt die Schwere, von kurz am Montag bis lang am Sonntag.
+Verpasste Tage lassen sich nachholen. Wer zwischendurch etwas anderes will,
+wählt eine Stufe und bekommt einen ausgelosten Fall.
+
+Spielen geht mit Maus, Finger **und Tastatur**: Pfeiltasten bewegen einen
+Rahmen über das Brett, Eingabe platziert, N notiert, X markiert.
+
 Die Fußzeile zeigt die **Versionsnummer** im Format `<Jahr>.<Nummer>`, etwa
-`2026.4`: die vierte Fassung aus diesem Jahr. Sie steht in der `package.json`
+`2026.5`: die fünfte Fassung aus diesem Jahr. Sie steht in der `package.json`
 und nirgendwo sonst; `npm run bump` zählt sie hoch, im neuen Jahr wieder ab
 eins. Bewusst kein Semver — das sagt etwas über Verträge zwischen Programmen
 zu, und die gibt es hier nicht. Wer einen Fehler meldet, soll ohne Nachfrage
@@ -44,56 +52,61 @@ Kriterien stehen in [PLAN.md](PLAN.md) §11.
 |---|---|
 | `npm run dev` | Entwicklungsserver |
 | `npm run build` | Produktionsbündel nach `dist/` |
-| `npm test` | Tests der App |
-| `npm run test:lib` | Tests der Bibliothek, schneller Lauf |
+| `npm test` | Tests von Engine und App, unter einer Minute |
 | `npm run test:deep` | gründlicher Lauf: alle Gittergrößen, hunderte Seeds, Zeitbudgets |
-| `npm run test:all` | App und Bibliothek |
-| `npm run lint:lib` | Lint der Bibliothek |
+| `npm run lint` | Lint, mit strengeren Regeln für die Engine als für die Oberfläche |
+| `npm run typecheck` | Typprüfung beider Projekte (`tsconfig.engine.json`, `tsconfig.json`) |
 | `npm run verify` | Typprüfung, Lint und alle Tests — der Lauf vor jedem Commit |
-| `npm run build:lib` | Bibliothek nach `packages/puzzle/dist` bauen |
-| `npm run curate` | Rätselkatalog neu erzeugen |
+| `npm run reference` | eingefrorene Referenzdaten der Engine neu schreiben |
 | `npm run art` | fehlende Platzhaltergrafiken nach `art/` schreiben |
 | `npm run art:sheet` | alle Grafiken auf ein Blatt, zum Draufschauen |
 | `npm run bump` | Versionsnummer eine Stelle hochzählen |
 
 ## Aufbau
 
-Die Spiellogik ist eine **eigenständige Bibliothek**. Die App ist nur einer ihrer
-Nutzer — dieselbe Bibliothek lässt sich ohne Anpassung in anderen Projekten
-verwenden.
+Die Spiellogik liegt im Projekt, aber **hinter genau zwei Türen**. Die
+Oberfläche kennt `@engine` und `@engine/i18n` — und nichts darunter.
 
 ```
-packages/puzzle/   @indizio/puzzle — Generator und Löser, ohne Abhängigkeiten
-  src/index.ts     öffentliche Schnittstelle
-  src/api.ts       solvePuzzle, verifyPuzzle, hintFor, boardLayout
-  src/core/        Typen, Gitterrechnung, Seeds, Stufen, Zufallsgenerator
-  src/clues/       was ein Hinweis bedeutet
-  src/solving/     Kandidaten, Propagation, Regeln, Tipp, Referenzlöser
-  src/generation/  Grundriss, Möblierung, Rollen, Hinweissuche
-  src/io/          JSON-Austauschformat mit vollständiger Prüfung
-  src/content/     Themes und Namen — Daten, austauschbar
-  src/i18n/        i18next-Ressourcen und Hinweisübersetzer
-  tests/           eigene Suite, inklusive erzwungener Entkopplung
+src/engine/        Generator und Löser, ohne Abhängigkeiten
+  index.ts         die Tür: alles, was die App benutzen darf
+  api.ts           solvePuzzle, verifyPuzzle, hintFor, boardLayout
+  core/            Typen, Gitterrechnung, Seeds, Stufen, Zufallsgenerator
+  clues/           was ein Hinweis bedeutet
+  solving/         Kandidaten, Propagation, Regeln, Tipp, Referenzlöser
+  generation/      Grundriss, Möblierung, Rollen, Hinweissuche
+  io/              JSON-Austauschformat mit vollständiger Prüfung
+  content/         Themes und Namen — Daten, austauschbar
+  i18n/            zweite Tür: i18next-Ressourcen und Hinweisübersetzer
 art/               jede Grafik als eigene SVG-Datei (siehe art/README.md)
 src/worker/        Generator im Web Worker
 src/app/           Oberfläche (React), Zustand, Speicherung
-scripts/           Katalog- und Hilfsskripte
+scripts/           Hilfsskripte (Grafiken, Referenzdaten, Version)
 scripts/art/       Zeichenvorschriften der Platzhalter — nur für die Entwicklung
+tests/             App-Tests und die Grenze
+tests/engine/      Tests der Engine, inklusive erzwungener Entkopplung
 ```
 
-Die Ordner sind **Schichten mit einer Richtung**: `generation` → `solving` →
-`clues` → `core`, und niemand greift zurück. Die Trennung ist nicht bloß
-Konvention, sondern durch Tests erzwungen: die Bibliothek darf nicht aus ihrem
-Ordner herausgreifen, im Kern keine Laufzeitabhängigkeit mitbringen und weder
-DOM noch React noch Node-Module benutzen. Ihre Dokumentation steht — auf
-Englisch, wie der gesamte Quelltext der Bibliothek — in
-[packages/puzzle/README.md](packages/puzzle/README.md).
+Die Ordner der Engine sind **Schichten mit einer Richtung**: `generation` →
+`solving` → `clues` → `core`, und niemand greift zurück.
 
-### Die Bibliothek anderswo benutzen
+Bis vor Kurzem war die Engine ein eigenes Paket, und die Paketgrenze hielt ihre
+Schnittstelle zusammen. Im selben Projekt gibt es diesen Schutz nicht mehr,
+deshalb steht die Grenze jetzt zweimal ausdrücklich da: als Lint-Regel in
+`eslint.config.js`, die beim Schreiben greift, und als
+[tests/boundary.test.ts](tests/boundary.test.ts), die auch dann greift, wenn
+jemand den Linter überspringt. Dazu zwei `tsconfig`-Dateien — die Engine läuft
+unter strengeren Schaltern als die Oberfläche, weil dichte Zahlenarbeit davon
+profitiert und JSX vor allem Lärm davon hat.
+
+Was die Engine über sich selbst verspricht, steht — auf Englisch, wie ihr
+gesamter Quelltext — in [src/engine/README.md](src/engine/README.md).
+
+### Die Engine benutzen
 
 ```ts
-import { generatePuzzle, makeSeed, stringifyPuzzle } from '@indizio/puzzle';
-import { createClueTranslator } from '@indizio/puzzle/i18n';
+import { generatePuzzle, makeSeed, stringifyPuzzle } from '@engine';
+import { createClueTranslator } from '@engine/i18n';
 
 const { core } = generatePuzzle(makeSeed('garage', 6, 12345));
 const translator = createClueTranslator({ locale: 'de' });
@@ -101,10 +114,21 @@ console.log(core.clues.map((entry) => translator.render(core, entry)));
 const json = stringifyPuzzle(core);   // überall wieder einlesbar
 ```
 
-Die Sätze entstehen mit **i18next**, das nur am Einstiegspunkt
-`@indizio/puzzle/i18n` geladen wird — wer nur erzeugt und löst, bekommt einen
-Kern ohne jede Laufzeitabhängigkeit. Eigene Themes lassen sich übergeben, ohne
-am Generator etwas zu ändern; ihre Wörter kommen über `additionalResources` mit.
+Die Sätze entstehen mit **i18next**, das nur hinter der Tür `@engine/i18n`
+geladen wird — wer nur erzeugt und löst, bekommt einen Kern ohne jede
+Laufzeitabhängigkeit, und der Worker bezahlt keine Übersetzungsbibliothek für
+Arbeit, die er nicht tut. Eigene Themes lassen sich übergeben, ohne am Generator
+etwas zu ändern; ihre Wörter kommen über `additionalResources` mit.
+
+Ein Zugriff **an den Türen vorbei** ist kein Abkürzungsweg, sondern ein Fehler:
+
+```ts
+import { solve } from '../engine/solving/solve.js';   // Lint und Test schlagen an
+```
+
+Wer etwas von innen braucht, exportiert es in `src/engine/index.ts` — mit einem
+Namen, der auch jemandem etwas sagt, der das Innenleben nicht kennt. Genau dafür
+gibt es `api.ts`.
 
 ## Wie ein Rätsel entsteht
 
@@ -202,4 +226,4 @@ als Fehlersucher missbrauchen.
 ## Dokumente
 
 - [PLAN.md](PLAN.md) — Entwicklungsplan mit Spielkonzept, Solver, Generator und Abnahmekriterien
-- [VALIDATION.md](VALIDATION.md) — Prüfprotokoll: 39 gefundene und behobene Fehler in neunzehn Runden
+- [VALIDATION.md](VALIDATION.md) — Prüfprotokoll: 48 gefundene und behobene Fehler in zwanzig Runden

@@ -1,4 +1,4 @@
-import type { Suspect } from '@indizio/puzzle';
+import type { Suspect } from '@engine';
 import { Sprite } from '../render/Sprite.js';
 
 export interface SuspectCardProps {
