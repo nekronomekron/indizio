@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useReducer, useState } from 'react';
-import { boardLayout, hintFor } from '@indizio/puzzle';
-import type { Cell, PuzzleCore } from '@indizio/puzzle';
-import { createClueTranslator, type Locale } from '@indizio/puzzle/i18n';
+import { boardLayout, hintFor } from '@engine';
+import type { Cell, PuzzleCore } from '@engine';
+import { createClueTranslator, type Locale } from '@engine/i18n';
 import { t } from '../i18n.js';
 import { cardOrder, suspectLetters } from '../suspects.js';
 import { allPlaced, gameReducer, initialGame } from '../state/game.js';
+import type { GameSession } from '../state/game.js';
 import { loadSave, markTutorialSeen, recordProgress, saveGame, tutorialSeen } from '../storage/store.js';
 import { RulesDialog, Tutorial } from './Help.js';
 import { FOOTER_PX } from './Footer.js';
@@ -23,15 +24,40 @@ export interface GameScreenProps {
   core: PuzzleCore;
   locale: Locale;
   holdMs: number;
+  vibrate: boolean;
+  /** Namen der Felder beim Verweilen zeigen - abschaltbar in den Einstellungen. */
+  names: boolean;
   onBack: () => void;
+  onSettings: () => void;
 }
 
-export function GameScreen({ core, locale, holdMs, onBack }: GameScreenProps) {
+/**
+ * Der gespeicherte Stand **ist** der Anfangszustand — er wird nicht kurz nach
+ * dem Anfang nachgereicht.
+ *
+ * Vorher lud ein Effekt den Stand und ein zweiter schrieb ihn zurück, getrennt
+ * durch einen Merker „schon geladen". Das ist ein Wettlauf: der schreibende
+ * Effekt sieht den Zustand des Renders, der gerade fertig wurde, und das ist
+ * beim ersten Durchlauf noch das leere Brett. Gemessen im Browser hat er damit
+ * den gerade geladenen Spielstand überschrieben, bevor er sichtbar wurde.
+ *
+ * Als Anfangszustand gibt es den Wettlauf nicht mehr, und den Merker auch nicht.
+ */
+function openSession(core: PuzzleCore): GameSession {
+  const saved = loadSave(core.seed);
+  // Ein Stand aus einem anders großen Rätsel gehört nicht hierher.
+  const usable = saved !== null && saved.placements.length === core.suspects.length;
+  return {
+    state: usable ? { ...saved, running: true, verdict: 'none' } : initialGame(core),
+    history: [],
+  };
+}
+
+export function GameScreen({ core, locale, holdMs, vibrate, names, onBack, onSettings }: GameScreenProps) {
   const translator = useMemo(() => createClueTranslator({ locale }), [locale]);
   const layout = useMemo(() => boardLayout(core), [core]);
-  const [session, dispatch] = useReducer(gameReducer, { state: initialGame(core), history: [] });
+  const [session, dispatch] = useReducer(gameReducer, core, openSession);
   const { state } = session;
-  const [restored, setRestored] = useState(false);
   const [showTutorial, setShowTutorial] = useState(() => !tutorialSeen());
   const [showRules, setShowRules] = useState(false);
   const [viewport, setViewport] = useState(() => ({ w: window.innerWidth, h: window.innerHeight }));
@@ -50,17 +76,11 @@ export function GameScreen({ core, locale, holdMs, onBack }: GameScreenProps) {
     };
   }, []);
 
+  // Speichern ist jetzt bedingungslos: der erste Schreibvorgang legt genau das
+  // zurück, was `openSession` gerade gelesen hat.
   useEffect(() => {
-    const saved = loadSave(core.seed);
-    if (saved && saved.placements.length === core.suspects.length) {
-      dispatch({ type: 'restore', state: { ...saved, running: true, verdict: 'none' } });
-    }
-    setRestored(true);
-  }, [core.seed, core.suspects.length]);
-
-  useEffect(() => {
-    if (restored) saveGame(core.seed, state);
-  }, [core.seed, state, restored]);
+    saveGame(core.seed, state);
+  }, [core.seed, state]);
 
   useEffect(() => {
     const id = window.setInterval(() => dispatch({ type: 'tick', ms: 1000 }), 1000);
@@ -104,6 +124,26 @@ export function GameScreen({ core, locale, holdMs, onBack }: GameScreenProps) {
     return labels;
   }, [core.rooms, translator]);
 
+  /**
+   * Bloßer Name je Requisite — „Regal", nicht „an einem Regal".
+   *
+   * Die Hinweise nennen die Requisiten, das Brett zeigte davon nur ein Bild.
+   * Wer die Grafik nicht deutet, kann den Hinweis nicht prüfen; das war
+   * Bilderraten und nicht Schließen.
+   */
+  const objectLabels = useMemo(() => {
+    const labels: Record<number, string> = {};
+    for (const object of core.objects) labels[object.id] = translator.objectName(object.key);
+    return labels;
+  }, [core.objects, translator]);
+
+  /** Eine Person weiter oder zurueck - in der Reihenfolge der Kartenliste. */
+  const cycleSuspect = (delta: number) => {
+    const index = cards.findIndex((suspect) => suspect.id === state.selected);
+    const next = cards[(index + delta + cards.length) % cards.length];
+    if (next) dispatch({ type: 'select', suspectId: next.id });
+  };
+
   const onTap = (cell: Cell) => {
     if (state.tool === 'mark') dispatch({ type: 'mark', cell });
     else if (state.tool === 'erase') dispatch({ type: 'clearCell', cell });
@@ -136,10 +176,15 @@ export function GameScreen({ core, locale, holdMs, onBack }: GameScreenProps) {
   return (
     <div className="game">
       <header className="game-head">
-        <button type="button" className="ghost" onClick={onBack}>&larr; {t(locale, 'back')}</button>
+        {/* Auf schmalen Geraeten bleibt nur der Pfeil: mit drei beschrifteten
+            Knoepfen brach die Kopfzeile um und schob das Brett aus dem Bild. */}
+        <button type="button" className="ghost back" onClick={onBack} aria-label={t(locale, 'back')}>
+          &larr; <span className="back-label">{t(locale, 'back')}</span>
+        </button>
         <h1>{t(locale, core.themeKey)} <span className="dim">{core.size}&times;{core.size}</span></h1>
         <div className="head-actions">
           <button type="button" className="ghost" onClick={() => setShowRules(true)}>{t(locale, 'rules')}</button>
+          <button type="button" className="ghost" onClick={onSettings}>{t(locale, 'settings')}</button>
           <span className="timer">{formatTime(state.elapsedMs)}</span>
         </div>
       </header>
@@ -174,7 +219,12 @@ export function GameScreen({ core, locale, holdMs, onBack }: GameScreenProps) {
             state={state}
             cellPx={cellPx}
             holdMs={holdMs}
+            vibrate={vibrate}
             roomLabels={roomLabels}
+            objectLabels={objectLabels}
+            suspectNames={core.suspects.map((suspect) => suspect.name)}
+            names={names}
+            occupiedLabel={t(locale, 'occupied')}
             roomOfCell={layout.roomOfCell}
             blocked={layout.blocked}
             letters={letters}
@@ -182,11 +232,19 @@ export function GameScreen({ core, locale, holdMs, onBack }: GameScreenProps) {
             onTap={onTap}
             onPaint={(cell) => dispatch({ type: state.tool === 'mark' ? 'mark' : 'note', cell })}
             onMark={(cell) => dispatch({ type: 'mark', cell })}
+            onNote={(cell) => dispatch({ type: 'note', cell })}
+            onClear={(cell) => dispatch({ type: 'clearCell', cell })}
+            onCycle={cycleSuspect}
+            keyboardLabel={t(locale, 'keyboardHelp')}
           />
-          {state.hintText && <p className="hint-box">{state.hintText}</p>}
-          {state.verdict === 'wrong' && (
-            <p className="verdict wrong"><strong>{t(locale, 'wrongTitle')}.</strong> {t(locale, 'wrong')}</p>
-          )}
+          {/* Angesagt statt nur gezeigt: Urteil und Tipp sind die beiden
+              Stellen, an denen das Spiel antwortet. */}
+          <div role="status" aria-live="polite">
+            {state.hintText && <p className="hint-box">{state.hintText}</p>}
+            {state.verdict === 'wrong' && (
+              <p className="verdict wrong"><strong>{t(locale, 'wrongTitle')}.</strong> {t(locale, 'wrong')}</p>
+            )}
+          </div>
           <Toolbar
             tool={state.tool}
             canUndo={session.history.length > 0}

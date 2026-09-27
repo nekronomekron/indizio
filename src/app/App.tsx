@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { Locale } from './types.js';
-import { CatalogScreen } from './components/CatalogScreen.js';
+import type { DifficultyKey } from '@engine';
+import { Dashboard } from './components/Dashboard.js';
+import { SettingsDialog } from './components/Settings.js';
 import { Footer } from './components/Footer.js';
 import { GameScreen } from './components/GameScreen.js';
 import { t } from './i18n.js';
-import { loadSettings, saveSettings } from './storage/store.js';
+import { randomSeed, redrawFor } from './random.js';
+import { loadSettings, saveSettings, type Settings } from './storage/store.js';
 import { usePuzzle } from './usePuzzle.js';
 
 function seedFromHash(): string | null {
@@ -13,9 +15,18 @@ function seedFromHash(): string | null {
   return match ? match[1]!.toLowerCase() : null;
 }
 
+/**
+ * Wie oft ein ausgelostes Rätsel neu gewürfelt wird, wenn die Erzeugung
+ * fehlschlägt. Gemessen tritt das praktisch nicht auf — über 130 erzeugte Fälle
+ * kein einziges Mal —, aber „praktisch nicht" ist kein Versprechen, und der
+ * Spieler hat sich diesen Fall nicht ausgesucht.
+ */
+const MAX_REDRAWS = 3;
+
 export function App() {
   const [settings, setSettings] = useState(() => loadSettings());
   const [seed, setSeed] = useState<string | null>(() => seedFromHash());
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     const onHash = () => setSeed(seedFromHash());
@@ -25,24 +36,62 @@ export function App() {
 
   const open = (next: string) => { window.location.hash = '#/p/' + next; };
   const back = () => { window.location.hash = '#/'; };
-  const setLocale = (locale: Locale) => {
-    const next = { ...settings, locale };
+  const applySettings = (next: Settings) => {
     setSettings(next);
     saveSettings(next);
   };
 
-  const status = usePuzzle(seed);
+  // Welcher Seed ausgelost war und wie oft schon nachgewürfelt wurde. Beides
+  // liegt in Refs, weil es nur **innerhalb** der Rückmeldung des Workers gelesen
+  // wird und nie beim Zeichnen. Ein selbst eingetippter Seed wird nie ersetzt:
+  // wer einen bestimmten Fall aufruft, will genau den und keinen ähnlichen.
+  const drawn = useRef<string | null>(null);
+  const redraws = useRef(0);
+  const [redrew, setRedrew] = useState(false);
+
+  const draw = (difficulty: DifficultyKey) => {
+    const next = randomSeed(difficulty);
+    drawn.current = next;
+    redraws.current = 0;
+    setRedrew(false);
+    open(next);
+  };
+
+  /**
+   * Läuft aus der Antwort des Workers heraus, nicht beim Zeichnen — deshalb
+   * dürfen hier Refs gelesen und geschrieben werden.
+   */
+  const replaceOnFailure = (badSeed: string): string | null => {
+    const next = redrawFor(badSeed, drawn.current, redraws.current, MAX_REDRAWS);
+    if (next === null) return null;
+    redraws.current += 1;
+    drawn.current = next;
+    setRedrew(true);
+    // `replace` statt `hash =`: die fehlgeschlagenen Versuche sollen nicht als
+    // Stationen im Verlauf liegen, durch die man sich zurückklicken kann.
+    window.location.replace('#/p/' + next);
+    return next;
+  };
+
+  const status = usePuzzle(seed, { replaceOnFailure });
 
   let screen: ReactNode;
 
   if (!seed) {
-    screen = <CatalogScreen locale={settings.locale} onOpen={open} onLocale={setLocale} />;
+    screen = (
+      <Dashboard
+        locale={settings.locale}
+        onOpen={open}
+        onDraw={draw}
+        onSettings={() => setShowSettings(true)}
+      />
+    );
   } else if (status.state === 'loading') {
     screen = (
       <div className="loading">
         <div className="loading-inner">
           <div className="scanner" aria-hidden="true" />
-          <p>{t(settings.locale, 'generating')}</p>
+          <p>{t(settings.locale, redrew ? 'randomRetry' : 'generating')}</p>
           <small>{t(settings.locale, 'generatingLong')}</small>
           <code>{seed}</code>
         </div>
@@ -62,11 +111,18 @@ export function App() {
     );
   } else {
     screen = (
+      // Je Rätsel eine eigene Sitzung: sonst trägt ein neues Rätsel den
+      // Spielstand des vorigen weiter, seit ein zwischengespeichertes Rätsel
+      // ohne Ladebildschirm erscheint.
       <GameScreen
+        key={status.core.seed}
         core={status.core}
         locale={settings.locale}
         holdMs={settings.holdMs}
+        vibrate={settings.vibrate}
+        names={settings.names}
         onBack={back}
+        onSettings={() => setShowSettings(true)}
       />
     );
   }
@@ -78,6 +134,16 @@ export function App() {
     <>
       <div className="screen">{screen}</div>
       <Footer locale={settings.locale} />
+      {/* Ein Dialog fuer beide Bildschirme: die Haltedauer stellt man dort ein,
+          wo sie stoert - beim Spielen -, und nicht nur auf der Startseite. */}
+      {showSettings && (
+        <SettingsDialog
+          settings={settings}
+          locale={settings.locale}
+          onChange={applySettings}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
     </>
   );
 }

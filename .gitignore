@@ -1,7 +1,38 @@
+# Abhängigkeiten
 node_modules/
+
+# Baustände
 dist/
+*.tsbuildinfo
+
+# Zwischenspeicher der Werkzeuge
 .vite/
+.eslintcache
+coverage/
+*.log
+
+# Erzeugte Übersichtsblätter — entstehen mit `npm run art:sheet`
+# und gehören deshalb nicht ins Repo.
+art-sheet.svg
+*-uebersicht.svg
+
+# Örtliche Einstellungen, nicht für alle
 *.local
+.claude/settings.local.json
+.env
+.env.*
+!.env.example
+
+# Betriebssystem und Editoren
 .DS_Store
-assets-src/**/*.zip
-packages/*/dist/
+Thumbs.db
+.idea/
+*.swp
+
+# Was hier ausdrücklich **mitkommt**, obwohl es erzeugt wird:
+#   art/**/*.svg                       die Grafiken des Spiels (art/README.md)
+#   tests/engine/reference/          eingefrorene Prüfsummen und Beispiele
+#   package-lock.json                  reproduzierbare Installation
+# Alle vier werden von einem Skript geschrieben und trotzdem versioniert:
+# ohne sie läuft das Spiel nicht beziehungsweise verliert die Testsuite ihren
+# Bezugspunkt.

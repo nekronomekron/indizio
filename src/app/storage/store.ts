@@ -1,16 +1,22 @@
-import type { PuzzleCore } from '@indizio/puzzle';
+import type { PuzzleCore } from '@engine';
 import type { GameState } from '../state/game.js';
 
 /**
- * Bumped alongside the generator version: a saved game refers to a seed, and
- * with generator 2 those seeds produce different puzzles. Leaving the old
- * entries would fill storage with saves that fit no puzzle.
+ * Zieht mit der Generatorversion mit: ein Spielstand zeigt auf einen Seed, und
+ * derselbe Seed ergibt unter einem anderen Generator ein anderes Rätsel. Alte
+ * Einträge liegen zu lassen hieße, den Speicher mit Ständen zu füllen, die zu
+ * keinem Rätsel mehr passen.
+ *
+ * Beim Schritt auf Generator 3 ist genau das unterblieben — die Schlüssel
+ * standen weiter unter `v2` und versprachen damit eine Version, die nicht
+ * stimmte. Nachgeholt, und {@link sweepOldStorage} räumt die alten weg.
  */
-const VERSION = 'v2';
-const SAVE_PREFIX = 'indizio:' + VERSION + ':save:';
-const PUZZLE_PREFIX = 'indizio:' + VERSION + ':puzzle:';
-const PROGRESS_KEY = 'indizio:' + VERSION + ':progress';
-const SETTINGS_KEY = 'indizio:' + VERSION + ':settings';
+const VERSION = 'v3';
+const PREFIX = 'indizio:' + VERSION + ':';
+const SAVE_PREFIX = PREFIX + 'save:';
+const PUZZLE_PREFIX = PREFIX + 'puzzle:';
+const PROGRESS_KEY = PREFIX + 'progress';
+const SETTINGS_KEY = PREFIX + 'settings';
 
 /** localStorage kann fehlen oder werfen (privates Fenster, blockierte Daten). */
 function readJson<T>(key: string): T | null {
@@ -34,6 +40,36 @@ export function saveGame(seed: string, state: GameState): void {
 
 export function dropSave(seed: string): void {
   try { localStorage.removeItem(SAVE_PREFIX + seed); } catch { /* egal */ }
+}
+
+/**
+ * Liegt zu diesem Rätsel ein angefangener Stand?
+ *
+ * Der Kalender zeigt damit „angefangen" statt „unberührt". Bewusst nur die
+ * Existenz und nicht der Inhalt: eine Zelle im Kalender soll nicht den ganzen
+ * Spielstand einlesen und wieder wegwerfen, nur um einen Punkt zu zeichnen.
+ */
+export function hasSave(seed: string): boolean {
+  try { return localStorage.getItem(SAVE_PREFIX + seed) !== null; } catch { return false; }
+}
+
+/**
+ * Räumt die Einträge früherer Fassungen weg — einmal beim Start.
+ *
+ * Ohne das bleiben Spielstände, zwischengespeicherte Rätsel und Einstellungen
+ * unter `indizio:v2:` für immer im Browser liegen: nie wieder gelesen, aber
+ * Platz belegend, und bei einem 10×10 sind das schnell einige hundert Kilobyte.
+ */
+export function sweepOldStorage(): void {
+  try {
+    const stale: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key !== null && key.startsWith('indizio:') && !key.startsWith(PREFIX)) stale.push(key);
+    }
+    // Erst sammeln, dann löschen: das Entfernen verschiebt die Indizes.
+    for (const key of stale) localStorage.removeItem(key);
+  } catch { /* Speicher nicht verfuegbar */ }
 }
 
 /**
@@ -86,9 +122,11 @@ export interface Settings {
   locale: 'de' | 'en';
   holdMs: number;
   vibrate: boolean;
+  /** Namen von Raum, Requisite und Person beim Verweilen auf einem Feld. */
+  names: boolean;
 }
 
-export const DEFAULT_SETTINGS: Settings = { locale: 'de', holdMs: 350, vibrate: true };
+export const DEFAULT_SETTINGS: Settings = { locale: 'de', holdMs: 350, vibrate: true, names: true };
 
 export function loadSettings(): Settings {
   return { ...DEFAULT_SETTINGS, ...(readJson<Partial<Settings>>(SETTINGS_KEY) ?? {}) };

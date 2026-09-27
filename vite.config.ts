@@ -18,8 +18,10 @@ export default defineConfig({
   define: { __APP_VERSION__: JSON.stringify(version.text) },
   resolve: {
     alias: {
-      '@indizio/puzzle/i18n': fileURLToPath(new URL('./packages/puzzle/src/i18n/index.ts', import.meta.url)),
-      '@indizio/puzzle': fileURLToPath(new URL('./packages/puzzle/src/index.ts', import.meta.url)),
+      // Reihenfolge zaehlt: der laengere Schluessel zuerst, sonst schluckt
+      // '@engine' die Anfrage nach '@engine/i18n'.
+      '@engine/i18n': fileURLToPath(new URL('./src/engine/i18n/index.ts', import.meta.url)),
+      '@engine': fileURLToPath(new URL('./src/engine/index.ts', import.meta.url)),
       '@app': fileURLToPath(new URL('./src/app', import.meta.url)),
     },
   },

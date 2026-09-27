@@ -4,7 +4,8 @@
 > [Murdoku](https://murdoku.com), mit prozedural generierten Tatorten,
 > seed-reproduzierbaren Rätseln und Pixel-Art im 16×16-Raster.
 
-**Stand:** Plan v12 — Requisiten je Grundfläche, gewählte Person leuchtet im Gitter.
+**Stand:** Plan v13 — Engine im Projekt statt in einem Paket, Kalender statt
+kuratiertem Katalog, Zufallsfall nach Stufe, Spiel ohne Maus bedienbar.
 Prüfprotokoll: [VALIDATION.md](VALIDATION.md)
 **Projektordner:** `C:\Projects\murdoku` (Paketname `indizio`)
 
@@ -106,6 +107,12 @@ Markierung am unteren Ende sähe nach Versehen aus.
 
 Beides ist **reine Darstellung**: die Id bleibt unangetastet, sie ist der Index
 in Lösung, Platzierungen und Notizen.
+
+**Ein Rahmen zeigt, wo die Tastatur steht.** Das Brett ist ein einziger
+Tabstopp; darin wandert ein Rahmen mit den Pfeiltasten (§8.3). Er erscheint beim
+ersten Tastendruck, nicht schon beim Fokus — wer mit der Maus aufs Brett klickt,
+braucht ihn nicht. Seine Position überlebt einen Fokuswechsel: wer zur
+Werkzeugleiste geht und zurückkommt, findet ihn, wo er ihn gelassen hat.
 
 **Die gewählte Person leuchtet auf dem Brett auf.** Sobald eine Karte gewählt
 ist, hebt das Gitter jede ihrer Marken farbig hervor — die Platzierung wie jede
@@ -243,7 +250,7 @@ Entscheidungen halten das verträglich:
   und rührt eine im Projekt bereits vorhandene Einrichtung nicht an. Wer seine
   eigene benutzen will, reicht sie als `instance` herein.
 - i18next ist **optionale Peer-Abhängigkeit** und wird ausschließlich vom
-  Einstiegspunkt `@indizio/puzzle/i18n` geladen. Wer nur erzeugt und löst,
+  Einstiegspunkt `@engine/i18n` geladen. Wer nur erzeugt und löst,
   bekommt weiterhin einen Kern **ohne jede Laufzeitabhängigkeit** (§8.1).
 
 Eigene Themes bringen ihre Wörter über `additionalResources` mit.
@@ -407,6 +414,35 @@ Der Zufallsgenerator ist ein eigener, deterministischer PRNG (SplitMix64 zur
 Initialisierung, xoshiro128 zur Ausgabe) — nie `Math.random`. Verwirft ein
 Versuch, wird der Versuchszähler in den PRNG-Strom eingespeist; dadurch bleibt
 auch die Wiederholung Teil der reproduzierbaren Kette.
+
+#### 6.1.1 Der Tagesfall und sein Wochenrhythmus
+
+Das Datum **ist** die Zufallszahl: alle, die am selben Tag spielen, bekommen
+denselben Fall, ohne dass ein Server daran beteiligt wäre. Dazu bestimmt der
+Wochentag die Stufe:
+
+| Mo | Di | Mi | Do | Fr | Sa | So |
+|---|---|---|---|---|---|---|
+| sehr leicht | leicht | leicht | mittel | mittel | schwer | Experte |
+
+Fünf Stufen auf sieben Tage gehen nicht glatt auf, die Verteilung ist also eine
+Wahl und keine Formel: kurze Fälle an Werkabenden, der lange am Sonntag. Vorher
+war die Gittergröße auf 6 festgenagelt, wodurch **jeder** Tagesfall „sehr
+leicht" war — ein Kalender aus 365 gleichen Tagen.
+
+`dailySeed` nimmt **drei blanke Zahlen** statt eines `Date`. Ein `Date` trägt
+eine Zeitzone, und welchen Tag es benennt, hängt davon ab, wo der Leser steht —
+genau die Frage, zu der die Engine keine Meinung haben darf. Welcher Tag gemeint
+ist, entscheidet die App, und sie entscheidet sich für die **Ortszeit**: ein
+Kalender ist ein Ding der Ortszeit.
+
+Der Wochentag wird **gerechnet** (Sakamoto), nicht aus einem `Date` gelesen —
+die Engine liest keine Uhr (§8.1.1). Weil eine selbstgebaute Formel sich selbst
+bestätigen würde, prüft ein Test sie gegen die Plattform: 366 Tage, Tag für Tag,
+dazu benannte Stichtage wie der 1.1.2000 und der Schalttag 29.2.2028.
+
+Vor dem **Starttag 1.1.2026** gibt es nichts, nach heute ist der Tag noch nicht
+gekommen; beides ist im Kalender gesperrt (§8.2).
 
 ### 6.2 Räume
 
@@ -741,38 +777,46 @@ liegen als Quelltext vor, sind also im Diff lesbar und gezielt änderbar.
 
 ### 8.1 Struktur
 
-Die Spiellogik liegt als **eigenständige Bibliothek** in einem eigenen Paket. Sie
-lässt sich unverändert in andere Projekte einbinden; die App ist nur einer ihrer
-Nutzer.
+Die Spiellogik liegt **im Projekt, aber hinter genau zwei Türen**. Sie war bis
+Plan v12 ein eigenes Paket (`@indizio/puzzle`); das ist zurückgenommen, weil die
+App der einzige Nutzer war und die Paketgrenze jede Änderung über zwei
+Verzeichnisse, zwei Manifeste und zwei Testläufe verteilte. Was bleibt, ist die
+Grenze selbst — nur erzwungen statt geerbt (§8.1.1).
 
 ```
 indizio/
-  package.json          Workspace-Wurzel, zugleich die Spiel-App
-  packages/puzzle/      @indizio/puzzle - Generator und Löser
-    package.json        eigene Version, eigener Build, kein Laufzeit-Zwang
-    README.md           API, Austauschformat, eigene Themes (englisch)
-    eslint.config.js    strict-type-checked, eigene Verbote (§8.1.1)
-    src/
-      index.ts          öffentliche Schnittstelle
+  package.json          ein Manifest, ein Testlauf, ein verify
+  eslint.config.js      zwei Bloecke: streng fuer die Engine, react-hooks fuer die App
+  tsconfig.json         die App
+  tsconfig.engine.json  die Engine, mit strengeren Schaltern
+  public/               Icons, Manifest, Service Worker
+  scripts/              Hilfsskripte: Grafiken, Referenzdaten, Version
+  src/
+    engine/             Generator und Loeser, ohne Abhaengigkeiten
+      index.ts          die Tuer: alles, was die App benutzen darf
+      README.md         der Vertrag (englisch, wie der ganze Ordner)
       api.ts            hohe Ebene: solvePuzzle, verifyPuzzle, hintFor, boardLayout
       core/             Typen, Gitterrechnung, Seeds, Stufen, Zufallsgenerator
-      clues/            was ein Hinweis bedeutet: auswerten, aufzählen, einschränken
+      clues/            was ein Hinweis bedeutet: auswerten, aufzaehlen, einschraenken
       solving/          Kandidaten, Propagation, Permutationsregeln, Tipp, Referenz
-      generation/       Grundriss, Möblierung, Rollen, Hinweissuche
-      io/               JSON-Austauschformat mit vollständiger Prüfung
-      content/          Themes und Namen — Daten, austauschbar
-      i18n/             i18next-Ressourcen und der Hinweisübersetzer
-    tests/              eigene Testsuite, inklusive erzwungener Entkopplung
-      deep/             der gründliche Lauf: Eigenschaften und Zeiten
-      reference/        eingefrorene Prüfsummen und Beispielrätsel
-  public/               Icons, Manifest, Service Worker
-  scripts/              Katalog- und Hilfsskripte
-  src/
+      generation/       Grundriss, Moeblierung, Rollen, Hinweissuche
+      io/               JSON-Austauschformat mit vollstaendiger Pruefung
+      content/          Themes und Namen - Daten, austauschbar
+      i18n/             zweite Tuer: i18next-Ressourcen und Hinweisuebersetzer
     worker/             Generator im Web Worker
-    app/                Oberfläche (React), Zustand, Speicherung, Sprites
+    app/                Oberflaeche (React), Zustand, Speicherung, Kalender
     styles/
-  tests/                App-Tests (Katalog)
+  tests/                App-Tests und die Grenze (boundary.test.ts)
+    engine/             Tests der Engine, inklusive erzwungener Entkopplung
+      deep/             der gruendliche Lauf: Eigenschaften und Zeiten
+      reference/        eingefrorene Pruefsummen und Beispielraetsel
 ```
+
+Die Engine läuft unter **strengeren Compilerschaltern** als die Oberfläche
+(`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax`).
+Deshalb zwei `tsconfig`-Dateien statt eines Kompromisses: in dichter Zahlenarbeit
+über typisierten Feldern finden diese Schalter Fehler, in JSX erzeugen sie vor
+allem Lärm.
 
 Die Ordner sind **Schichten mit einer Richtung**: `generation` darf `solving`
 benutzen, `solving` darf `clues` benutzen, `clues` darf `core` benutzen, und
@@ -782,14 +826,30 @@ Erzeugung nicht mitverändert hat.
 
 ### 8.1.1 Die Entkopplung wird erzwungen, nicht bloß behauptet
 
-Eine Testdatei liest den Quelltext der Bibliothek und weist nach:
+Solange die Engine ein Paket war, hielt `exports` in ihrem Manifest die
+Schnittstelle zusammen: an `solving/solve.js` kam niemand. Im selben Projekt gibt
+es diesen Schutz nicht mehr — ein relativer Import dorthin wäre technisch
+tadellos und genau das, was der Umzug nicht kosten sollte.
+
+Die Grenze steht deshalb **zweimal ausdrücklich** da:
+
+| Wächter | Wann er greift |
+|---|---|
+| `no-restricted-imports` in `eslint.config.js` | beim Schreiben |
+| `tests/boundary.test.ts` | auch dann, wenn jemand den Linter überspringt |
+
+Beide lassen nur `@engine` und `@engine/i18n` durch — und zwar in genau dieser
+Schreibweise, damit eine Suche nach `@engine` alle Nutzer findet. Der Test hat
+sich beim ersten Lauf selbst bewiesen: er fand drei Verstöße, einer davon frisch
+vom Umzug eingeschleppt.
+
+Dazu liest eine Testdatei den Quelltext der Engine und weist nach:
 
 | Prüfung | Warum |
 |---|---|
 | Importe halten die Schichtrichtung ein | sonst zerfällt die Gliederung still |
-| Kein Import greift aus dem Paketordner heraus | die Bibliothek muss allein lauffähig sein |
-| Keine Laufzeitabhängigkeiten im Kern | `npm install` soll nichts nachziehen |
-| i18next nur in `src/i18n` | der Kern bleibt abhängigkeitsfrei |
+| Kein blanker Import außer i18next | am Code geprüft statt an einem Manifest behauptet |
+| i18next nur in `i18n/` | der Kern bleibt abhängigkeitsfrei |
 | Kein DOM, kein React, keine Node-Module | derselbe Code in Browser, Worker und Test |
 | Kein `Math.random` | Reproduzierbarkeit (V6) |
 | Keine Uhr außer in `generate.ts` | `core` muss deterministisch bleiben |
@@ -808,12 +868,26 @@ Der Austausch zwischen Projekten läuft über ein JSON-Dokument (`§6.8`), das
 
 ### 8.2 Bildschirme
 
-- **Katalog** — Rätsel nach Stufe, Fortschrittsmarkierung, „weiterspielen",
-  Seed-Eingabe, Tagesrätsel (Datum als Zufallszahl). Die Liste ist eine
-  versionierte Datei mit **kuratierten Seeds**, erzeugt von `scripts/curate.ts`:
-  es generiert je Stufe Kandidaten, übernimmt nur solche mit sauberer
-  Einstufung und guter Themenverteilung und schreibt Seed, Titel und Kennwerte
-  fest. Damit ist der Katalog reproduzierbar und trotzdem seed-basiert. → **V2**
+- **Startseite** — der **Kalender ist die Hauptsache**. Darüber ein einziger
+  Primärknopf für den heutigen Fall, darunter Zufallsfall und Seed-Eingabe als
+  Beiwerk. Vorher stritten eine Tagesfall-Karte, eine kuratierte Fallliste und
+  das Seed-Feld um dieselbe Aufmerksamkeit. → **V2**
+  - Ein Monat je Seite, sieben Spalten, **Woche ab Montag**, vor und zurück
+    blätterbar bis zum Starttag; nach heute ist gesperrt.
+  - Vier Zustände je Tag: leer, **angefangen**, gelöst, gesperrt. „Angefangen"
+    liest nur, *ob* ein Spielstand existiert — eine Kalenderzelle soll nicht den
+    ganzen Stand einlesen und wieder wegwerfen, um einen Punkt zu zeichnen.
+  - Ein schmaler Balken zeigt die Stufe, in **Farbe und Breite**, damit er auch
+    ohne Farbwahrnehmung unterscheidbar bleibt. Künftige Tage zeigen ihn schon:
+    dass Sonntag der große Fall wird, darf man vorher sehen.
+  - Monatsnamen und Wochentage kommen von `Intl`, nicht aus der Textdatei.
+- **Zufallsfall** — fünf Knöpfe, einer je Stufe, mit der Gittergröße als
+  Beiwerk. Die Größe folgt aus der Stufe, wird also nicht gewählt sondern
+  hergeleitet; bei „sehr leicht" entscheidet das Los zwischen 5 und 6. Der
+  Zufall kommt aus `crypto.getRandomValues`. Lässt sich zu einem ausgelosten
+  Seed nichts erzeugen, wird bis zu dreimal neu gewürfelt — ein **eingetippter**
+  Seed wird dagegen nie ersetzt: wer einen bestimmten Fall aufruft, will genau
+  den. Die Adresse zeigt dabei immer den Fall, der gerade versucht wird.
 - **Spiel** — Gitter, Karten, Werkzeuge, Tipp, Bestätigen, Timer.
 - **Auflösung** — Mörder, Zeit, benötigte Tipps, Link zum Teilen.
 - **Regeln und Tutorial** — sechs Schritte, dazu eine dauerhaft erreichbare
@@ -826,6 +900,26 @@ der ausgewählten Person als Notiz — **links oben** in der Zelle, wie bei Murd
 Mehrere Notizen in derselben Zelle stehen nebeneinander und laufen bei Bedarf um;
 sie bleiben auch neben einer X-Markierung sichtbar. Erneutes Tippen mit derselben
 Person entfernt ihre Notiz wieder.
+
+**Bedienung mit der Tastatur.** Platzieren ging bis Plan v12 nur mit einem
+Zeiger: halten, doppelklicken oder rechtsklicken. Wer keine Maus benutzen kann,
+konnte das Spiel damit nicht spielen — nicht schwer, sondern gar nicht.
+
+| Taste | Wirkung |
+|---|---|
+| Pfeile | Rahmen bewegen; am Rand bleibt er stehen, statt umzubrechen |
+| Pos1 / Ende | an den Anfang oder das Ende der Zeile |
+| Eingabe / Leertaste | gewählte Person platzieren |
+| `N` | Notiz setzen oder entfernen |
+| `X` | Markierung setzen oder entfernen |
+| Entf / Rück | Feld leeren |
+| Komma / Punkt | eine Person zurück oder weiter |
+
+**Modusfrei:** jede Taste tut eine Sache, man muss nie wissen, welches Werkzeug
+gerade aktiv ist. Das Brett ist **ein** Tabstopp — hundert Felder einzeln
+anzuspringen wäre auf einem 10×10 schlimmer als gar keine Tastaturbedienung.
+Urteil und Tipp stehen in einer Statusregion und werden damit auch angesagt,
+nicht nur angezeigt.
 
 **Zeigerauswertung über Koordinaten.** Welche Zelle gemeint ist, wird
 ausschließlich aus den Zeigerkoordinaten bestimmt (`elementFromPoint`), nie aus
@@ -891,22 +985,35 @@ Optionen einstellbar.
 
 Ein Reducer hält Platzierungen, Notizen, X-Marken, Undo-Stapel, Timer und
 Tippzähler. Gespeichert wird pro Seed in `localStorage` unter
-`indizio:v2:save:<seed>`, dazu ein Fortschrittsindex für den Katalog.
+`indizio:v3:save:<seed>`, dazu ein Fortschrittsindex für den Kalender.
+
+**Der gespeicherte Stand ist der Anfangszustand der Sitzung**, nicht etwas, das
+ein Effekt nachreicht. Zwei Effekte — einer lädt, einer schreibt zurück —
+ergaben einen Wettlauf: der schreibende sieht den Zustand des Renders, der
+gerade fertig wurde, und das ist beim ersten Durchlauf das leere Brett. Im
+Browser hat er damit den geladenen Spielstand überschrieben, bevor er sichtbar
+wurde; die Tests blieben dabei grün.
 
 Der **Seed bleibt die Quelle der Wahrheit** — der Spielstand referenziert ihn und
 enthält nie eine eigene Rätselkopie. Damit das Wiederaufnehmen eines 10×10 nicht
 jedes Mal Sekunden kostet (§11, G6), wird das erzeugte `core`-Objekt zusätzlich
-unter `indizio:v2:puzzle:<seed>` zwischengespeichert.
+unter `indizio:v3:puzzle:<seed>` zwischengespeichert.
 
-Das Präfix trägt die Version, weil beides zugleich veralten kann: mit
-Generatorversion 2 beschreibt derselbe Seed ein anderes Rätsel, und das
+Das Präfix trägt die Version, weil beides zugleich veralten kann: unter einer
+anderen Generatorversion beschreibt derselbe Seed ein anderes Rätsel, und das
 Austauschformat hat andere Felder. Alte Einträge werden dadurch nicht
 fehlinterpretiert, sondern schlicht nicht mehr gefunden — ein Spielstand von
 gestern verschwindet, ein falsches Rätsel erscheint nie.
 
+Beim Schritt auf Generator 3 ist dieses Mitziehen **unterblieben**: die Schlüssel
+standen weiter auf `v2` und versprachen eine Version, die nicht stimmte.
+Nachgeholt, und ein einmaliger Lauf beim Start räumt die Einträge früherer
+Fassungen weg — sie werden nie wieder gelesen und belegen bei einem 10×10 schnell
+hunderte Kilobyte.
+
 ### 8.4.1 Versionsnummer
 
-Format `<Jahr>.<Nummer>`, zum Beispiel `2026.4` — die vierte Fassung aus diesem
+Format `<Jahr>.<Nummer>`, zum Beispiel `2026.5` — die fünfte Fassung aus diesem
 Jahr. Sie steht in der Fußzeile jedes Bildschirms.
 
 **Bewusst kein Semver.** Semantische Versionen sagen etwas über Verträge
@@ -939,6 +1046,23 @@ Gitter, darunter als waagerecht scrollbares Band darüber. Das Gitter skaliert a
 `min(verfügbare Breite, verfügbare Höhe)` mit ganzzahligem Sprite-Faktor.
 Zielgeräte 360 px bis 1440 px, Treffflächen mindestens 44 px. → **V7**
 
+Gemessen auf 375×812:
+
+| | |
+|---|---|
+| Spielbildschirm 10×10 und 6×6 | Seitenhöhe **exakt 812**, kein Scrollen |
+| Kopfzeile des Spiels | 44 px, eine Zeile |
+| Kalenderzellen | 44×44, kein waagerechtes Scrollen |
+
+**Offener Punkt.** Die Höhe, die der Spielbildschirm für alles außer dem Brett
+abzieht, ist eine Konstante. Sie musste bereits zweimal von Hand nachgezogen
+werden — erst wegen der Fußzeile, dann wegen eines dritten Knopfes in der
+Kopfzeile. Ein gemessener Wert wäre ehrlicher als eine Zahl, die jede
+UI-Änderung stillschweigend falsch macht. Beim zweiten Mal war die Ursache
+ohnehin eine andere: auf dem Handy bindet die **Breite** (347 gegen 414 freie
+Pixel), ein größerer Höhenabzug änderte gar nichts. Behoben wurde es, indem die
+Kopfzeile nicht mehr umbrechen darf und der Titel notfalls abschneidet.
+
 ---
 
 ## 9. Auslieferung
@@ -952,7 +1076,7 @@ hinzufügbar. Kein Backend, kein Konto, keine Datenübertragung. → **V7**
 
 ## 10. Meilensteine
 
-Alle dreizehn Etappen sind umgesetzt. Die Abnahme (§11) ist grün; offen ist
+Alle vierzehn Etappen sind umgesetzt. Die Abnahme (§11) ist grün; offen ist
 allein der Offline-Nachweis G11 in einem normalen Browser.
 
 | M | Inhalt | Ergebnis |
@@ -963,7 +1087,7 @@ allein der Offline-Nachweis G11 in einem normalen Browser.
 | M3 ✓ | Generator, Seed, Worker, Zeitmessung | Reproduzierbare Rätsel aller fünf Stufen |
 | M4 ✓ (ersetzt) | Zunächst Atlas aus CC0-Pixelgrafik, später vollständig durch eigene Vektorgrafik abgelöst (§7.5) | Tatorte sind sichtbar |
 | M5 ✓ | Spiel-UI, Eingabe, Werkzeuge, Undo, Bestätigen, Persistenz | **ab hier spielbar** |
-| M6 ✓ | Katalog mit Fortschritt, Tipp-UI, Auflösungsbildschirm | Vollständige Spielschleife |
+| M6 ✓ (ersetzt) | Katalog mit Fortschritt, Tipp-UI, Auflösungsbildschirm | Vollständige Spielschleife |
 | M7 ✓ | Tutorial, Timer, Teilen, Drucken | Ausstattung komplett |
 | M8 ✓ | i18n vollständig, Responsive-Feinschliff, PWA, Abnahmelauf G1–G14 | Abnahmekriterien erfüllt |
 | M9 ✓ | Bibliothek refaktoriert: englisch, geschichtet, i18next, zwei Regelstufen, Testsuite in zwei Stufen (§8.1.1, §11) | Wartbar und nachprüfbar |
@@ -971,6 +1095,7 @@ allein der Offline-Nachweis G11 in einem normalen Browser.
 | M11 ✓ | Versionsnummer `<Jahr>.<Nummer>` in der Fußzeile (§8.4.1) | Jeder Stand ist benennbar |
 | M12 ✓ | „Neben" nennt nie das eigene Standobjekt (§4.2.1), Generatorversion 3 | Hinweise sagen, was am nächsten liegt |
 | M13 ✓ | Requisiten je Grundfläche (§7.0), gewählte Person leuchtet im Gitter (§3.1) | Objekte belegen sichtbar ihren Platz |
+| M14 ✓ | Engine zurück ins Projekt hinter zwei Türen (§8.1), Kalender statt Katalog (§8.2), Zufallsfall nach Stufe, Spiel ohne Maus bedienbar (§8.3) | Ein Projekt, ein Testlauf, jeder Tag ein Fall |
 
 Themes: Werkstatt (Auto, Regal, Werkbank, Ölfleck, Reifenstapel), Wohnung (Sofa,
 Küchenzeile, Bett, Teppich, Bücherregal), Hinterhofgarten (Baum, Beet,
@@ -981,22 +1106,22 @@ Gartenstuhl, Teich, Schuppen).
 ## 11. Abnahmekriterien
 
 Automatisiert (Node, ohne Browser), sofern nicht anders vermerkt. Die Kriterien
-stecken seit dem Umbau in der **Testsuite der Bibliothek** statt in einem
+stecken seit dem Umbau in der **Testsuite selbst** statt in einem
 eigenen Abnahmeskript — dort werden sie bei jeder Änderung mitgeprüft, statt nur
 dann, wenn jemand daran denkt, den Abnahmelauf zu starten.
 
 | Lauf | Befehl | Umfang |
 |---|---|---|
-| Schnell | `npm run test:lib` | Sekunden; hält die Zusagen zwischen zwei gründlichen Läufen ehrlich |
+| Schnell | `npm test` | Sekunden; Engine und App zusammen, hält die Zusagen zwischen zwei gründlichen Läufen ehrlich |
 | Gründlich | `npm run test:deep` | alle Gittergrößen, hunderte Seeds, Zeitbudgets |
-| Vor dem Commit | `npm run verify` | Typprüfung, Lint, Tests von Bibliothek und App |
+| Vor dem Commit | `npm run verify` | Typprüfung beider Projekte, Lint, alle Tests |
 
 Zwei Ergänzungen, die es vorher nicht gab:
 
 - **Eigenschaftsbasierte Tests** (fast-check) erzeugen die Fälle selbst, statt
   eine Handvoll ausgesuchter Seeds zu prüfen. Was hier fällt, kommt mit dem
   verkleinerten Gegenbeispiel zurück.
-- **Eingefrorene Prüfsummen** (`tests/reference/`) halten G4 über die Zeit fest:
+- **Eingefrorene Prüfsummen** (`tests/engine/reference/`) halten G4 über die Zeit fest:
   zehn Seeds mit ihrem Prüfwert und zwei vollständige Beispielrätsel. Ändert
   sich der Generator ungewollt, fällt der Test; ändert er sich absichtlich, wird
   die Referenz mit einem eigenen Skript und der erhöhten `generatorVersion` neu
@@ -1021,6 +1146,9 @@ Zwei Ergänzungen, die es vorher nicht gab:
 | G15 | Die Schichtgrenzen der Bibliothek aus §8.1.1 sind eingehalten, geprüft am Quelltext |
 | G16 | Jede Grafik, die das Spiel anfordert, liegt als Datei vor — je Theme, je Art, je Grundfläche, ohne Verwaiste (§7.4) |
 | G17 | Die angezeigte Versionsnummer hat das Format `<Jahr>.<Nummer>` und stimmt mit der `package.json` überein (§8.4.1) |
+| G18 | Niemand außerhalb von `src/engine/` greift an den beiden Türen vorbei — am Quelltext geprüft, zusätzlich zur Lint-Regel (§8.1.1) |
+| G19 | Jeder Kalendertag ergibt einen Seed der Stufe, die sein Wochentag vorgibt, und trägt die aktuelle Generatorversion (§6.1.1) |
+| G20 | Der Tastaturrahmen bleibt bei jeder Gittergröße und jeder Taste im Brett und bricht am Rand nicht in die nächste Zeile um (§8.3) |
 
 ---
 
@@ -1033,5 +1161,7 @@ Zwei Ergänzungen, die es vorher nicht gab:
 | Solver unsound, mehrdeutige Rätsel gehen durch | Referenzlöser als unabhängige Prüfinstanz, G2 und G7 |
 | Fremde Grafikpakete decken ein Theme nicht ab | **Entfallen:** alle Grafik ist eigener Vektor (§7), kein Paket mehr im Spiel |
 | Testsuite prüft nur ausgesuchte Seeds und übersieht seltene Fälle | Eigenschaftsbasierte Tests erzeugen die Fälle selbst (§11); der gründliche Lauf deckt jede Gittergröße ab |
-| i18next zieht eine Abhängigkeit in den Kern | Optionale Peer-Abhängigkeit, nur am Einstiegspunkt `/i18n`; ein Test hält den Kern abhängigkeitsfrei (§8.1.1) |
+| i18next zieht eine Abhängigkeit in den Kern | Nur hinter der Tür `@engine/i18n`; ein Test weist am Quelltext nach, dass außerhalb von `i18n/` kein einziger blanker Import steht (§8.1.1) |
+| Ohne Paketgrenze greift die App irgendwann quer in die Engine | Zwei Wächter statt einer geerbten Grenze: Lint-Regel beim Schreiben, Test beim Prüfen (§8.1.1, G18) |
+| Die Engine ist nicht mehr als Paket veröffentlichbar | **Bewusst aufgegeben.** Die App war der einzige Nutzer. Die Ordnerstruktur bleibt so, dass ein Rückweg billig wäre: `src/engine/` ist in sich geschlossen und greift nach nichts außerhalb |
 | Deutsche Beugung in Hinweisen wird holprig | Kasusformen je Objekt in den Sprachdateien statt Zusammenkleben zur Laufzeit; Textprüfung aller Typen in M1 |

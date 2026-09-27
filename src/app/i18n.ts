@@ -1,5 +1,5 @@
-import { GENERATOR_VERSION } from '@indizio/puzzle';
-import type { Locale } from '@indizio/puzzle/i18n';
+import { GENERATOR_VERSION } from '@engine';
+import type { Locale } from '@engine/i18n';
 
 /**
  * Beispiel-Seed fuer das Eingabefeld, aus der Generatorversion gebaut.
@@ -8,7 +8,7 @@ import type { Locale } from '@indizio/puzzle/i18n';
  */
 const SEED_EXAMPLE = `v${String(GENERATOR_VERSION)}-garage-6-vl-k3f9tq`;
 
-/** Oberflaechentexte. Die Hinweistexte selbst liefert @indizio/puzzle. */
+/** Oberflaechentexte. Die Hinweistexte selbst liefert @engine. */
 export const UI: Record<Locale, Record<string, string>> = {
   de: {
     appTitle: 'Indizio',
@@ -37,15 +37,11 @@ export const UI: Record<Locale, Record<string, string>> = {
     share: 'Link kopieren',
     copied: 'Link kopiert',
     print: 'Drucken',
-    catalogTitle: 'Wähle einen Fall',
-    catalogIntro: 'Jeder Fall entsteht aus seinem Seed — derselbe Link ergibt immer dasselbe Rätsel.',
-    daily: 'Tagesfall',
     ownSeed: 'Eigener Seed',
     seedPlaceholder: `z. B. ${SEED_EXAMPLE}`,
     seedInvalid: 'Dieser Seed ist ungültig.',
     play: 'Spielen',
     solvedLabel: 'gelöst',
-    suspectsCount: 'Verdächtige',
     rules: 'Spielanleitung',
     close: 'Schließen',
     hintOnEmpty: 'Der Tipp geht immer vom leeren Brett aus und sagt nie, ob etwas falsch steht.',
@@ -53,6 +49,26 @@ export const UI: Record<Locale, Record<string, string>> = {
     version: 'Version',
     outdatedSeed: 'Dieser Link stammt aus einer älteren Fassung des Spiels.',
     outdatedSeedWhy: 'Dieselbe Kennung ergäbe heute ein anderes Rätsel. Statt dir ein fremdes Rätsel unterzuschieben, zeigt das Spiel lieber gar keines.',
+    playToday: 'Heutigen Fall spielen',
+    todaySolved: 'Heutigen Fall noch einmal ansehen',
+    calendar: 'Tagesfälle',
+    calendarIntro: 'Jeder Tag hat seinen eigenen Fall — von Montag kurz bis Sonntag lang. Verpasste lassen sich nachholen.',
+    prevMonth: 'Vorheriger Monat',
+    nextMonth: 'Nächster Monat',
+    thisMonth: 'Zu heute',
+    started: 'angefangen',
+    randomTitle: 'Zufallsfall',
+    randomIntro: 'Stufe wählen — Tatort, Größe und Fall werden ausgelost.',
+    randomRetry: 'Für diesen ausgelosten Fall ließ sich nichts erzeugen. Es wird neu gewürfelt …',
+    ownSeedIntro: 'Jeder Fall entsteht aus seinem Seed — derselbe Link ergibt überall dasselbe Rätsel.',
+    settings: 'Einstellungen',
+    language: 'Sprache',
+    holdTime: 'Haltedauer zum Platzieren',
+    holdTimeWhy: 'Wie lange ein Feld gedrückt bleiben muss, bis die gewählte Person dort steht.',
+    vibrate: 'Kurz rütteln beim Platzieren',
+    cellNames: 'Namen der Felder zeigen',
+    occupied: 'belegt',
+    keyboardHelp: 'Pfeiltasten bewegen den Rahmen, Eingabe platziert, N setzt eine Notiz, X markiert, Entf leert. Komma und Punkt wechseln die Person.',
     veryEasy: 'Sehr leicht', easy: 'Leicht', medium: 'Mittel', hard: 'Schwer', expert: 'Experte',
     garage: 'Autowerkstatt', flat: 'Wohnung', garden: 'Hinterhofgarten',
   },
@@ -83,15 +99,11 @@ export const UI: Record<Locale, Record<string, string>> = {
     share: 'Copy link',
     copied: 'Link copied',
     print: 'Print',
-    catalogTitle: 'Pick a case',
-    catalogIntro: 'Every case comes from its seed — the same link always gives the same puzzle.',
-    daily: 'Daily case',
     ownSeed: 'Your own seed',
     seedPlaceholder: `e.g. ${SEED_EXAMPLE}`,
     seedInvalid: 'That seed is not valid.',
     play: 'Play',
     solvedLabel: 'solved',
-    suspectsCount: 'suspects',
     rules: 'How to play',
     close: 'Close',
     hintOnEmpty: 'The hint always starts from an empty board and never says whether something is wrong.',
@@ -99,6 +111,26 @@ export const UI: Record<Locale, Record<string, string>> = {
     version: 'Version',
     outdatedSeed: 'This link comes from an older version of the game.',
     outdatedSeedWhy: 'The same code would mean a different puzzle today. Rather than hand you the wrong case, the game shows none.',
+    playToday: "Play today's case",
+    todaySolved: "Look at today's case again",
+    calendar: 'Daily cases',
+    calendarIntro: 'Every day has a case of its own — short on Monday, long on Sunday. Missed ones can be caught up on.',
+    prevMonth: 'Previous month',
+    nextMonth: 'Next month',
+    thisMonth: 'Back to today',
+    started: 'in progress',
+    randomTitle: 'Random case',
+    randomIntro: 'Pick a tier — scene, size and case are drawn for you.',
+    randomRetry: 'Nothing could be generated for that drawn case. Rolling again …',
+    ownSeedIntro: 'Every case comes from its seed — the same link gives the same puzzle anywhere.',
+    settings: 'Settings',
+    language: 'Language',
+    holdTime: 'Hold to place',
+    holdTimeWhy: 'How long a square must be held before the chosen person stands there.',
+    vibrate: 'Short buzz when placing',
+    cellNames: 'Show square names',
+    occupied: 'blocked',
+    keyboardHelp: 'Arrow keys move the frame, Enter places, N writes a note, X marks, Delete clears. Comma and period switch person.',
     veryEasy: 'Very easy', easy: 'Easy', medium: 'Medium', hard: 'Hard', expert: 'Expert',
     garage: 'Car repair shop', flat: 'Flat', garden: 'Backyard garden',
   },

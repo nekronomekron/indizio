@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generatePuzzle, makeSeed } from '@indizio/puzzle';
+import { generatePuzzle, makeSeed } from '@engine';
 import { gameReducer, initialGame, type GameSession } from '../src/app/state/game.js';
 
 const { core } = generatePuzzle(makeSeed('garage', 5, 31337));

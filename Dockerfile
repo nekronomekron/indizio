@@ -12,7 +12,6 @@ WORKDIR /app
  
  
 # Copy package-related files first to leverage Docker's caching mechanism
-COPY packages ./
 COPY package.json package-lock.json ./
  
  

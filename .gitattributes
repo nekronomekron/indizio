@@ -1,0 +1,34 @@
+# Zeilenenden: im Repo immer LF, in der Arbeitskopie was das System mag.
+#
+# Ohne diese Datei hängt es an der Einstellung `core.autocrlf` jedes einzelnen
+# Rechners, was im Repo landet. Auf Windows geschriebene Dateien kamen hier mit
+# CRLF an; wer sie auf macOS oder Linux auscheckt, bekommt sie so zurück, und
+# die nächste Änderung sieht dann aus, als sei die ganze Datei neu geschrieben.
+* text=auto eol=lf
+
+# Windows-Skripte brauchen CRLF, sonst führt sie die Eingabeaufforderung nicht aus.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binär: nicht anfassen, nicht zusammenführen, nicht als Text vergleichen.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.pdf binary
+
+# SVG ist Text und soll im Diff lesbar bleiben — die Grafiken des Spiels sind
+# Quelltext, kein Bildmaterial.
+*.svg text
+
+# Vom Werkzeug geschrieben: im Diff einklappen, damit eine Änderung daran nicht
+# den Blick auf die eigentliche Arbeit verstellt.
+package-lock.json linguist-generated=true -diff
+tests/engine/reference/* linguist-generated=true
+
+# GitHub soll das Projekt nach dem Spielcode einordnen, nicht nach den Grafiken.
+art/** linguist-vendored=true

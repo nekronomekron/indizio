@@ -1,5 +1,5 @@
-import { generatePuzzle, GenerationError } from '@indizio/puzzle';
-import type { PuzzleCore } from '@indizio/puzzle';
+import { generatePuzzle, GenerationError } from '@engine';
+import type { PuzzleCore } from '@engine';
 
 export interface GenerateRequest { seed: string }
 export type GenerateResponse =

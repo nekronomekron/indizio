@@ -15,7 +15,11 @@
     ],
     "jsx": "react-jsx",
     "strict": true,
-    "noUncheckedIndexedAccess": false,
+    // Gemessen und dann eingeschaltet: streng kostete genau einen Handgriff,
+    // und ohne den Schalter erklaerte der Linter jedes defensive `!` auf einem
+    // Feldzugriff fuer unnoetig - ein Rat, der den Code an dem Tag falsch
+    // machen wuerde, an dem hier doch "true" steht.
+    "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
@@ -28,17 +32,24 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@indizio/puzzle": [
-        "packages/puzzle/src/index.ts"
+      "@engine": [
+        "src/engine/index.ts"
       ],
       "@app/*": [
         "src/app/*"
       ],
-      "@indizio/puzzle/i18n": [
-        "packages/puzzle/src/i18n/index.ts"
+      "@engine/i18n": [
+        "src/engine/i18n/index.ts"
       ]
     }
   },
+  // Die Engine hat ihre eigene, strengere Konfiguration. Hier ist sie
+  // ausgeschlossen, damit jede Datei genau einem Projekt gehoert - sonst
+  // pruefte der Linter Engine-Dateien unter den laxeren Schaltern der App.
+  "exclude": [
+    "src/engine",
+    "tests/engine"
+  ],
   "include": [
     "src",
     "scripts",

@@ -3,7 +3,7 @@ import { join, relative, sep } from 'node:path';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { PORTRAIT_KEYS, THEMES } from '@indizio/puzzle';
+import { PORTRAIT_KEYS, THEMES } from '@engine';
 import { HELP } from '../src/app/help.js';
 import { artNames, artThemes, artUrl, hasArt } from '../src/app/render/art.js';
 import { Sprite } from '../src/app/render/Sprite.js';

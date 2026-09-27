@@ -47,8 +47,8 @@ gedrehtes Quadrat. Die Zeichenfläche wächst mit: **24 je Feld**, also
 Felder; wer die Zeichenfläche anders wählt, bekommt Luft an den Rändern statt
 eines gestauchten Tisches.
 
-Welche Grundflächen es gibt, bestimmt die **Theme-Definition** der Bibliothek
-(`packages/puzzle/src/content/themes/`). Fehlt eine, sagt der Test welche.
+Welche Grundflächen es gibt, bestimmt die **Theme-Definition** der Engine
+(`src/engine/content/themes/`). Fehlt eine, sagt der Test welche.
 
 Wer für alle Flächen mit einer Datei auskommt, legt sie ohne Zusatz ab
 (`bed.svg`) — das Spiel nimmt sie, wenn es die passende Fläche nicht findet.

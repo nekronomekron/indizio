@@ -29,11 +29,14 @@
 /** Ordner unter `art/`, zugleich die Art einer Grafik. */
 export type ArtKind = 'objects' | 'floors' | 'characters' | 'icons';
 
-const FILES = import.meta.glob('../../../art/**/*.svg', {
+// Angeschrieben statt behauptet: `import.meta.glob` liefert mit diesen Optionen
+// bereits `Record<string, string>`, ein `as` waere eine Zusicherung, die nichts
+// zusichert. Die Annotation dokumentiert dasselbe und wird geprueft.
+const FILES: Record<string, string> = import.meta.glob('../../../art/**/*.svg', {
   query: '?raw',
   import: 'default',
   eager: true,
-}) as Record<string, string>;
+});
 
 /** Dateiinhalt als Datenadresse, direkt als `src` eines Bildes verwendbar. */
 function toDataUrl(svg: string): string {

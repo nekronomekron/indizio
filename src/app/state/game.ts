@@ -1,4 +1,4 @@
-import type { Cell, PuzzleCore } from '@indizio/puzzle';
+import type { Cell, PuzzleCore } from '@engine';
 
 export type Tool = 'place' | 'mark' | 'erase';
 
@@ -35,8 +35,7 @@ export type GameAction =
   | { type: 'hint'; cell: Cell; text: string }
   | { type: 'check'; correct: boolean }
   | { type: 'tick'; ms: number }
-  | { type: 'pause'; running: boolean }
-  | { type: 'restore'; state: GameState };
+  | { type: 'pause'; running: boolean };
 
 export function initialGame(core: PuzzleCore): GameState {
   return {
@@ -228,9 +227,9 @@ export function gameReducer(session: GameSession, action: GameAction): GameSessi
     case 'pause':
       return { ...session, state: { ...state, running: action.running } };
 
-    case 'restore':
-      return { state: action.state, history: [] };
-
+    // Ein 'restore' gab es hier einmal. Es ist weggefallen, weil der
+    // gespeicherte Stand jetzt der Anfangszustand der Sitzung ist und nicht
+    // nachträglich hineingereicht wird — siehe `openSession` in GameScreen.
     default:
       return session;
   }

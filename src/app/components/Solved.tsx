@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import type { Locale } from '@indizio/puzzle/i18n';
-import type { PuzzleCore } from '@indizio/puzzle';
+import type { Locale } from '@engine/i18n';
+import type { PuzzleCore } from '@engine';
 import { t } from '../i18n.js';
 import { Sprite } from '../render/Sprite.js';
 
@@ -42,7 +42,10 @@ export function Solved({ core, locale, elapsedMs, hintsUsed, onBack }: {
         </dl>
         <div className="actions">
           <button type="button" className="primary" onClick={onBack}>{t(locale, 'again')}</button>
-          <button type="button" onClick={share}>{copied ? t(locale, 'copied') : t(locale, 'share')}</button>
+          {/* Absichtlich abgeschickt und nicht abgewartet: `share` fängt selbst
+              ab, wenn die Zwischenablage fehlt. Ohne das `void` übergäbe man
+              dem Klick ein Versprechen, das niemand einlöst. */}
+          <button type="button" onClick={() => { void share(); }}>{copied ? t(locale, 'copied') : t(locale, 'share')}</button>
           <button type="button" onClick={() => window.print()}>{t(locale, 'print')}</button>
         </div>
         <p className="seed-line">{core.seed}</p>
