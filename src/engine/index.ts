@@ -56,7 +56,12 @@ export type {
 export { CLUE_TYPES } from './core/types.js';
 
 // --- Generating -----------------------------------------------------------
-export { GenerationError, generatePuzzle, type GenerateOptions } from './generation/generate.js';
+export {
+  GenerationError,
+  generatePuzzle,
+  type GenerateOptions,
+  type GenerationErrorCode,
+} from './generation/generate.js';
 
 // --- Seeds ----------------------------------------------------------------
 export {

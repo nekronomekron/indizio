@@ -44,11 +44,9 @@ export interface GameScreenProps {
  * Als Anfangszustand gibt es den Wettlauf nicht mehr, und den Merker auch nicht.
  */
 function openSession(core: PuzzleCore): GameSession {
-  const saved = loadSave(core.seed);
-  // Ein Stand aus einem anders großen Rätsel gehört nicht hierher.
-  const usable = saved !== null && saved.placements.length === core.suspects.length;
+  const saved = loadSave(core);
   return {
-    state: usable ? { ...saved, running: true, verdict: 'none' } : initialGame(core),
+    state: saved ? { ...saved, running: true, verdict: 'none' } : initialGame(core),
     history: [],
   };
 }
@@ -167,18 +165,21 @@ export function GameScreen({
 
   const onHint = () => {
     const hint = hintFor(core, state.placements);
-    if (!hint) {
-      dispatch({ type: 'hint', cell: -1, text: t('noHintLeft') });
-      return;
-    }
-    const name = core.suspects[hint.suspectId]!.name;
-    const clue = clues.byOwner[hint.suspectId] ?? '';
     dispatch({
       type: 'hint',
-      cell: hint.cell,
-      text: name + ' — ' + clue + '  (' + hint.step + '/' + hint.totalSteps + ')',
+      hint: hint
+        ? { cell: hint.cell, suspectId: hint.suspectId, step: hint.step, totalSteps: hint.totalSteps }
+        : { cell: null },
     });
   };
+
+  const hintText = ((): string | null => {
+    const hint = state.hint;
+    if (!hint) return null;
+    if (hint.cell === null) return t('noHintLeft');
+    const name = core.suspects[hint.suspectId]?.name ?? '';
+    return `${name} — ${clues.byOwner[hint.suspectId] ?? ''}  (${String(hint.step)}/${String(hint.totalSteps)})`;
+  })();
 
   return (
     <div className="game">
@@ -258,7 +259,7 @@ export function GameScreen({
           {/* Angesagt statt nur gezeigt: Urteil und Tipp sind die beiden
               Stellen, an denen das Spiel antwortet. */}
           <div role="status" aria-live="polite">
-            {state.hintText && <p className="hint-box">{state.hintText}</p>}
+            {hintText !== null && <p className="hint-box">{hintText}</p>}
             {state.verdict === 'wrong' && (
               <p className="verdict wrong">
                 <strong>{t('wrongTitle')}.</strong> {t('wrong')}

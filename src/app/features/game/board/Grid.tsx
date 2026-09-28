@@ -565,7 +565,7 @@ export function Grid(props: GridProps): ReactElement {
           const notes = state.notes[cell] ?? [];
           const marked = state.marks.includes(cell);
           const classes = ['cell'];
-          if (state.hintCell === cell) classes.push('hint');
+          if (state.hint?.cell === cell) classes.push('hint');
           if (focused && cursor === cell) classes.push('cursor');
           if (isBlocked(cell)) classes.push('blocked');
           if (denied === cell) classes.push('denied');

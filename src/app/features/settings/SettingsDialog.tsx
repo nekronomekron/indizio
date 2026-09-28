@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { isLocale } from '../../shared/i18n/i18n.js';
-import type { Settings } from './settings.js';
+import { HOLD_MS_MAX, HOLD_MS_MIN, type Settings } from './settings.js';
 
 /**
  * Einstellungen.
@@ -50,8 +50,8 @@ export function SettingsDialog({
           </span>
           <input
             type="range"
-            min={200}
-            max={600}
+            min={HOLD_MS_MIN}
+            max={HOLD_MS_MAX}
             step={50}
             value={settings.holdMs}
             onChange={(event) => onChange({ ...settings, holdMs: Number(event.target.value) })}

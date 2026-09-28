@@ -14,7 +14,6 @@ export const ui = {
   back: 'Back to the case list',
   generating: 'Securing the crime scene …',
   generatingLong: 'Large grids can take a moment.',
-  generateError: 'No puzzle could be generated for this seed.',
   wrongTitle: 'Not quite',
   wrong: 'At least one person is in the wrong place. Check the clues again — we will not say which.',
   solvedTitle: 'Case closed',
@@ -36,9 +35,6 @@ export const ui = {
   hintOnEmpty: 'The hint always starts from an empty board and never says whether something is wrong.',
   noHintLeft: 'Every step is already correct on the board.',
   version: 'Version',
-  outdatedSeed: 'This link comes from an older version of the game.',
-  outdatedSeedWhy:
-    'The same code would mean a different puzzle today. Rather than hand you the wrong case, the game shows none.',
   playToday: "Play today's case",
   todaySolved: "Look at today's case again",
   calendar: 'Daily cases',
@@ -66,6 +62,42 @@ export const ui = {
   medium: 'Medium',
   hard: 'Hard',
   expert: 'Expert',
+  errors: {
+    invalidSeed: {
+      title: 'This case does not exist.',
+      text: 'The seed is invalid – perhaps part of the link was lost when copying it.',
+    },
+    outdatedSeed: {
+      title: 'This link comes from an older version of the game.',
+      text: 'The same code would produce a different puzzle today. Rather than slip you someone else’s case, the game shows none.',
+    },
+    invalidTheme: {
+      title: 'This crime scene is broken.',
+      text: 'The theme of this case is incomplete or contradicts itself.',
+    },
+    attemptsExhausted: {
+      title: 'No puzzle could be generated for this seed.',
+      text: 'This is very rare. Any other case will work.',
+    },
+    crashed: {
+      title: 'Something went wrong while generating.',
+      text: 'Reload the page and try again.',
+    },
+    timeout: {
+      title: 'Generating is taking unusually long.',
+      text: 'Try again, or pick a smaller case.',
+    },
+    screen: {
+      title: 'This case could not be shown.',
+      text: 'Your game is saved. Going back to the list and opening it again usually helps.',
+    },
+    app: {
+      title: 'Something went wrong.',
+      text: 'Reload the page. Your progress is kept.',
+    },
+  },
+  errorDetails: 'Technical details',
+  reload: 'Reload',
 };
 
 export type UiResource = typeof ui;

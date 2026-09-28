@@ -5,7 +5,7 @@ import { THEMES, findTheme, themeProblems, type Theme } from '../content/themes/
 import { meetsBand } from '../core/difficulty.js';
 import { buildSceneIndex } from '../core/grid.js';
 import { Rng } from '../core/rng.js';
-import { GENERATOR_VERSION, parseSeed } from '../core/seed.js';
+import { GENERATOR_VERSION, SeedError, parseSeed, type SeedParts } from '../core/seed.js';
 import type { Cell, Puzzle, PuzzleCore, Room, RoomId, Scene } from '../core/types.js';
 import { solve } from '../solving/solve.js';
 import { buildProof, searchClues } from './clueSearch.js';
@@ -33,10 +33,19 @@ export interface GenerateOptions {
   themes?: readonly Theme[];
 }
 
+/**
+ * Why generation failed, as a fixed code. A caller shows the player a
+ * translated message chosen by code; `message` stays the technical detail.
+ */
+export type GenerationErrorCode = 'invalidSeed' | 'outdatedSeed' | 'invalidTheme' | 'attemptsExhausted';
+
 export class GenerationError extends Error {
-  constructor(message: string) {
+  readonly code: GenerationErrorCode;
+
+  constructor(code: GenerationErrorCode, message: string) {
     super(message);
     this.name = 'GenerationError';
+    this.code = code;
   }
 }
 
@@ -75,9 +84,12 @@ function pickSolutionCells(rng: Rng, size: number, rooms: readonly Room[]): Cell
 
 function resolveTheme(themeKey: string, themes: readonly Theme[]): Theme {
   const theme = findTheme(themeKey, themes);
-  if (!theme) throw new GenerationError(`Unknown theme: ${themeKey}`);
+  // parseSeed has already refused a theme that is not in the list.
+  if (!theme) throw new GenerationError('invalidSeed', `Unknown theme: ${themeKey}`);
   const problems = themeProblems(theme);
-  if (problems.length > 0) throw new GenerationError(`Invalid theme ${themeKey}: ${problems.join('; ')}`);
+  if (problems.length > 0) {
+    throw new GenerationError('invalidTheme', `Invalid theme ${themeKey}: ${problems.join('; ')}`);
+  }
   return theme;
 }
 
@@ -145,9 +157,16 @@ export function generatePuzzle(seed: string, options: GenerateOptions = {}): Puz
   const themes = options.themes ?? THEMES;
   const maxAttempts = options.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
 
-  const parts = parseSeed(seed, { themeKeys: themes.map((theme) => theme.key) });
+  let parts: SeedParts;
+  try {
+    parts = parseSeed(seed, { themeKeys: themes.map((theme) => theme.key) });
+  } catch (error) {
+    if (error instanceof SeedError) throw new GenerationError('invalidSeed', error.message);
+    throw error;
+  }
   if (parts.version !== GENERATOR_VERSION) {
     throw new GenerationError(
+      'outdatedSeed',
       `Seed was made by generator version ${parts.version}, this is version ${GENERATOR_VERSION}`,
     );
   }
@@ -163,5 +182,8 @@ export function generatePuzzle(seed: string, options: GenerateOptions = {}): Puz
     }
   }
 
-  throw new GenerationError(`No puzzle found for seed ${seed} within the attempt budget`);
+  throw new GenerationError(
+    'attemptsExhausted',
+    `No puzzle found for seed ${seed} within the attempt budget`,
+  );
 }

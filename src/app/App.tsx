@@ -8,6 +8,8 @@ import { GameScreen } from './features/game/GameScreen.js';
 import { randomSeed, redrawFor } from './features/calendar/randomSeed.js';
 import { loadSettings, saveSettings, type Settings } from './features/settings/settings.js';
 import { usePuzzle } from './shared/puzzle/usePuzzle.js';
+import { ErrorBoundary } from './shared/errors/ErrorBoundary.js';
+import { ErrorPanel } from './shared/errors/ErrorPanel.js';
 
 function seedFromHash(): string | null {
   const match = /^#\/p\/([a-z0-9-]+)$/i.exec(window.location.hash);
@@ -80,6 +82,12 @@ export function App(): ReactElement {
 
   const status = usePuzzle(seed, { replaceOnFailure });
 
+  const backButton = (
+    <button type="button" className="primary" onClick={back}>
+      {t('back')}
+    </button>
+  );
+
   let screen: ReactNode;
 
   if (!seed) {
@@ -96,33 +104,26 @@ export function App(): ReactElement {
       </div>
     );
   } else if (status.state === 'error') {
-    const outdated = status.kind === 'outdatedSeed';
-    screen = (
-      <div className="loading">
-        <div className="loading-inner">
-          <p>{t(outdated ? 'outdatedSeed' : 'generateError')}</p>
-          {outdated && <small>{t('outdatedSeedWhy')}</small>}
-          <code>{status.message}</code>
-          <button type="button" className="primary" onClick={back}>
-            {t('back')}
-          </button>
-        </div>
-      </div>
-    );
+    screen = <ErrorPanel kind={status.code} detail={status.detail} action={backButton} />;
   } else {
     screen = (
-      // Je Rätsel eine eigene Sitzung: sonst trägt ein neues Rätsel den
-      // Spielstand des vorigen weiter, seit ein zwischengespeichertes Rätsel
-      // ohne Ladebildschirm erscheint.
-      <GameScreen
+      // A crash inside the board costs this case, not the app: the player
+      // gets back to the list, and the save is still there.
+      <ErrorBoundary
         key={status.core.seed}
-        core={status.core}
-        holdMs={settings.holdMs}
-        vibrate={settings.vibrate}
-        names={settings.names}
-        onBack={back}
-        onSettings={() => setShowSettings(true)}
-      />
+        fallback={(error) => <ErrorPanel kind="screen" detail={error.message} action={backButton} />}
+      >
+        {/* One session per puzzle, keyed by seed: otherwise a new puzzle
+            would carry the previous one's board. */}
+        <GameScreen
+          core={status.core}
+          holdMs={settings.holdMs}
+          vibrate={settings.vibrate}
+          names={settings.names}
+          onBack={back}
+          onSettings={() => setShowSettings(true)}
+        />
+      </ErrorBoundary>
     );
   }
 

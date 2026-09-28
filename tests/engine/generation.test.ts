@@ -293,4 +293,27 @@ describe('generated puzzles', () => {
       /within the attempt budget/,
     );
   });
+
+  /** The app picks the player's message by code, so every failure needs one. */
+  it.each([
+    ['invalidSeed', () => generatePuzzle('not-a-seed')],
+    ['invalidSeed', () => generatePuzzle(makeSeed('garage', 6, 1).replace('garage', 'castle'))],
+    ['outdatedSeed', () => generatePuzzle(makeSeed('garage', 6, 1, 1))],
+    ['attemptsExhausted', () => generatePuzzle(makeSeed('garage', 6, 1), { maxAttempts: 0 })],
+    [
+      'invalidTheme',
+      () =>
+        generatePuzzle(makeSeed('broken', 6, 1), {
+          themes: [testTheme('broken', ['a'], [{ ...THEMES[0]!.objects[0]!, rooms: ['nowhere'] }])],
+        }),
+    ],
+  ])('report %s as a code', (code, run) => {
+    try {
+      run();
+      expect.unreachable('should have thrown');
+    } catch (error) {
+      expect(error).toBeInstanceOf(GenerationError);
+      expect((error as GenerationError).code).toBe(code);
+    }
+  });
 });

@@ -2,6 +2,13 @@ import type { Cell, PuzzleCore } from '@engine';
 
 export type Tool = 'place' | 'mark' | 'erase';
 
+/**
+ * The hint on screen, as structure. The sentence is built when drawing, so a
+ * language switch shows it in the new language rather than the one it was
+ * asked in. `cell: null` means every step is already on the board.
+ */
+export type ShownHint = { cell: Cell; suspectId: number; step: number; totalSteps: number } | { cell: null };
+
 export interface GameState {
   /** Kantenlaenge des Gitters - fuer Zeilen- und Spaltenlogik. */
   size: number;
@@ -14,9 +21,8 @@ export interface GameState {
   selected: number | null;
   tool: Tool;
   hintsUsed: number;
-  /** Hervorgehobene Zelle des letzten Tipps. */
-  hintCell: Cell | null;
-  hintText: string | null;
+  /** The last hint asked for, until the board changes. */
+  hint: ShownHint | null;
   /** Ergebnis der letzten Pruefung. */
   verdict: 'none' | 'wrong' | 'solved';
   elapsedMs: number;
@@ -32,7 +38,7 @@ export type GameAction =
   | { type: 'clearCell'; cell: Cell }
   | { type: 'clearAll' }
   | { type: 'undo' }
-  | { type: 'hint'; cell: Cell; text: string }
+  | { type: 'hint'; hint: ShownHint }
   | { type: 'check'; correct: boolean }
   | { type: 'tick'; ms: number }
   | { type: 'pause'; running: boolean };
@@ -50,8 +56,7 @@ export function initialGame(core: PuzzleCore): GameState {
     selected: (core.suspects.find((suspect) => !suspect.isVictim) ?? core.suspects[0])?.id ?? null,
     tool: 'place',
     hintsUsed: 0,
-    hintCell: null,
-    hintText: null,
+    hint: null,
     verdict: 'none',
     elapsedMs: 0,
     running: true,
@@ -141,8 +146,7 @@ export function placeSuspect(state: GameState, suspectId: number, cell: Cell): G
     notes,
     marks: [...marks].sort((a, b) => a - b),
     verdict: 'none',
-    hintCell: null,
-    hintText: null,
+    hint: null,
   };
 }
 
@@ -193,8 +197,7 @@ export function gameReducer(session: GameSession, action: GameAction): GameSessi
         notes: {},
         marks: [],
         verdict: 'none',
-        hintCell: null,
-        hintText: null,
+        hint: null,
       });
 
     case 'undo': {
@@ -209,7 +212,7 @@ export function gameReducer(session: GameSession, action: GameAction): GameSessi
     case 'hint':
       return {
         ...session,
-        state: { ...state, hintCell: action.cell, hintText: action.text, hintsUsed: state.hintsUsed + 1 },
+        state: { ...state, hint: action.hint, hintsUsed: state.hintsUsed + 1 },
       };
 
     case 'check':

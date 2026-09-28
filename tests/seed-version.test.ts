@@ -97,14 +97,14 @@ describe('Beispiel im Eingabefeld', () => {
 describe('Texte zum alten Link', () => {
   it('liegen in beiden Sprachen vor', () => {
     for (const locale of ['de', 'en'] as const) {
-      expect(RESOURCES[locale].ui.outdatedSeed, locale).toBeTruthy();
-      expect(RESOURCES[locale].ui.outdatedSeedWhy, locale).toBeTruthy();
+      expect(RESOURCES[locale].ui.errors.outdatedSeed.title, locale).toBeTruthy();
+      expect(RESOURCES[locale].ui.errors.outdatedSeed.text, locale).toBeTruthy();
     }
   });
 
   it('sagen nicht, die Erzeugung sei fehlgeschlagen', () => {
     // Der alte Text behauptete das und war damit schlicht falsch.
-    expect(RESOURCES.de.ui.outdatedSeed).not.toContain('erzeugen');
-    expect(RESOURCES.en.ui.outdatedSeed.toLowerCase()).not.toContain('could not');
+    expect(RESOURCES.de.ui.errors.outdatedSeed.title).not.toContain('erzeugen');
+    expect(RESOURCES.en.ui.errors.outdatedSeed.title.toLowerCase()).not.toContain('could not');
   });
 });

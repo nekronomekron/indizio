@@ -16,7 +16,6 @@ export const ui: UiResource = {
   back: 'Zurück zur Übersicht',
   generating: 'Der Tatort wird aufgenommen …',
   generatingLong: 'Bei großen Gittern kann das einen Moment dauern.',
-  generateError: 'Für diesen Seed ließ sich kein Rätsel erzeugen.',
   wrongTitle: 'Nicht ganz',
   wrong: 'Mindestens eine Person steht falsch. Prüfe die Hinweise noch einmal — welche, verraten wir nicht.',
   solvedTitle: 'Fall gelöst',
@@ -38,9 +37,6 @@ export const ui: UiResource = {
   hintOnEmpty: 'Der Tipp geht immer vom leeren Brett aus und sagt nie, ob etwas falsch steht.',
   noHintLeft: 'Alle Schritte stehen bereits richtig auf dem Brett.',
   version: 'Version',
-  outdatedSeed: 'Dieser Link stammt aus einer älteren Fassung des Spiels.',
-  outdatedSeedWhy:
-    'Dieselbe Kennung ergäbe heute ein anderes Rätsel. Statt dir ein fremdes Rätsel unterzuschieben, zeigt das Spiel lieber gar keines.',
   playToday: 'Heutigen Fall spielen',
   todaySolved: 'Heutigen Fall noch einmal ansehen',
   calendar: 'Tagesfälle',
@@ -68,4 +64,40 @@ export const ui: UiResource = {
   medium: 'Mittel',
   hard: 'Schwer',
   expert: 'Experte',
+  errors: {
+    invalidSeed: {
+      title: 'Diesen Fall gibt es nicht.',
+      text: 'Der Seed ist ungültig – vielleicht ist beim Kopieren des Links etwas verloren gegangen.',
+    },
+    outdatedSeed: {
+      title: 'Dieser Link stammt aus einer älteren Fassung des Spiels.',
+      text: 'Dieselbe Kennung ergäbe heute ein anderes Rätsel. Statt dir ein fremdes Rätsel unterzuschieben, zeigt das Spiel lieber gar keines.',
+    },
+    invalidTheme: {
+      title: 'Dieser Tatort ist fehlerhaft.',
+      text: 'Das Theme des Falls ist unvollständig oder widersprüchlich.',
+    },
+    attemptsExhausted: {
+      title: 'Für diesen Seed ließ sich kein Rätsel erzeugen.',
+      text: 'Das kommt sehr selten vor. Ein anderer Fall funktioniert ganz sicher.',
+    },
+    crashed: {
+      title: 'Beim Erzeugen ist etwas schiefgegangen.',
+      text: 'Lade die Seite neu und versuche es noch einmal.',
+    },
+    timeout: {
+      title: 'Das Erzeugen dauert ungewöhnlich lange.',
+      text: 'Versuche es noch einmal oder wähle einen kleineren Fall.',
+    },
+    screen: {
+      title: 'Dieser Fall ließ sich nicht anzeigen.',
+      text: 'Dein Spielstand ist gespeichert. Zurück zur Übersicht und erneut öffnen hilft meistens.',
+    },
+    app: {
+      title: 'Da ist etwas schiefgegangen.',
+      text: 'Lade die Seite neu. Dein Fortschritt bleibt erhalten.',
+    },
+  },
+  errorDetails: 'Technische Details',
+  reload: 'Neu laden',
 };

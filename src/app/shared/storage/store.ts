@@ -1,142 +1,178 @@
-import type { PuzzleCore } from '@engine';
+import * as v from 'valibot';
+import { PUZZLE_FORMAT, SCHEMA_VERSION, parsePuzzle, type PuzzleCore } from '@engine';
 
 /**
- * Zieht mit der Generatorversion mit: ein Spielstand zeigt auf einen Seed, und
- * derselbe Seed ergibt unter einem anderen Generator ein anderes Rätsel. Alte
- * Einträge liegen zu lassen hieße, den Speicher mit Ständen zu füllen, die zu
- * keinem Rätsel mehr passen.
+ * Everything the game keeps in `localStorage`.
  *
- * Beim Schritt auf Generator 3 ist genau das unterblieben — die Schlüssel
- * standen weiter unter `v2` und versprachen damit eine Version, die nicht
- * stimmte. Nachgeholt, und {@link sweepOldStorage} räumt die alten weg.
+ * Storage is data from outside (PLAN.md §14, U7): another tab, an older build
+ * or a curious player may have written anything there. Every read therefore
+ * goes through a schema; what does not match is dropped — and deleted, so it
+ * does not fail again on every start — and the caller falls back to its
+ * default. Nothing is ever half-applied.
  *
- * Generator 4 (verlegte Teppiche und Matten, PLAN.md §13) zieht genauso mit:
- * Fortschritt, Kalender, Spielstände und Einstellungen beginnen neu. Eine
- * Übernahme des Fortschritts war erwogen und ist bewusst verworfen (§13.6).
+ * Keys carry the generator version: the same seed means a different puzzle
+ * under another generator, so saves, cached puzzles and progress from an older
+ * version describe puzzles that no longer exist. {@link sweepOldStorage}
+ * clears them. Version 4 (laid carpets, §13.6) deliberately starts afresh.
  */
 const VERSION = 'v4';
 const PREFIX = 'indizio:' + VERSION + ':';
-/** Key of the game in progress for a seed. The game feature owns what is stored there. */
-export const saveKey = (seed: string): string => PREFIX + 'save:' + seed;
 const PUZZLE_PREFIX = PREFIX + 'puzzle:';
 const PROGRESS_KEY = PREFIX + 'progress';
+const TUTORIAL_KEY = PREFIX + 'tutorialSeen';
+
+/** Key of the game in progress for a seed. The game feature owns what is stored there. */
+export const saveKey = (seed: string): string => PREFIX + 'save:' + seed;
 /** Key of the player's settings. The settings feature owns what is stored there. */
 export const SETTINGS_KEY = PREFIX + 'settings';
 
-/** localStorage kann fehlen oder werfen (privates Fenster, blockierte Daten). */
-export function readJson(key: string): unknown {
+/** `localStorage` may be missing or throw: private windows, blocked site data, tests. */
+function storage(): Storage | null {
   try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as unknown) : null;
+    return typeof localStorage === 'undefined' ? null : localStorage;
   } catch {
     return null;
   }
 }
 
-export function writeJson(key: string, value: unknown): void {
+function removeStored(key: string): void {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    storage()?.removeItem(key);
   } catch {
-    /* Speicher nicht verfuegbar */
+    // Nothing to clean up where nothing can be stored.
+  }
+}
+
+/** Raw JSON under a key, or `undefined` when there is none or it is not JSON. */
+function readRaw(key: string): unknown {
+  try {
+    const raw = storage()?.getItem(key);
+    return raw === null || raw === undefined ? undefined : (JSON.parse(raw) as unknown);
+  } catch {
+    removeStored(key);
+    return undefined;
   }
 }
 
 /**
- * Liegt zu diesem Rätsel ein angefangener Stand?
+ * The value under a key if it matches the schema, otherwise `null` — and an
+ * entry that does not match is deleted.
+ */
+export function readStored<TSchema extends v.GenericSchema>(
+  key: string,
+  schema: TSchema,
+): v.InferOutput<TSchema> | null {
+  const raw = readRaw(key);
+  if (raw === undefined) return null;
+  const result = v.safeParse(schema, raw);
+  if (result.success) return result.output;
+  console.warn(`Dropping invalid stored data under ${key}`, result.issues[0].message);
+  removeStored(key);
+  return null;
+}
+
+export function writeStored(key: string, value: unknown): void {
+  try {
+    storage()?.setItem(key, JSON.stringify(value));
+  } catch {
+    // Full or unavailable: the game still works, it just forgets.
+  }
+}
+
+/**
+ * Is there a game in progress for this puzzle?
  *
- * Der Kalender zeigt damit „angefangen" statt „unberührt". Bewusst nur die
- * Existenz und nicht der Inhalt: eine Zelle im Kalender soll nicht den ganzen
- * Spielstand einlesen und wieder wegwerfen, nur um einen Punkt zu zeichnen.
+ * The calendar shows "started" with it. Only whether it exists, not what it
+ * holds: a calendar cell should not read and parse a whole save to draw a dot.
  */
 export function hasSave(seed: string): boolean {
   try {
-    return localStorage.getItem(saveKey(seed)) !== null;
+    return storage()?.getItem(saveKey(seed)) != null;
   } catch {
     return false;
   }
 }
 
 /**
- * Räumt die Einträge früherer Fassungen weg — einmal beim Start.
- *
- * Ohne das bleiben Spielstände, zwischengespeicherte Rätsel und Einstellungen
- * unter `indizio:v2:` für immer im Browser liegen: nie wieder gelesen, aber
- * Platz belegend, und bei einem 10×10 sind das schnell einige hundert Kilobyte.
+ * Removes entries of earlier versions — once, at start-up. Otherwise saves and
+ * cached puzzles under an old prefix stay forever: never read again, but
+ * taking space, easily hundreds of kilobytes for a few 10×10 puzzles.
  */
 export function sweepOldStorage(): void {
+  const store = storage();
+  if (!store) return;
   try {
     const stale: string[] = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key !== null && key.startsWith('indizio:') && !key.startsWith(PREFIX)) stale.push(key);
+    for (let i = 0; i < store.length; i++) {
+      const key = store.key(i);
+      if (key?.startsWith('indizio:') && !key.startsWith(PREFIX)) stale.push(key);
     }
-    // Erst sammeln, dann löschen: das Entfernen verschiebt die Indizes.
-    for (const key of stale) localStorage.removeItem(key);
+    // Collect first, then delete: removing shifts the indices.
+    for (const key of stale) store.removeItem(key);
   } catch {
-    /* Speicher nicht verfuegbar */
+    // Nothing to sweep where nothing can be stored.
   }
 }
 
 /**
- * Zwischenspeicher fuer erzeugte Raetsel. Der Seed bleibt die Quelle der
- * Wahrheit - hier liegt nur eine Kopie, damit ein 10x10 beim Wiederaufnehmen
- * nicht erneut Sekunden kostet (PLAN.md 8.4).
+ * Cache of generated puzzles. The seed stays the source of truth — this is a
+ * copy, so a 10×10 does not cost seconds again when resumed (PLAN.md §8.4).
+ * The engine's own reader checks it completely.
  */
 export function loadPuzzle(seed: string, generatorVersion: number): PuzzleCore | null {
-  const cached = readJson(PUZZLE_PREFIX + seed) as PuzzleCore | null;
-  if (cached?.generatorVersion !== generatorVersion) return null;
-  return cached;
+  const key = PUZZLE_PREFIX + seed;
+  const raw = readRaw(key);
+  if (raw === undefined) return null;
+  try {
+    const core = parsePuzzle({ format: PUZZLE_FORMAT, schemaVersion: SCHEMA_VERSION, core: raw });
+    if (core.seed === seed && core.generatorVersion === generatorVersion) return core;
+  } catch (error) {
+    console.warn(`Dropping invalid cached puzzle ${seed}`, error);
+  }
+  removeStored(key);
+  return null;
 }
 
 export function cachePuzzle(core: PuzzleCore): void {
-  writeJson(PUZZLE_PREFIX + core.seed, core);
+  writeStored(PUZZLE_PREFIX + core.seed, core);
 }
 
-export interface ProgressEntry {
-  solved: boolean;
-  bestMs?: number;
-  hintsUsed?: number;
-  lastPlayed: number;
-}
+const ProgressEntrySchema = v.object({
+  solved: v.boolean(),
+  bestMs: v.optional(v.pipe(v.number(), v.minValue(0))),
+  hintsUsed: v.optional(v.pipe(v.number(), v.integer(), v.minValue(0))),
+  lastPlayed: v.number(),
+});
+const ProgressSchema = v.record(v.string(), ProgressEntrySchema);
 
-export type Progress = Record<string, ProgressEntry>;
+export type ProgressEntry = v.InferOutput<typeof ProgressEntrySchema>;
+export type Progress = v.InferOutput<typeof ProgressSchema>;
 
 export function loadProgress(): Progress {
-  return (readJson(PROGRESS_KEY) as Progress | null) ?? {};
+  return readStored(PROGRESS_KEY, ProgressSchema) ?? {};
 }
 
 export function recordProgress(seed: string, entry: Partial<ProgressEntry>): Progress {
   const progress = loadProgress();
   const previous = progress[seed];
+  const bestMs = [previous?.bestMs, entry.bestMs].filter((ms) => ms !== undefined);
+  const hintsUsed = entry.hintsUsed ?? previous?.hintsUsed;
   const next: ProgressEntry = {
     solved: entry.solved ?? previous?.solved ?? false,
     lastPlayed: Date.now(),
-    ...(previous?.bestMs !== undefined ? { bestMs: previous.bestMs } : {}),
-    ...(previous?.hintsUsed !== undefined ? { hintsUsed: previous.hintsUsed } : {}),
+    ...(bestMs.length > 0 && { bestMs: Math.min(...bestMs) }),
+    ...(hintsUsed !== undefined && { hintsUsed }),
   };
-  if (entry.bestMs !== undefined && (next.bestMs === undefined || entry.bestMs < next.bestMs)) {
-    next.bestMs = entry.bestMs;
-  }
-  if (entry.hintsUsed !== undefined) next.hintsUsed = entry.hintsUsed;
-  progress[seed] = next;
-  writeJson(PROGRESS_KEY, progress);
-  return progress;
+  const updated = { ...progress, [seed]: next };
+  writeStored(PROGRESS_KEY, updated);
+  return updated;
 }
 
-const TUTORIAL_KEY = 'indizio:' + VERSION + ':tutorialSeen';
-
 export function tutorialSeen(): boolean {
-  try {
-    return localStorage.getItem(TUTORIAL_KEY) === '1';
-  } catch {
-    return true;
-  }
+  // Without storage the tutorial would open on every visit; better never.
+  return readStored(TUTORIAL_KEY, v.boolean()) ?? storage() === null;
 }
 
 export function markTutorialSeen(): void {
-  try {
-    localStorage.setItem(TUTORIAL_KEY, '1');
-  } catch {
-    /* egal */
-  }
+  writeStored(TUTORIAL_KEY, true);
 }
