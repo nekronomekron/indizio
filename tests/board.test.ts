@@ -1,5 +1,7 @@
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { labelRun, wallInset, wallWidth } from '../src/app/components/BoardLines.js';
+import { BoardLines, labelRun, wallInset, wallWidth } from '../src/app/components/BoardLines.js';
 
 /**
  * Beschriftungen auf dem Brett — Raumname, Buchstabe, Notizen — dürfen die
@@ -11,6 +13,30 @@ describe('Wandabstand', () => {
     for (let cellPx = 24; cellPx <= 72; cellPx += 8) {
       expect(wallInset(cellPx), String(cellPx)).toBeGreaterThanOrEqual(wallWidth(cellPx) / 2 + 2);
     }
+  });
+});
+
+describe('Hervorhebung beim Darüberfahren', () => {
+  it('liegt am Brettrand ganz innerhalb des Brettes', () => {
+    // Mittig auf der Brettkante lag die äußere Hälfte des Strichs außerhalb
+    // und wurde abgeschnitten.
+    const size = 4;
+    const cellPx = 48;
+    const half = wallWidth(cellPx) / 2;
+    const roomOfCell = new Int32Array(size * size);
+    const html = renderToStaticMarkup(createElement(BoardLines, { size, cellPx, roomOfCell, hoverRoom: 0 }));
+    const d = /class="line-hover" d="([^"]+)"/.exec(html)![1]!;
+    const points = [...d.matchAll(/M([\d.]+) ([\d.]+)/g)].map((match) => [Number(match[1]), Number(match[2])]);
+    expect(points.length).toBeGreaterThan(0);
+    for (const [x, y] of points) {
+      expect(x).toBeGreaterThanOrEqual(0);
+      expect(y).toBeGreaterThanOrEqual(0);
+      expect(x).toBeLessThanOrEqual(size * cellPx - half);
+      expect(y).toBeLessThanOrEqual(size * cellPx - half);
+    }
+    // Die obere Kante liegt um die halbe Strichstärke tiefer, nicht auf 0.
+    expect(d).toContain('M0 ' + String(half) + 'h');
+    expect(d).toContain('M' + String(half) + ' 0v');
   });
 });
 

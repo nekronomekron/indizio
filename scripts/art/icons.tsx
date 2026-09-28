@@ -57,16 +57,18 @@ export const ICON_SHAPES: Record<string, ReactNode> = {
       <circle cx="12" cy="12" r="3.6" fill={C.red} />
     </>
   ),
+  // Um die Mitte der Zeichenflaeche gedreht. Frueher um (11, 18): der Stift
+  // sass zu tief und ragte unten ueber die Flaeche hinaus.
   'ui-note': (
     <>
       <rect
-        x="3" y="16.6" width="17" height="4.6" rx="1"
-        transform="rotate(-45 11 18)" fill={C.yellow}
+        x="4" y="10.6" width="17" height="4.6" rx="1"
+        transform="rotate(-45 12 12)" fill={C.yellow}
       />
-      <path d="M2.6 21.6l0.9-3.4 2.5 2.5Z" fill={C.woodDark} />
+      <path d="M3.6 15.6l0.9-3.4 2.5 2.5Z" fill={C.woodDark} />
       <rect
-        x="17.4" y="16.6" width="3.2" height="4.6" rx="1"
-        transform="rotate(-45 11 18)" fill={C.orange}
+        x="18.4" y="10.6" width="3.2" height="4.6" rx="1"
+        transform="rotate(-45 12 12)" fill={C.orange}
       />
     </>
   ),
