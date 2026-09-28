@@ -68,7 +68,7 @@ const ALLOWED_IMPORTS: Record<(typeof LAYERS)[number], readonly string[]> = {
   content: ['core', 'content'],
   generation: ['core', 'clues', 'solving', 'content', 'generation'],
   io: ['core', 'io'],
-  i18n: ['core', 'i18n'],
+  i18n: ['core', 'content', 'i18n'],
 };
 
 function layerOf(path: string): string | null {
@@ -195,11 +195,15 @@ describe('language', () => {
   it('is written in English throughout', () => {
     const offenders: string[] = [];
     for (const [path, source] of contents) {
-      // Umlauts only belong in the German resource bundle.
-      if (path !== 'i18n/resources/de.ts' && /[äöüßÄÖÜ]/.test(source)) {
+      // Player-facing text lives in resource files: the clue patterns and each
+      // theme's locales. German is expected there and nowhere else.
+      const isResource =
+        path.startsWith('i18n/resources/') || /^content\/themes\/[^/]+\/locales\//.test(path);
+      const isGermanResource = path === 'i18n/resources/de.ts' || path.endsWith('/locales/de.ts');
+      if (!isGermanResource && /[äöüßÄÖÜ]/.test(source)) {
         offenders.push(`${path}: contains umlauts`);
       }
-      if (path.startsWith('i18n/resources/')) continue;
+      if (isResource) continue;
 
       for (const line of source.split('\n')) {
         const lower = line.toLowerCase();

@@ -4,6 +4,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { PORTRAIT_KEYS, THEMES } from '@engine';
+import { PLACEHOLDER_SHAPES } from '../scripts/art/themes/index.js';
 import { TUTORIAL_ICONS } from '../src/app/shared/help/tutorialIcons.js';
 import { RESOURCES } from '../src/app/shared/i18n/i18n.js';
 import { artNames, artThemes, artUrl, hasArt } from '../src/app/shared/art/art.js';
@@ -87,10 +88,9 @@ describe('Grafikdateien', () => {
   it('jeder Raum jedes Themes hat den Belag, den er braucht', () => {
     const fehlend: string[] = [];
     for (const theme of THEMES) {
-      for (const room of theme.roomKeys) {
-        const material = floorFor(room);
-        if (!FILES.includes(`themes/${theme.key}/floors/${material}.svg`)) {
-          fehlend.push(`${theme.key}/${room} (${material})`);
+      for (const room of theme.rooms) {
+        if (!FILES.includes(`themes/${theme.key}/floors/${room.floor}.svg`)) {
+          fehlend.push(`${theme.key}/${room.key} (${room.floor})`);
         }
       }
     }
@@ -103,6 +103,13 @@ describe('Grafikdateien', () => {
     }
     for (const key of ICONS) {
       expect(FILES, 'Symbol ' + key).toContain(`common/icons/${key}.svg`);
+    }
+  });
+
+  it('jedes Theme bringt fuer jedes Objekt genau eine Platzhalterform mit', () => {
+    for (const theme of THEMES) {
+      const shapes = Object.keys(PLACEHOLDER_SHAPES[theme.key] ?? {}).sort();
+      expect(shapes, theme.key).toEqual(theme.objects.map((object) => object.key).sort());
     }
   });
 
@@ -134,7 +141,7 @@ describe('Grafikdateien', () => {
                 ([width, height]) => `themes/${theme.key}/objects/${object.key}_${width}x${height}.svg`,
               ),
         ),
-        ...theme.roomKeys.map((room) => `themes/${theme.key}/floors/${floorFor(room)}.svg`),
+        ...theme.rooms.map((room) => `themes/${theme.key}/floors/${room.floor}.svg`),
       ]),
     ]);
     expect(FILES.filter((file) => !gebraucht.has(file))).toEqual([]);
@@ -268,8 +275,15 @@ describe('Sprite waehlt die Grundflaeche', () => {
 });
 
 describe('Bodenbelaege', () => {
+  it('folgt dem Raum im Theme, mit Rueckfall fuer Fremdes', () => {
+    expect(floorFor('flat', 'bathroom')).toBe('tile');
+    expect(floorFor('garden', 'lawn')).toBe('grass');
+    expect(floorFor('flat', 'dungeon')).toBe(DEFAULT_FLOOR);
+    expect(floorFor('attic', 'loft')).toBe(DEFAULT_FLOOR);
+  });
+
   it('jeder Belag wird von mindestens einem Raum gebraucht', () => {
-    const benutzt = new Set(THEMES.flatMap((theme) => theme.roomKeys.map(floorFor)));
+    const benutzt = new Set<string>(THEMES.flatMap((theme) => theme.rooms.map((room) => room.floor)));
     benutzt.add(DEFAULT_FLOOR);
     expect(FLOOR_MATERIALS.filter((material) => !benutzt.has(material))).toEqual([]);
   });

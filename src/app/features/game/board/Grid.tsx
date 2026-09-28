@@ -370,7 +370,7 @@ export function Grid(props: GridProps): ReactElement {
     const image = new Map<number, string | undefined>();
     const shade = new Map<number, number>();
     core.rooms.forEach((room, i) => {
-      const kind = floorFor(room.nameKey);
+      const kind = floorFor(core.themeKey, room.nameKey);
       material.set(room.id, kind);
       image.set(
         room.id,

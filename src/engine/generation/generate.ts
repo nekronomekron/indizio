@@ -90,7 +90,12 @@ function attemptGeneration(
   difficulty: PuzzleCore['difficulty'],
 ): PuzzleCore | null {
   const rng = new Rng(`${seed}#${attempt}`);
-  const rooms = generateRooms(rng, size, roomCountFor(size), theme.roomKeys);
+  const rooms = generateRooms(
+    rng,
+    size,
+    roomCountFor(size),
+    theme.rooms.map((room) => room.key),
+  );
 
   const solutionCells = pickSolutionCells(rng, size, rooms);
   if (!solutionCells) return null;

@@ -1,10 +1,39 @@
-import type { Theme } from './types.js';
-
-const ROOMS = ['livingroom', 'kitchen', 'bedroom', 'hallway', 'bathroom', 'study', 'balcony'] as const;
+import type { Theme } from '../types.js';
+import { de } from './locales/de.js';
+import { en } from './locales/en.js';
 
 export const flat: Theme = {
   key: 'flat',
-  roomKeys: ROOMS,
+  rooms: [
+    {
+      key: 'livingroom',
+      floor: 'wood',
+    },
+    {
+      key: 'kitchen',
+      floor: 'tile',
+    },
+    {
+      key: 'bedroom',
+      floor: 'carpet',
+    },
+    {
+      key: 'hallway',
+      floor: 'wood',
+    },
+    {
+      key: 'bathroom',
+      floor: 'tile',
+    },
+    {
+      key: 'study',
+      floor: 'wood',
+    },
+    {
+      key: 'balcony',
+      floor: 'stone',
+    },
+  ],
   objects: [
     {
       key: 'sofa',
@@ -38,7 +67,10 @@ export const flat: Theme = {
     {
       key: 'bed',
       walkable: true,
-      placement: { kind: 'fixed', footprints: [[2, 2]] },
+      placement: {
+        kind: 'fixed',
+        footprints: [[2, 2]],
+      },
       rooms: ['bedroom'],
       maxPerScene: 2,
       weight: 3,
@@ -46,7 +78,13 @@ export const flat: Theme = {
     {
       key: 'carpet',
       walkable: true,
-      placement: { kind: 'tiled', minCells: 2, maxCells: 6, compactness: 0.7, straightness: 0.3 },
+      placement: {
+        kind: 'tiled',
+        minCells: 2,
+        maxCells: 6,
+        compactness: 0.7,
+        straightness: 0.3,
+      },
       rooms: ['livingroom', 'bedroom', 'hallway', 'study'],
       maxPerScene: 4,
       weight: 4,
@@ -82,7 +120,10 @@ export const flat: Theme = {
     {
       key: 'chair',
       walkable: true,
-      placement: { kind: 'fixed', footprints: [[1, 1]] },
+      placement: {
+        kind: 'fixed',
+        footprints: [[1, 1]],
+      },
       rooms: ['kitchen', 'livingroom', 'bedroom', 'study', 'balcony'],
       maxPerScene: 6,
       weight: 5,
@@ -90,7 +131,10 @@ export const flat: Theme = {
     {
       key: 'plant',
       walkable: false,
-      placement: { kind: 'fixed', footprints: [[1, 1]] },
+      placement: {
+        kind: 'fixed',
+        footprints: [[1, 1]],
+      },
       rooms: ['livingroom', 'hallway', 'bathroom', 'balcony'],
       maxPerScene: 5,
       weight: 4,
@@ -112,10 +156,14 @@ export const flat: Theme = {
     {
       key: 'lamp',
       walkable: false,
-      placement: { kind: 'fixed', footprints: [[1, 1]] },
+      placement: {
+        kind: 'fixed',
+        footprints: [[1, 1]],
+      },
       rooms: ['livingroom', 'bedroom', 'study', 'hallway'],
       maxPerScene: 5,
       weight: 4,
     },
   ],
+  texts: { de, en },
 };

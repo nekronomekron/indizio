@@ -1,10 +1,39 @@
-import type { Theme } from './types.js';
-
-const ROOMS = ['workshop', 'waiting', 'reception', 'storage', 'yard', 'washbay', 'office'] as const;
+import type { Theme } from '../types.js';
+import { de } from './locales/de.js';
+import { en } from './locales/en.js';
 
 export const garage: Theme = {
   key: 'garage',
-  roomKeys: ROOMS,
+  rooms: [
+    {
+      key: 'workshop',
+      floor: 'concrete',
+    },
+    {
+      key: 'waiting',
+      floor: 'tile',
+    },
+    {
+      key: 'reception',
+      floor: 'stone',
+    },
+    {
+      key: 'storage',
+      floor: 'concrete',
+    },
+    {
+      key: 'yard',
+      floor: 'gravel',
+    },
+    {
+      key: 'washbay',
+      floor: 'tile',
+    },
+    {
+      key: 'office',
+      floor: 'carpet',
+    },
+  ],
   objects: [
     {
       key: 'car',
@@ -53,7 +82,10 @@ export const garage: Theme = {
     {
       key: 'oilstain',
       walkable: true,
-      placement: { kind: 'fixed', footprints: [[1, 1]] },
+      placement: {
+        kind: 'fixed',
+        footprints: [[1, 1]],
+      },
       rooms: ['workshop', 'yard', 'storage', 'washbay'],
       maxPerScene: 6,
       weight: 5,
@@ -61,7 +93,10 @@ export const garage: Theme = {
     {
       key: 'tirestack',
       walkable: false,
-      placement: { kind: 'fixed', footprints: [[1, 1]] },
+      placement: {
+        kind: 'fixed',
+        footprints: [[1, 1]],
+      },
       rooms: ['storage', 'workshop', 'yard', 'washbay'],
       maxPerScene: 5,
       weight: 4,
@@ -69,7 +104,10 @@ export const garage: Theme = {
     {
       key: 'chair',
       walkable: true,
-      placement: { kind: 'fixed', footprints: [[1, 1]] },
+      placement: {
+        kind: 'fixed',
+        footprints: [[1, 1]],
+      },
       rooms: ['waiting', 'reception', 'office'],
       maxPerScene: 6,
       weight: 5,
@@ -91,7 +129,10 @@ export const garage: Theme = {
     {
       key: 'plant',
       walkable: false,
-      placement: { kind: 'fixed', footprints: [[1, 1]] },
+      placement: {
+        kind: 'fixed',
+        footprints: [[1, 1]],
+      },
       rooms: ['waiting', 'reception', 'yard', 'office'],
       maxPerScene: 4,
       weight: 3,
@@ -99,7 +140,10 @@ export const garage: Theme = {
     {
       key: 'toolbox',
       walkable: false,
-      placement: { kind: 'fixed', footprints: [[1, 1]] },
+      placement: {
+        kind: 'fixed',
+        footprints: [[1, 1]],
+      },
       rooms: ['workshop', 'storage', 'washbay', 'yard'],
       maxPerScene: 5,
       weight: 4,
@@ -107,7 +151,13 @@ export const garage: Theme = {
     {
       key: 'mat',
       walkable: true,
-      placement: { kind: 'tiled', minCells: 1, maxCells: 4, compactness: 0.4, straightness: 0.5 },
+      placement: {
+        kind: 'tiled',
+        minCells: 1,
+        maxCells: 4,
+        compactness: 0.4,
+        straightness: 0.5,
+      },
       rooms: ['workshop', 'washbay', 'storage', 'reception'],
       maxPerScene: 4,
       weight: 4,
@@ -129,10 +179,14 @@ export const garage: Theme = {
     {
       key: 'barrel',
       walkable: false,
-      placement: { kind: 'fixed', footprints: [[1, 1]] },
+      placement: {
+        kind: 'fixed',
+        footprints: [[1, 1]],
+      },
       rooms: ['yard', 'storage', 'washbay'],
       maxPerScene: 4,
       weight: 3,
     },
   ],
+  texts: { de, en },
 };

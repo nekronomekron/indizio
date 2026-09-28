@@ -3,12 +3,11 @@ import { dirname, join, relative } from 'node:path';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { THEMES } from '@engine';
-import { DEFAULT_FLOOR, floorFor } from '../src/app/shared/art/floors.js';
-import type { FloorMaterial } from '../src/app/shared/art/floors.js';
+import { DEFAULT_FLOOR } from '../src/app/shared/art/floors.js';
 import { CHARACTER_SHAPES } from './art/characters.js';
 import { FloorTile } from './art/floors.js';
 import { ICON_SHAPES } from './art/icons.js';
-import { OBJECT_SHAPES } from './art/objects.js';
+import { PLACEHOLDER_SHAPES } from './art/themes/index.js';
 
 /**
  * Schreibt die Platzhaltergrafiken als echte SVG-Dateien nach `art/`.
@@ -176,7 +175,7 @@ files.push({
 // --- Je Theme: seine Objekte und die Belaege seiner Raeume -------------------
 for (const theme of THEMES) {
   for (const object of theme.objects) {
-    const node = OBJECT_SHAPES[object.key];
+    const node = PLACEHOLDER_SHAPES[theme.key]?.[object.key];
     if (!node) throw new Error(`Keine Platzhalterform fuer ${theme.key}/${object.key}`);
     const icon = shape(node);
 
@@ -203,7 +202,7 @@ for (const theme of THEMES) {
     }
   }
 
-  const materials = new Set<FloorMaterial>(theme.roomKeys.map(floorFor));
+  const materials = new Set(theme.rooms.map((room) => room.floor));
   for (const material of materials) {
     files.push({
       path: join('themes', theme.key, 'floors', material + '.svg'),

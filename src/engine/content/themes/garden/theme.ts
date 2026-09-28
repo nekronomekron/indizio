@@ -1,15 +1,47 @@
-import type { Theme } from './types.js';
-
-const ROOMS = ['lawn', 'patio', 'vegetablepatch', 'shedarea', 'pondside', 'greenhouse', 'playarea'] as const;
+import type { Theme } from '../types.js';
+import { de } from './locales/de.js';
+import { en } from './locales/en.js';
 
 export const garden: Theme = {
   key: 'garden',
-  roomKeys: ROOMS,
+  rooms: [
+    {
+      key: 'lawn',
+      floor: 'grass',
+    },
+    {
+      key: 'patio',
+      floor: 'stone',
+    },
+    {
+      key: 'vegetablepatch',
+      floor: 'soil',
+    },
+    {
+      key: 'shedarea',
+      floor: 'gravel',
+    },
+    {
+      key: 'pondside',
+      floor: 'water',
+    },
+    {
+      key: 'greenhouse',
+      floor: 'soil',
+    },
+    {
+      key: 'playarea',
+      floor: 'sand',
+    },
+  ],
   objects: [
     {
       key: 'tree',
       walkable: false,
-      placement: { kind: 'fixed', footprints: [[1, 1]] },
+      placement: {
+        kind: 'fixed',
+        footprints: [[1, 1]],
+      },
       rooms: ['lawn', 'pondside', 'shedarea', 'playarea'],
       maxPerScene: 6,
       weight: 5,
@@ -31,7 +63,10 @@ export const garden: Theme = {
     {
       key: 'gardenchair',
       walkable: true,
-      placement: { kind: 'fixed', footprints: [[1, 1]] },
+      placement: {
+        kind: 'fixed',
+        footprints: [[1, 1]],
+      },
       rooms: ['patio', 'lawn', 'pondside', 'playarea', 'greenhouse', 'shedarea'],
       maxPerScene: 6,
       weight: 5,
@@ -81,7 +116,10 @@ export const garden: Theme = {
     {
       key: 'bush',
       walkable: false,
-      placement: { kind: 'fixed', footprints: [[1, 1]] },
+      placement: {
+        kind: 'fixed',
+        footprints: [[1, 1]],
+      },
       rooms: ['lawn', 'patio', 'vegetablepatch', 'shedarea', 'playarea'],
       maxPerScene: 6,
       weight: 4,
@@ -89,7 +127,10 @@ export const garden: Theme = {
     {
       key: 'wheelbarrow',
       walkable: false,
-      placement: { kind: 'fixed', footprints: [[1, 1]] },
+      placement: {
+        kind: 'fixed',
+        footprints: [[1, 1]],
+      },
       rooms: ['vegetablepatch', 'shedarea', 'greenhouse'],
       maxPerScene: 3,
       weight: 3,
@@ -97,7 +138,10 @@ export const garden: Theme = {
     {
       key: 'steppingstone',
       walkable: true,
-      placement: { kind: 'fixed', footprints: [[1, 1]] },
+      placement: {
+        kind: 'fixed',
+        footprints: [[1, 1]],
+      },
       rooms: ['lawn', 'pondside', 'patio', 'vegetablepatch', 'shedarea', 'greenhouse', 'playarea'],
       maxPerScene: 6,
       weight: 5,
@@ -117,4 +161,5 @@ export const garden: Theme = {
       weight: 3,
     },
   ],
+  texts: { de, en },
 };

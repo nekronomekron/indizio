@@ -1,4 +1,7 @@
 import i18next, { type i18n as I18nInstance, type ResourceLanguage } from 'i18next';
+import { THEMES } from '../content/themes/index.js';
+import type { Theme } from '../content/themes/types.js';
+import { LOCALES, type Locale } from '../core/locale.js';
 import type { Clue, ClueEntry, Room, Suspect } from '../core/types.js';
 import { de } from './resources/de.js';
 import { en } from './resources/en.js';
@@ -16,14 +19,25 @@ import { en } from './resources/en.js';
  * consumer's own i18next setup.
  */
 
-export const LOCALES = ['de', 'en'] as const;
-export type Locale = (typeof LOCALES)[number];
+export { LOCALES, type Locale };
 
-const RESOURCES: Record<Locale, ResourceLanguage> = { de, en };
+const PATTERNS: Record<Locale, ResourceLanguage> = { de, en };
 const NAMESPACE = 'puzzle';
+
+/**
+ * Sentence patterns plus every theme's texts under `themes.<key>`. Room and
+ * object keys only have to be unique within their theme.
+ */
+function bundleFor(locale: Locale, themes: readonly Theme[]): ResourceLanguage {
+  return {
+    ...PATTERNS[locale],
+    themes: Object.fromEntries(themes.map((theme) => [theme.key, theme.texts[locale]])),
+  };
+}
 
 /** Context a clue needs to name rooms and people. */
 export interface ClueScene {
+  themeKey: string;
   rooms: readonly Room[];
   suspects: readonly Suspect[];
 }
@@ -35,8 +49,8 @@ export interface ClueTranslatorOptions {
    * resources are added under their own namespace, so nothing collides.
    */
   instance?: I18nInstance;
-  /** Extra resources, e.g. word forms for a custom theme's objects. */
-  additionalResources?: Partial<Record<Locale, Record<string, unknown>>>;
+  /** Themes whose texts to use. The shipped ones by default. */
+  themes?: readonly Theme[];
 }
 
 function capitalizeFirst(text: string): string {
@@ -45,6 +59,7 @@ function capitalizeFirst(text: string): string {
 
 function createInstance(options: ClueTranslatorOptions): I18nInstance {
   const instance = options.instance ?? i18next.createInstance();
+  const themes = options.themes ?? THEMES;
 
   if (!instance.isInitialized) {
     // No backend and inline resources, so this settles synchronously — which
@@ -54,21 +69,19 @@ function createInstance(options: ClueTranslatorOptions): I18nInstance {
       fallbackLng: 'en',
       defaultNS: NAMESPACE,
       ns: [NAMESPACE],
-      resources: Object.fromEntries(LOCALES.map((locale) => [locale, { [NAMESPACE]: RESOURCES[locale] }])),
+      resources: Object.fromEntries(
+        LOCALES.map((locale) => [locale, { [NAMESPACE]: bundleFor(locale, themes) }]),
+      ),
       initAsync: false,
       interpolation: { escapeValue: false },
     });
   } else {
     for (const locale of LOCALES) {
-      instance.addResourceBundle(locale, NAMESPACE, RESOURCES[locale], true, false);
+      instance.addResourceBundle(locale, NAMESPACE, bundleFor(locale, themes), true, true);
     }
   }
 
   instance.services.formatter?.add('capitalize', (value) => capitalizeFirst(String(value)));
-
-  for (const [locale, bundle] of Object.entries(options.additionalResources ?? {})) {
-    instance.addResourceBundle(locale, NAMESPACE, bundle, true, true);
-  }
   return instance;
 }
 
@@ -101,15 +114,15 @@ export interface ClueTranslator {
   readonly instance: I18nInstance;
   /** Render one clue as a full sentence. */
   render(scene: ClueScene, entry: ClueEntry): string;
-  /** Human-readable room name, e.g. for a label on the board. */
-  roomName(nameKey: string): string;
+  /** Human-readable room name with article, e.g. for a label on the board. */
+  roomName(themeKey: string, roomKey: string): string;
   /**
    * Bare object noun, e.g. for a tooltip on the board: `Regal`, not `an einem
    * Regal`. The sentence forms stay inside `render`; this is the name alone.
    */
-  objectName(key: string): string;
+  objectName(themeKey: string, objectKey: string): string;
   /** Display name of a theme, e.g. `Autowerkstatt`. */
-  themeName(key: string): string;
+  themeName(themeKey: string): string;
   setLocale(locale: Locale): void;
 }
 
@@ -132,10 +145,11 @@ export function createClueTranslator(options: ClueTranslatorOptions = {}): ClueT
   ) => string;
   const translate: Translate = (key, values) => lookUp(key, { ...values, ns: NAMESPACE });
 
-  const object = (key: string, form: string): string => wordForm(translate, `object.${key}.${form}`);
+  const object = (themeKey: string, key: string, form: string): string =>
+    wordForm(translate, `themes.${themeKey}.objects.${key}.${form}`);
   const roomIn = (scene: ClueScene, roomId: number): string => {
     const room = scene.rooms.find((candidate) => candidate.id === roomId);
-    return room ? wordForm(translate, `room.${room.nameKey}.in`) : String(roomId);
+    return room ? wordForm(translate, `themes.${scene.themeKey}.rooms.${room.nameKey}.in`) : String(roomId);
   };
   const suspectName = (scene: ClueScene, id: number): string => scene.suspects[id]?.name ?? String(id);
 
@@ -160,10 +174,11 @@ export function createClueTranslator(options: ClueTranslatorOptions = {}): ClueT
         return translate('clue.ON_OBJECT', {
           pronoun,
           verb:
-            object(clue.objectKey, 'verb') === `object.${clue.objectKey}.verb`
+            object(scene.themeKey, clue.objectKey, 'verb') ===
+            `themes.${scene.themeKey}.objects.${clue.objectKey}.verb`
               ? translate('common.was')
-              : object(clue.objectKey, 'verb'),
-          place: object(clue.objectKey, 'on'),
+              : object(scene.themeKey, clue.objectKey, 'verb'),
+          place: object(scene.themeKey, clue.objectKey, 'on'),
         });
 
       case 'IN_ROOM':
@@ -173,15 +188,15 @@ export function createClueTranslator(options: ClueTranslatorOptions = {}): ClueT
         if (clue.count === undefined) {
           return translate('clue.ADJACENT_OBJECT_any', {
             pronoun,
-            object: object(clue.objectKey, 'dative'),
+            object: object(scene.themeKey, clue.objectKey, 'dative'),
           });
         }
         return translate('clue.ADJACENT_OBJECT', {
           pronoun,
           count: clue.count,
-          object: object(clue.objectKey, 'dative'),
-          objectBare: object(clue.objectKey, 'bare'),
-          objectPlural: object(clue.objectKey, 'plural'),
+          object: object(scene.themeKey, clue.objectKey, 'dative'),
+          objectBare: object(scene.themeKey, clue.objectKey, 'bare'),
+          objectPlural: object(scene.themeKey, clue.objectKey, 'plural'),
         });
 
       case 'ALONE':
@@ -203,7 +218,7 @@ export function createClueTranslator(options: ClueTranslatorOptions = {}): ClueT
         return translate('clue.DIRECTION_OF_OBJECT', {
           pronoun,
           direction: translate(`common.direction.${clue.direction}`),
-          object: object(clue.objectKey, 'from'),
+          object: object(scene.themeKey, clue.objectKey, 'from'),
         });
 
       case 'CORNER':
@@ -213,7 +228,7 @@ export function createClueTranslator(options: ClueTranslatorOptions = {}): ClueT
         return translate('clue.ALIGNED_WITH_OBJECT', {
           pronoun,
           axis: translate(`common.axis.${clue.axis}`),
-          object: object(clue.objectKey, 'nominative'),
+          object: object(scene.themeKey, clue.objectKey, 'nominative'),
         });
 
       case 'DIAGONAL_OF':
@@ -236,9 +251,9 @@ export function createClueTranslator(options: ClueTranslatorOptions = {}): ClueT
     },
     instance,
     render: (scene, entry) => renderClue(scene, entry.ownerId, entry.clue),
-    roomName: (nameKey) => wordForm(translate, `room.${nameKey}.name`),
-    objectName: (key) => object(key, 'bare'),
-    themeName: (key) => wordForm(translate, `theme.${key}.name`),
+    roomName: (themeKey, roomKey) => wordForm(translate, `themes.${themeKey}.rooms.${roomKey}.name`),
+    objectName: (themeKey, objectKey) => object(themeKey, objectKey, 'bare'),
+    themeName: (themeKey) => wordForm(translate, `themes.${themeKey}.name`),
     setLocale: (next) => {
       void instance.changeLanguage(next);
     },

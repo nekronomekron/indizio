@@ -1,79 +1,34 @@
+import { FLOOR_MATERIALS, findTheme, type FloorMaterial } from '@engine';
+
 /**
- * Welcher Boden in welchem Raum liegt.
+ * Which floor lies in which room — and how its tile is drawn.
  *
- * Das ist Spiellogik, keine Zeichnung: Der Belag folgt dem **Raumnamen** und
- * nicht der Raum-Id — im Bad Fliesen, auf dem Rasen Gras, in der Werkstatt
- * Estrich. Fast jeder Hinweis nimmt auf Räume Bezug, und ein wiedererkennbarer
- * Boden macht die Raumgrenzen ohne Nachlesen klar.
- *
- * Gezeichnet werden die Kacheln nicht hier, sondern in `art/`. Wie sie dort
- * hinkommen, steht in [art/README.md](../../../art/README.md).
+ * The floor itself belongs to the theme (`rooms: [{ key, floor }]`, PLAN.md
+ * §14, U2): tiles in the bathroom, grass on the lawn. The drawings live in
+ * `art/`; see art/README.md.
  */
 
-export type FloorMaterial =
-  'wood' | 'tile' | 'stone' | 'concrete' | 'carpet' | 'grass' | 'soil' | 'gravel' | 'sand' | 'water';
+export { FLOOR_MATERIALS, type FloorMaterial };
 
-/** Alle Belaege, fuer Uebersichten, Tests und den Erzeuger der Grafiken. */
-export const FLOOR_MATERIALS: readonly FloorMaterial[] = [
-  'wood',
-  'tile',
-  'stone',
-  'concrete',
-  'carpet',
-  'grass',
-  'soil',
-  'gravel',
-  'sand',
-  'water',
-];
-
-/** Belag, auf den ein fremdes Theme zurueckfaellt. */
+/** Floor for a room the app knows no theme for — a document from elsewhere. */
 export const DEFAULT_FLOOR: FloorMaterial = 'concrete';
 
-/** Raumname -> Belag. */
-export const FLOOR_BY_ROOM: Record<string, FloorMaterial> = {
-  // Werkstatt
-  workshop: 'concrete',
-  storage: 'concrete',
-  washbay: 'tile',
-  waiting: 'tile',
-  reception: 'stone',
-  office: 'carpet',
-  yard: 'gravel',
-  // Wohnung
-  livingroom: 'wood',
-  kitchen: 'tile',
-  bedroom: 'carpet',
-  hallway: 'wood',
-  bathroom: 'tile',
-  study: 'wood',
-  balcony: 'stone',
-  // Garten
-  lawn: 'grass',
-  patio: 'stone',
-  vegetablepatch: 'soil',
-  shedarea: 'gravel',
-  pondside: 'water',
-  greenhouse: 'soil',
-  playarea: 'sand',
-};
-
-export function floorFor(roomNameKey: string): FloorMaterial {
-  return FLOOR_BY_ROOM[roomNameKey] ?? DEFAULT_FLOOR;
+/** The floor of a room of a theme, or the default when either is unknown. */
+export function floorFor(themeKey: string, roomKey: string): FloorMaterial {
+  return findTheme(themeKey)?.rooms.find((room) => room.key === roomKey)?.floor ?? DEFAULT_FLOOR;
 }
 
 /**
- * Belaege, deren Kachel gespiegelt werden darf.
+ * Floors whose tile may be mirrored.
  *
- * Eine einzelne Kachel, ueber ein ganzes Gitter wiederholt, faellt als Muster
- * auf. Dagegen hilft Spiegeln je Zelle — aber nur dort, wo nichts ueber die
- * Kachelkante laeuft. Dielenstoesse, Fugen und Wellen muessen sich am Rand
- * treffen; ein gespiegelter Nachbar wuerde sie zerschneiden. Streugut wie Gras,
- * Kies, Sand und Erde hat diese Kanten nicht und darf sich drehen.
+ * One tile repeated over a whole grid shows as a pattern. Mirroring per cell
+ * helps — but only where nothing runs over the tile's edge. Plank joints,
+ * grout and waves have to meet at the border, and a mirrored neighbour would
+ * cut them. Scatter like grass, gravel, sand and soil has no such edges.
  */
 const SCATTERABLE = new Set<FloorMaterial>(['grass', 'soil', 'gravel', 'sand']);
 
-/** Spiegelung einer Zelle: gleiche Zelle, gleiches Bild — immer. */
+/** Mirroring of one cell: same cell, same picture — always. */
 export function floorFlip(material: FloorMaterial, cell: number): { x: number; y: number } {
   if (!SCATTERABLE.has(material)) return { x: 1, y: 1 };
   let h = Math.imul(cell + 0x9e37, 2654435761) >>> 0;

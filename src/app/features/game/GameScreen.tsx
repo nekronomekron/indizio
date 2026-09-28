@@ -124,13 +124,13 @@ export function GameScreen({
   const roomLabels = useMemo(() => {
     const labels: Record<number, string> = {};
     for (const room of core.rooms) {
-      const full = translator.roomName(room.nameKey);
+      const full = translator.roomName(core.themeKey, room.nameKey);
       // Artikel weglassen: "die Werkstatt" -> "Werkstatt", "the workshop" -> "workshop".
       const parts = full.split(' ');
       labels[room.id] = parts.length > 1 ? parts.slice(1).join(' ') : full;
     }
     return labels;
-  }, [core.rooms, translator]);
+  }, [core.rooms, core.themeKey, translator]);
 
   /**
    * Bloßer Name je Requisite — „Regal", nicht „an einem Regal".
@@ -141,9 +141,9 @@ export function GameScreen({
    */
   const objectLabels = useMemo(() => {
     const labels: Record<number, string> = {};
-    for (const object of core.objects) labels[object.id] = translator.objectName(object.key);
+    for (const object of core.objects) labels[object.id] = translator.objectName(core.themeKey, object.key);
     return labels;
-  }, [core.objects, translator]);
+  }, [core.objects, core.themeKey, translator]);
 
   /** Eine Person weiter oder zurueck - in der Reihenfolge der Kartenliste. */
   const cycleSuspect = (delta: number) => {

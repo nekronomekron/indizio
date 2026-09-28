@@ -123,16 +123,23 @@ export { findClueRestrictionViolations, type ClueRestrictionViolation } from './
 
 // --- Content: replaceable, not baked in -----------------------------------
 export {
+  FLOOR_MATERIALS,
   THEMES,
   THEME_KEYS,
   findTheme,
   themeProblems,
   type FixedPlacement,
+  type FloorMaterial,
+  type ObjectWords,
   type Placement,
+  type RoomWords,
   type Theme,
   type ThemeObject,
+  type ThemeRoom,
+  type ThemeTexts,
   type TiledPlacement,
 } from './content/themes/index.js';
+export { LOCALES, type Locale } from './core/locale.js';
 export { NAME_POOL, PORTRAIT_KEYS, type NameEntry } from './content/names.js';
 
 // --- Grid arithmetic ------------------------------------------------------

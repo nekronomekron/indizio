@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { CLUE_TYPES, THEMES, generatePuzzle } from '../../src/engine/index.js';
-import type { Clue, ClueEntry, ClueType } from '../../src/engine/index.js';
+import { CLUE_TYPES, THEMES, findTheme, generatePuzzle } from '../../src/engine/index.js';
+import type { Clue, ClueEntry, ClueType, Theme, ThemeTexts } from '../../src/engine/index.js';
 import { LOCALES, createClueTranslator, de, en } from '../../src/engine/i18n/index.js';
 import { buildFixture } from './support/fixture.js';
 import { seedsAcrossTiers } from './support/seeds.js';
@@ -14,7 +14,34 @@ import { seedsAcrossTiers } from './support/seeds.js';
  */
 
 const { suspects, index } = buildFixture();
-const scene = { rooms: index.scene.rooms, suspects };
+const scene = { themeKey: index.scene.themeKey, rooms: index.scene.rooms, suspects };
+
+/**
+ * The fixture's theme: two garage rooms, garage shelf and chair, a garden
+ * tree. Built from the real texts — and a custom theme bringing its own texts
+ * is exactly what a consumer does.
+ */
+const garage = findTheme('garage')!;
+const garden = findTheme('garden')!;
+function fixtureTexts(locale: 'de' | 'en'): ThemeTexts {
+  const { rooms, objects } = garage.texts[locale];
+  return {
+    name: 'Test',
+    rooms: { workshop: rooms['workshop']!, storage: rooms['storage']! },
+    objects: {
+      shelf: objects['shelf']!,
+      chair: objects['chair']!,
+      tree: garden.texts[locale].objects['tree']!,
+    },
+  };
+}
+const FIXTURE_THEME: Theme = {
+  key: 'test',
+  rooms: [],
+  objects: [],
+  texts: { de: fixtureTexts('de'), en: fixtureTexts('en') },
+};
+const themes = [...THEMES, FIXTURE_THEME];
 
 /** One clue of every type, valid against the fixture's shape. */
 const SAMPLES: Record<ClueType, Clue> = {
@@ -41,7 +68,7 @@ const SAMPLES: Record<ClueType, Clue> = {
  * sentences ending in "the room."
  */
 function looksLikeASentence(text: string): boolean {
-  const leftoverKey = /\b(clue|object|room|common)(\.[a-zA-Z_]+){2,}/;
+  const leftoverKey = /\b(clue|themes|common)(\.[a-zA-Z_]+){2,}/;
   return (
     text.length > 5 &&
     /[.!?]$/.test(text) &&
@@ -54,7 +81,7 @@ function looksLikeASentence(text: string): boolean {
 describe('clue rendering', () => {
   for (const locale of LOCALES) {
     describe(locale, () => {
-      const translator = createClueTranslator({ locale });
+      const translator = createClueTranslator({ locale, themes });
 
       it.each(CLUE_TYPES)('renders %s as a full sentence', (type) => {
         const clue = SAMPLES[type];
@@ -83,7 +110,7 @@ describe('clue rendering', () => {
       });
 
       it('names rooms', () => {
-        expect(translator.roomName('workshop').length).toBeGreaterThan(3);
+        expect(translator.roomName('garage', 'workshop').length).toBeGreaterThan(3);
       });
 
       /**
@@ -91,9 +118,9 @@ describe('clue rendering', () => {
        * `an einem Regal` would read like a clue that lost its verb.
        */
       it('names objects without an article or preposition', () => {
-        const name = translator.objectName('shelf');
+        const name = translator.objectName('test', 'shelf');
         expect(name.length).toBeGreaterThan(2);
-        expect(name).not.toBe('object.shelf.bare');
+        expect(name).not.toBe('themes.test.objects.shelf.bare');
         // Der Satzteil aus einem Hinweis traegt die Praeposition mit; der Name
         // allein darf sie nicht haben.
         const inClue = translator.render(scene, {
@@ -107,84 +134,79 @@ describe('clue rendering', () => {
   }
 
   it('renders differently in each language', () => {
-    const german = createClueTranslator({ locale: 'de' });
-    const english = createClueTranslator({ locale: 'en' });
+    const german = createClueTranslator({ locale: 'de', themes });
+    const english = createClueTranslator({ locale: 'en', themes });
     const entry: ClueEntry = { ownerId: 0, clue: { type: 'CORNER' } };
     expect(german.render(scene, entry)).not.toBe(english.render(scene, entry));
   });
 
   it('switches language on an existing translator', () => {
-    const translator = createClueTranslator({ locale: 'de' });
+    const translator = createClueTranslator({ locale: 'de', themes });
     const entry: ClueEntry = { ownerId: 0, clue: { type: 'CORNER' } };
     const german = translator.render(scene, entry);
     translator.setLocale('en');
     expect(translator.render(scene, entry)).not.toBe(german);
   });
 
-  it('accepts extra resources for a custom theme', () => {
-    const translator = createClueTranslator({
-      locale: 'en',
-      additionalResources: {
-        en: {
-          object: {
-            spaceship: {
-              on: 'in a spaceship',
-              dative: 'a spaceship',
-              plural: 'spaceships',
-              nominative: 'a spaceship',
-              bare: 'spaceship',
-              from: 'the spaceship',
-            },
-          },
-        },
-      },
+  it('keeps same-named objects of different themes apart', () => {
+    // Keys only have to be unique within a theme: a workshop chair may be
+    // called something else than a kitchen chair.
+    const renamed = (locale: 'de' | 'en', bare: string): ThemeTexts => ({
+      ...fixtureTexts(locale),
+      objects: { chair: { ...fixtureTexts(locale).objects['chair']!, bare } },
     });
-    const text = translator.render(scene, {
-      ownerId: 0,
-      clue: { type: 'ON_OBJECT', objectKey: 'spaceship' },
-    });
-    expect(text).toContain('spaceship');
+    const custom: Theme = {
+      ...FIXTURE_THEME,
+      key: 'custom',
+      texts: { de: renamed('de', 'Thron'), en: renamed('en', 'throne') },
+    };
+    const translator = createClueTranslator({ locale: 'en', themes: [...themes, custom] });
+    expect(translator.objectName('custom', 'chair')).toBe('throne');
+    expect(translator.objectName('test', 'chair')).not.toBe('throne');
   });
 });
 
 describe('resource completeness', () => {
   const bundles = { de, en };
 
-  it.each(LOCALES)('%s covers every object of every theme', (locale) => {
+  it.each(LOCALES)('%s gives every theme a name', (locale) => {
+    for (const theme of THEMES) expect(theme.texts[locale].name.length, theme.key).toBeGreaterThan(2);
+  });
+
+  it.each(LOCALES)('%s has every word form of every object of every theme', (locale) => {
+    const forms = ['on', 'dative', 'plural', 'nominative', 'bare', 'from'] as const;
     const missing: string[] = [];
     for (const theme of THEMES) {
       for (const object of theme.objects) {
-        if (!(object.key in bundles[locale].object)) missing.push(`${theme.key}/${object.key}`);
+        const words = theme.texts[locale].objects[object.key];
+        for (const form of forms) if (!words?.[form]) missing.push(`${theme.key}/${object.key}.${form}`);
       }
     }
     expect(missing).toEqual([]);
   });
 
-  /**
-   * Das Brett zeigt den bloßen Namen jetzt im Tooltip an. Ein fehlender
-   * `bare`-Eintrag fiel vorher niemandem auf — er kommt in keinem Satz vor.
-   */
-  it.each(LOCALES)('%s names every object of every theme on its own', (locale) => {
-    const translator = createClueTranslator({ locale });
+  it.each(LOCALES)('%s names and places every room of every theme', (locale) => {
     const missing: string[] = [];
     for (const theme of THEMES) {
-      for (const object of theme.objects) {
-        const name = translator.objectName(object.key);
-        if (name === `object.${object.key}.bare` || name.length === 0)
-          missing.push(`${theme.key}/${object.key}`);
+      for (const room of theme.rooms) {
+        const words = theme.texts[locale].rooms[room.key];
+        if (!words?.name || !words.in) missing.push(`${theme.key}/${room.key}`);
       }
     }
     expect(missing).toEqual([]);
   });
 
-  it.each(LOCALES)('%s covers every room of every theme', (locale) => {
-    const missing: string[] = [];
+  it.each(LOCALES)('%s has no texts for objects or rooms a theme does not have', (locale) => {
+    const stray: string[] = [];
     for (const theme of THEMES) {
-      for (const room of theme.roomKeys) {
-        if (!(room in bundles[locale].room)) missing.push(`${theme.key}/${room}`);
-      }
+      const objects = new Set(theme.objects.map((object) => object.key));
+      const rooms = new Set(theme.rooms.map((room) => room.key));
+      for (const key of Object.keys(theme.texts[locale].objects))
+        if (!objects.has(key)) stray.push(`${theme.key}/${key}`);
+      for (const key of Object.keys(theme.texts[locale].rooms))
+        if (!rooms.has(key)) stray.push(`${theme.key}/${key}`);
     }
-    expect(missing).toEqual([]);
+    expect(stray).toEqual([]);
   });
 
   it.each(LOCALES)('%s has a template for every clue type', (locale) => {
@@ -196,7 +218,7 @@ describe('resource completeness', () => {
   });
 
   it('renders every clue of real puzzles in both languages', () => {
-    const translators = LOCALES.map((locale) => createClueTranslator({ locale }));
+    const translators = LOCALES.map((locale) => createClueTranslator({ locale, themes }));
     for (const { seed } of seedsAcrossTiers(1)) {
       const { core } = generatePuzzle(seed);
       for (const translator of translators) {

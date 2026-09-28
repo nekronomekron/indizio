@@ -19,6 +19,7 @@ import { buildSceneIndex, isConnected } from '../../src/engine/core/grid.js';
 import { generateRooms, roomCountFor } from '../../src/engine/generation/layout.js';
 import { findPerfectMatching } from '../../src/engine/generation/furnish.js';
 import { seedsAcrossTiers, smallSeeds } from './support/seeds.js';
+import { testTheme } from './support/themes.js';
 
 /**
  * Generation.
@@ -57,13 +58,13 @@ describe('themes', () => {
   it('offer enough room names for the largest grid', () => {
     const largest = Math.max(...[5, 6, 7, 8, 9, 10].map(roomCountFor));
     for (const theme of THEMES) {
-      expect(theme.roomKeys.length, theme.key).toBeGreaterThanOrEqual(largest);
+      expect(theme.rooms.length, theme.key).toBeGreaterThanOrEqual(largest);
     }
   });
 
   it('offer both a walkable and a blocking object in every room', () => {
     for (const theme of THEMES) {
-      for (const room of theme.roomKeys) {
+      for (const { key: room } of theme.rooms) {
         const here = theme.objects.filter((object) => object.rooms.includes(room));
         expect(
           here.some((object) => object.walkable),
@@ -110,7 +111,12 @@ describe('floor plans', () => {
     const size = 6 + (index % 5);
     return {
       size,
-      rooms: generateRooms(new Rng(`layout-${index}`), size, roomCountFor(size), THEMES[index % 3]!.roomKeys),
+      rooms: generateRooms(
+        new Rng(`layout-${index}`),
+        size,
+        roomCountFor(size),
+        THEMES[index % 3]!.rooms.map((room) => room.key),
+      ),
     };
   });
 
@@ -265,15 +271,13 @@ describe('generated puzzles', () => {
   });
 
   it('accept custom themes without touching the generator', () => {
+    const rooms = ['loft', 'nook', 'landing', 'closet', 'eaves', 'stair', 'store'];
     const custom = [
-      {
-        key: 'attic',
-        roomKeys: ['loft', 'nook', 'landing', 'closet', 'eaves', 'stair', 'store'],
-        objects: THEMES[1]!.objects.map((object) => ({
-          ...object,
-          rooms: ['loft', 'nook', 'landing', 'closet', 'eaves', 'stair', 'store'],
-        })),
-      },
+      testTheme(
+        'attic',
+        rooms,
+        THEMES[1]!.objects.map((object) => ({ ...object, rooms })),
+      ),
     ];
     const { core } = generatePuzzle(makeSeed('attic', 6, 4711), { themes: custom });
     expect(core.themeKey).toBe('attic');

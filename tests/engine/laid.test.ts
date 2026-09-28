@@ -14,6 +14,7 @@ import { boundsOf, isConnected, orthogonalNeighbours } from '../../src/engine/co
 import { furnishScene, randomPermutationCells } from '../../src/engine/generation/furnish.js';
 import { generateRooms, roomCountFor } from '../../src/engine/generation/layout.js';
 import { expectObjectShapes } from './support/invariants.js';
+import { testTheme } from './support/themes.js';
 
 /**
  * Laid objects (PLAN.md §13): carpets, mats and later corridors that take any
@@ -47,17 +48,13 @@ function single(key: string, walkable: boolean): ThemeObject {
 
 /** A theme made of laid objects only, plus the single squares every room needs. */
 function laidTheme(placement: Omit<TiledPlacement, 'kind'>): Theme {
-  return {
-    key: 'laid',
-    roomKeys: ROOMS,
-    objects: [
-      laid('rug', true, placement),
-      laid('runner', true, placement),
-      laid('hedge', false, placement),
-      single('stool', true),
-      single('crate', false),
-    ],
-  };
+  return testTheme('laid', ROOMS, [
+    laid('rug', true, placement),
+    laid('runner', true, placement),
+    laid('hedge', false, placement),
+    single('stool', true),
+    single('crate', false),
+  ]);
 }
 
 const placementArbitrary = fc
@@ -194,12 +191,23 @@ describe('themes with laid objects', () => {
   });
 
   it('reject a fixed object without a footprint', () => {
-    const theme: Theme = {
-      key: 'x',
-      roomKeys: ROOMS,
-      objects: [{ ...single('stool', true), placement: { kind: 'fixed', footprints: [] } }],
-    };
+    const theme = testTheme('x', ROOMS, [
+      { ...single('stool', true), placement: { kind: 'fixed', footprints: [] } },
+    ]);
     expect(themeProblems(theme)).toEqual(['x/stool has no footprint']);
+  });
+
+  it('reject duplicate keys and unknown rooms', () => {
+    const theme = testTheme(
+      'x',
+      [...ROOMS, 'a'],
+      [single('stool', true), { ...single('stool', true), rooms: ['cellar'] }],
+    );
+    expect(themeProblems(theme)).toEqual([
+      'x: room a is listed twice',
+      'x: object stool is listed twice',
+      'x/stool names an unknown room cellar',
+    ]);
   });
 
   it('generate verifiable puzzles from a theme of laid objects', () => {
