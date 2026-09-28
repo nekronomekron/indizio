@@ -36,7 +36,7 @@ function rectangle(fromRow: number, toRow: number): Cell[] {
 }
 
 function object(id: number, key: string, walkable: boolean, roomId: number, cells: [number, number][]): SceneObject {
-  return { id, key, walkable, roomId, cells: cells.map(([row, column]) => cellAt(row, column, SIZE)) };
+  return { id, key, walkable, placement: 'fixed', roomId, cells: cells.map(([row, column]) => cellAt(row, column, SIZE)) };
 }
 
 export interface Fixture {

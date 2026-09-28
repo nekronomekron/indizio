@@ -27,6 +27,10 @@ import { OBJECT_SHAPES } from './art/objects.js';
  * ist entsprechend gross (24 je Feld). So kann ein Bett quer anders aussehen
  * als laengs, statt ein gedrehtes Quadrat zu sein.
  *
+ * Verlegte Requisiten (Teppich, Matte) haben stattdessen **ein Blatt**
+ * `tiles/<key>.svg` mit 48 × 72: daraus setzt das Spiel jede Form aus Vierteln
+ * zusammen (PLAN.md §13.4, `src/app/render/tiles.ts`).
+ *
  * ```bash
  * npm run art           # nur fehlende und eigene Platzhalter schreiben
  * npm run art -- --force  # auch ersetzte Grafiken ueberschreiben
@@ -86,6 +90,49 @@ function placeholder(icon: string, width: number, height: number): string {
   return plate + centred;
 }
 
+/** Ein Rechteck `size` × `size` ab (x, y), an jeder Ecke um `notch` eingekerbt. */
+function notched(x: number, y: number, size: number, notch: number): string {
+  const a = x + notch;
+  const b = x + size - notch;
+  const c = y + notch;
+  const d = y + size - notch;
+  const r = x + size;
+  const u = y + size;
+  const points = [
+    [a, y], [b, y], [b, c], [r, c], [r, d], [b, d], [b, u], [a, u], [a, d], [x, d], [x, c], [a, c],
+  ];
+  return 'M' + points.map(([px, py]) => `${String(px)} ${String(py)}`).join('L') + 'Z';
+}
+
+/**
+ * Platzhalter-Blatt fuer eine verlegte Requisite, 2 × 3 Felder (PLAN.md §13.4).
+ *
+ * ```
+ * [ Einzelfeld ][ Innenecken ]   Zeile 0
+ * [   2×2-Block: Aussenecken,  ]  Zeilen 1–2
+ * [   Kanten und Fuellung      ]
+ * ```
+ *
+ * Ein Rand im Ton des Sinnbilds, innen ein zweiter Ton — so zeigt die fertige
+ * Form auf dem Brett ihren Umriss, auch um Ecken herum. Aussen bleiben 2
+ * Einheiten Luft, damit der Boden als Rahmen sichtbar bleibt; die Innenecken
+ * sind um genau diese 2 (Rand) und 5 (Innenfeld) eingekerbt, damit sie an die
+ * Kanten der Nachbarn anschliessen.
+ */
+function tileSheet(icon: string): string {
+  const fills = [...icon.matchAll(/fill="(#[0-9a-f]{3,8})"/gi)].map((match) => match[1]!);
+  const tone = fills[0] ?? '#6b6580';
+  const inner = fills.find((fill) => fill.toLowerCase() !== tone.toLowerCase()) ?? tone;
+  const border = 2;
+  const band = 5;
+  const single = placeholder(icon, 1, 1);
+  const corners = `<path d="${notched(24, 0, 24, border)}" fill="${tone}"/>`
+    + `<path d="${notched(24, 0, 24, band)}" fill="${inner}" fill-opacity="0.8"/>`;
+  const block = `<rect x="${String(border)}" y="${String(24 + border)}" width="${String(48 - border * 2)}" height="${String(48 - border * 2)}" rx="4" fill="${tone}"/>`
+    + `<rect x="${String(band)}" y="${String(24 + band)}" width="${String(48 - band * 2)}" height="${String(48 - band * 2)}" rx="2" fill="${inner}" fill-opacity="0.8"/>`;
+  return single + corners + block;
+}
+
 function shape(node: unknown): string {
   return renderToStaticMarkup(createElement('g', null, node as never))
     .replace(/^<g>/, '')
@@ -115,9 +162,20 @@ for (const theme of THEMES) {
     if (!node) throw new Error(`Keine Platzhalterform fuer ${theme.key}/${object.key}`);
     const icon = shape(node);
 
+    // Verlegt: ein Blatt, aus dem das Spiel jede Form zusammensetzt.
+    if (object.placement.kind === 'tiled') {
+      files.push({
+        path: join('themes', theme.key, 'tiles', `${object.key}.svg`),
+        markup: tileSheet(icon),
+        width: 2,
+        height: 3,
+      });
+      continue;
+    }
+
     // Je zulaessiger Grundflaeche eine Datei. Welche es gibt, bestimmt die
     // Theme-Definition der Bibliothek - hier wird nichts geraten.
-    for (const [width, height] of object.footprints) {
+    for (const [width, height] of object.placement.footprints) {
       files.push({
         path: join('themes', theme.key, 'objects', `${object.key}_${String(width)}x${String(height)}.svg`),
         markup: placeholder(icon, width, height),

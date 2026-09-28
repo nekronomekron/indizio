@@ -22,6 +22,21 @@ function damaged(mutate: (core: PuzzleCore) => void): string {
   return JSON.stringify(copy);
 }
 
+/** Three cells of one room forming an L — connected, but no rectangle. */
+function lShapeIn(draft: PuzzleCore): { roomId: number; cells: number[] } {
+  for (const room of draft.rooms) {
+    const inRoom = new Set(room.cells);
+    for (const cell of room.cells) {
+      const right = cell + 1;
+      const below = cell + draft.size;
+      if (cell % draft.size !== draft.size - 1 && inRoom.has(right) && inRoom.has(below)) {
+        return { roomId: room.id, cells: [cell, right, below] };
+      }
+    }
+  }
+  throw new Error('no room with an L in it');
+}
+
 describe('writing', () => {
   it('carries format and schema version', () => {
     const document = JSON.parse(stringifyPuzzle(core)) as Record<string, unknown>;
@@ -98,6 +113,69 @@ describe('reading', () => {
     ['a murderer out of range', (draft: PuzzleCore) => { draft.murdererId = 99; }, /murdererId/],
   ])('rejects %s', (_name, mutate, pattern) => {
     expect(() => parsePuzzle(damaged(mutate))).toThrow(pattern);
+  });
+
+  it('reads a document from before schema 3 as all fixed', () => {
+    // The garden lays nothing, so its objects are exactly what an old
+    // document held: rectangles without a placement field.
+    const { core: garden } = generatePuzzle(makeSeed('garden', 6, 0xd0c5));
+    expect(garden.objects.every((object) => object.placement === 'fixed')).toBe(true);
+    const old = JSON.parse(stringifyPuzzle(garden)) as { schemaVersion: number; core: PuzzleCore };
+    old.schemaVersion = 2;
+    for (const object of old.core.objects) delete (object as Partial<typeof object>).placement;
+    const readBack = parsePuzzle(JSON.stringify(old));
+    expect(readBack.objects.every((object) => object.placement === 'fixed')).toBe(true);
+    expect(stringifyPuzzle(readBack)).toBe(stringifyPuzzle(garden));
+  });
+
+  it('carries laid shapes through unchanged', () => {
+    const text = damaged((draft) => {
+      const { roomId, cells } = lShapeIn(draft);
+      draft.objects.push({ id: draft.objects.length, key: 'rug', walkable: true, placement: 'tiled', roomId, cells });
+    });
+    const readBack = parsePuzzle(text);
+    expect(readBack.objects.at(-1)!.placement).toBe('tiled');
+    expect(readBack.objects.at(-1)!.cells).toHaveLength(3);
+  });
+
+  it.each([
+    ['an unknown placement', (draft: PuzzleCore) => {
+      (draft.objects[0] as { placement: string }).placement = 'woven';
+    }, /unknown placement/],
+    ['a fixed object that is no rectangle', (draft: PuzzleCore) => {
+      const { roomId, cells } = lShapeIn(draft);
+      draft.objects.push({ id: draft.objects.length, key: 'rug', walkable: true, placement: 'fixed', roomId, cells });
+    }, /not a rectangle/],
+    ['an object in two pieces', (draft: PuzzleCore) => {
+      const { roomId, cells } = lShapeIn(draft);
+      draft.objects.push({ id: draft.objects.length, key: 'rug', walkable: true, placement: 'tiled', roomId, cells: [cells[1]!, cells[2]!] });
+    }, /disconnected/],
+    ['an object reaching into another room', (draft: PuzzleCore) => {
+      const object = draft.objects[0]!;
+      const foreign = draft.rooms.find((room) => room.id !== object.roomId)!;
+      object.placement = 'tiled';
+      object.cells = [...object.cells, foreign.cells[0]!];
+    }, /outside room/],
+    ['two laid objects of one kind touching', (draft: PuzzleCore) => {
+      const { roomId, cells } = lShapeIn(draft);
+      draft.objects.push(
+        { id: draft.objects.length, key: 'rug', walkable: true, placement: 'tiled', roomId, cells: [cells[0]!] },
+        { id: draft.objects.length + 1, key: 'rug', walkable: true, placement: 'tiled', roomId, cells: [cells[1]!] },
+      );
+    }, /touch each other/],
+  ])('rejects %s', (_name, mutate, pattern) => {
+    expect(() => parsePuzzle(damaged(mutate))).toThrow(pattern);
+  });
+
+  it('lets laid objects of different kinds touch', () => {
+    const text = damaged((draft) => {
+      const { roomId, cells } = lShapeIn(draft);
+      draft.objects.push(
+        { id: draft.objects.length, key: 'rug', walkable: true, placement: 'tiled', roomId, cells: [cells[0]!] },
+        { id: draft.objects.length + 1, key: 'mat', walkable: true, placement: 'tiled', roomId, cells: [cells[1]!] },
+      );
+    });
+    expect(() => parsePuzzle(text)).not.toThrow();
   });
 
   it('reports every problem at once, not just the first', () => {

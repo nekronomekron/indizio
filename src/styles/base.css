@@ -131,10 +131,15 @@ input, select {
    anklickbar - man darf sehen, was kommt. */
 .day:disabled { background: none; border-style: dashed; color: var(--dim); opacity: 0.5; cursor: default; }
 .day.before { opacity: 0.25; }
+/* Rand = heute, Fuellung = Fortschritt. Jede der beiden Angaben hat genau
+   einen Traeger; ein orangener Zustandsrand liesse sich neben dem goldenen
+   Heute-Rand kaum unterscheiden. */
 .day.today { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-.day.solved { border-color: var(--ok); }
-.day.started { border-color: var(--accent-2); }
-.day-number { font-size: 14px; line-height: 1; }
+.day.started { background: rgba(217, 139, 63, 0.28); }
+.day.solved { background: rgba(95, 179, 106, 0.28); }
+/* Zahl oben links wie in einem Wandkalender, damit die Mitte fuer das
+   Zustandssymbol frei ist. */
+.day-number { position: absolute; top: 5px; left: 6px; font-size: 13px; line-height: 1; }
 
 /* Die Stufe als schmaler Balken am unteren Rand: Farbe **und** Breite, damit
    sie auch ohne Farbwahrnehmung unterscheidbar bleibt. */
@@ -148,8 +153,13 @@ input, select {
 .day-tier.tier-hard { width: 65%; background: #d98b3f; }
 .day-tier.tier-expert { width: 80%; background: var(--danger); }
 
-.day-mark { position: absolute; top: 3px; right: 3px; display: grid; place-items: center; }
-.day-mark.started { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-2); }
+/* Gross und leicht unter der Mitte: frei von der Zahl oben links und vom
+   Stufenbalken unten, auch in der kleinsten Zelle (44 px). */
+.day-mark {
+  position: absolute; left: 50%; top: 54%; width: 45%; aspect-ratio: 1;
+  transform: translate(-50%, -50%); display: grid; place-items: center; pointer-events: none;
+}
+.day-mark .sprite { width: 100%; height: 100%; }
 
 /* ---------- Zufallsfall und eigener Seed ---------- */
 
@@ -264,23 +274,36 @@ input, select {
 .line-grid { fill: none; stroke: rgba(8, 6, 14, 0.5); }
 .line-wall { fill: none; stroke: #07060d; stroke-linecap: square; }
 .line-hover { fill: none; stroke: var(--accent-2); stroke-linecap: square; filter: drop-shadow(0 0 6px rgba(79, 168, 192, 0.65)); }
+/* Raumname als kleines Schild: lesbar auf dunklem Estrich wie auf hellem Sand.
+   Er haelt Abstand zur Wand (--wall-inset, aus Grid.tsx) und wird auf die
+   Breite des Raumes in seiner Zeile gekuerzt - der volle Name steht in der
+   Sprechblase. Die Hoehe (12 + 2 x 1) kennt `.notes.below-label`. */
 .room-label {
-  position: absolute; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.34); pointer-events: none; white-space: nowrap; z-index: 3;
+  position: absolute; box-sizing: border-box; padding: 1px 4px; border-radius: 4px;
+  background: rgba(10, 8, 18, 0.6);
+  font-size: 10px; line-height: 12px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85); pointer-events: none;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; z-index: 3;
 }
 .room-label.hovered { color: var(--accent-2); }
 /* Requisiten liegen unter den Raumgrenzen: eine Linie, die hinter dem Schrank
    verschwindet, laesst den Raum offen aussehen, wo er geschlossen ist. */
 .object { position: absolute; display: grid; place-items: center; pointer-events: none; z-index: 1; }
-.object.blocking { background: rgba(0, 0, 0, 0.42); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5); }
-.object.walkable { background: rgba(255, 255, 255, 0.06); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08); }
+.object.blocking { --object-edge: rgba(0, 0, 0, 0.5); background: rgba(0, 0, 0, 0.42); box-shadow: inset 0 0 0 1px var(--object-edge); }
+.object.walkable { --object-edge: rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.06); box-shadow: inset 0 0 0 1px var(--object-edge); }
+/* Verlegte Requisiten: je Zelle vier Viertel aus einem Blatt. Den Rahmen setzt
+   TiledObject nur an die Aussenkanten der Form. */
+.object.tile { display: block; }
+.tile-quarter { position: absolute; background-repeat: no-repeat; }
 
 /* Was der Spieler selbst setzt, liegt ueber allem - auch ueber den Grenzen. */
 .cells { position: absolute; inset: 0; display: grid; z-index: 4; }
 .cell { position: relative; display: grid; place-items: center; }
 .cell.hint { box-shadow: inset 0 0 0 3px var(--accent); }
-.placed { position: relative; display: grid; place-items: center; }
-.placed-letter { position: absolute; right: -2px; bottom: -2px; min-width: 15px; height: 15px; padding: 0 2px; display: grid; place-items: center; border-radius: 8px; background: var(--accent); color: #1a1524; font-size: 10px; font-weight: 700; transition: background 0.12s ease, box-shadow 0.12s ease; }
+/* Der Buchstabe haengt an der Zelle, nicht am Portraet: so haelt er denselben
+   Wandabstand wie Raumname und Notizen. */
+.placed { display: grid; place-items: center; }
+.placed-letter { position: absolute; right: var(--wall-inset, 2px); bottom: var(--wall-inset, 2px); min-width: 15px; height: 15px; padding: 0 2px; display: grid; place-items: center; border-radius: 8px; background: var(--accent); color: #1a1524; font-size: 10px; font-weight: 700; transition: background 0.12s ease, box-shadow 0.12s ease; }
 /* Wer gerade gewaehlt ist, leuchtet auf dem Brett auf - Platzierung wie Notiz.
    Auf einem vollen 10x10-Gitter steht sonst ein Dutzend gleich aussehender
    Buchstaben, und man sucht seinen eigenen. */
@@ -288,11 +311,13 @@ input, select {
 /* Bleistiftnotizen sitzen links oben in der Zelle und laufen bei mehreren
    Eintraegen nach rechts weiter - so bleibt darunter Platz fuer Objekt und X. */
 .notes {
-  position: absolute; left: 3px; top: 1px; right: 2px;
+  position: absolute; left: var(--wall-inset, 3px); top: var(--wall-inset, 1px); right: var(--wall-inset, 2px);
   display: flex; flex-wrap: wrap; gap: 0 3px;
   align-content: flex-start; justify-content: flex-start;
   line-height: 1.05; pointer-events: none;
 }
+/* In der Zelle mit dem Raumnamen unter dessen Schild (14 px) und 2 px Luft. */
+.notes.below-label { top: calc(var(--wall-inset, 1px) + 16px); }
 .note { color: var(--accent-2); font-weight: 700; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75); transition: color 0.12s ease; }
 .note.chosen { color: var(--chosen); text-shadow: 0 0 6px rgba(240, 127, 184, 0.8), 0 1px 2px rgba(0, 0, 0, 0.9); }
 

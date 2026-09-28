@@ -1,52 +1,52 @@
 [
   {
-    "seed": "v3-garage-5-vl-11pr",
+    "seed": "v4-garage-5-vl-11pr",
     "difficulty": "veryEasy",
-    "sha256": "fcf0983ea463228175f3d950aade5e2c816db8140960829ec88c9b92ba85a1fe"
+    "sha256": "dd39b17a79882ae0751cd064cab71b57305875a3ce9adaa6077aab000bc47942"
   },
   {
-    "seed": "v3-flat-6-vl-17tq",
+    "seed": "v4-flat-6-vl-17tq",
     "difficulty": "veryEasy",
-    "sha256": "58fe046bf2e2ee724c779add4f400e43dab9e5a594a4ccdc26ec9da23b002053"
+    "sha256": "3191fbc26cebd05c4f8cf9b3c25ffbe35084662aee6f13d788e0bc551d154b6a"
   },
   {
-    "seed": "v3-garage-7-l-11pr",
+    "seed": "v4-garage-7-l-11pr",
     "difficulty": "easy",
-    "sha256": "2e2735d3652e3a1d5c57c50f553234d382318a81a33d10727cfd6c596c3d6e6c"
+    "sha256": "d5fd0e0247b0d566f4828408ae643d08b03486f37c05b8088efd498605f0ea0f"
   },
   {
-    "seed": "v3-flat-7-l-17tq",
+    "seed": "v4-flat-7-l-17tq",
     "difficulty": "easy",
-    "sha256": "4e29cc407a58f9392cea3ae6d357a312b3c9bbcb86a4b458bc092af77560bf4a"
+    "sha256": "2f384797d41ec157a941c5c4d618c5af981bf19172884904ec44e9cf84cdd3ae"
   },
   {
-    "seed": "v3-garage-8-m-11pr",
+    "seed": "v4-garage-8-m-11pr",
     "difficulty": "medium",
-    "sha256": "1a640d13bee663c8ec7e7cc6eb09cc38357d70ef18648ce873acd67152a89464"
+    "sha256": "0b026a90c7bd4d85d8b4b9b2bf72f9494ca75dd16cb28f32272eaaf1dbfa9028"
   },
   {
-    "seed": "v3-flat-8-m-17tq",
+    "seed": "v4-flat-8-m-17tq",
     "difficulty": "medium",
-    "sha256": "7ffe6c8ad6300a0570043ea40262e9c8b6f3cebb5a4ce84cec6413fc8d247de1"
+    "sha256": "37998a569faf4300062cf6f4e2f29eaf20f15d19c6b4d5c6991fb8abf9392ff2"
   },
   {
-    "seed": "v3-garage-9-s-11pr",
+    "seed": "v4-garage-9-s-11pr",
     "difficulty": "hard",
-    "sha256": "429326286aef37748977d186dcf585c17b290303e0c41523bdff213516231d9c"
+    "sha256": "bd5aafc7a77dadd6a7a1a3176f8a7c147b01ac301dac952e494e69849899202a"
   },
   {
-    "seed": "v3-flat-9-s-17tq",
+    "seed": "v4-flat-9-s-17tq",
     "difficulty": "hard",
-    "sha256": "3912683bb18a6e27838553f3e237d2b036399177581865375d64bf3d203ef021"
+    "sha256": "b685f0c101037211b8b59f061766ad0849cc88fbfe19b7be0965b2dec04ef975"
   },
   {
-    "seed": "v3-garage-10-x-11pr",
+    "seed": "v4-garage-10-x-11pr",
     "difficulty": "expert",
-    "sha256": "416e27df844b5532b9d3df53b1d57267961eed7926ce8ac253656363bb0e2461"
+    "sha256": "87caddde6a646491bed3d6b576f6de579cc2efea2987313736216cf9ca8401ec"
   },
   {
-    "seed": "v3-flat-10-x-17tq",
+    "seed": "v4-flat-10-x-17tq",
     "difficulty": "expert",
-    "sha256": "202b3ca7f7dc4797e6e3364705928ff8c7078300e6b93366449be870455bbff8"
+    "sha256": "171159430d62652beebcb6da9d591bdf0883e2678823e11e16fc0ca940083f50"
   }
 ]

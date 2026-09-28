@@ -1,7 +1,7 @@
 import { cellAt, columnOf, orthogonalNeighbours, rowOf } from '../core/grid.js';
 import type { Rng } from '../core/rng.js';
 import type { Cell, Room, RoomId, SceneObject } from '../core/types.js';
-import type { Theme, ThemeObject } from '../content/themes/types.js';
+import type { Theme, ThemeObject, TiledPlacement } from '../content/themes/types.js';
 
 /**
  * Furnishing a scene around a solution that is already fixed.
@@ -19,10 +19,14 @@ const MAX_BLOCKED_SHARE = 0.4;
 const STAND_ON_ANCHOR_CHANCE = 0.55;
 const MAX_OBJECTS = 30;
 const MIN_OBJECTS = 6;
+/** How much a cell continuing the direction of growth outweighs a turn, at full straightness. */
+const STRAIGHT_BONUS = 3;
 
 export interface FurnishResult {
   objects: SceneObject[];
   blocked: Uint8Array;
+  /** Ids of the objects placed as anchors, for tests that check anchor rules. */
+  anchorIds: number[];
 }
 
 /**
@@ -68,6 +72,7 @@ export function randomPermutationCells(rng: Rng, size: number): Cell[] {
  */
 class Furnishing {
   readonly objects: SceneObject[] = [];
+  readonly anchorIds: number[] = [];
   readonly blocked: Uint8Array;
   private readonly occupied: Uint8Array;
   private readonly solutionCells: ReadonlySet<Cell>;
@@ -75,6 +80,12 @@ class Furnishing {
   private readonly roomOfCell: Int32Array;
   private readonly blockedPerRoom = new Map<RoomId, number>();
   private readonly usedPerKey = new Map<string, number>();
+  /**
+   * Cells covered by laid (tiled) instances, per key. Two instances of the
+   * same key never touch: side by side they would read as one, and "next to
+   * exactly two carpets" would hinge on a seam nobody can see.
+   */
+  private readonly tiledCellsByKey = new Map<string, Uint8Array>();
   /**
    * Object keys already serving as an anchor.
    *
@@ -123,6 +134,11 @@ class Furnishing {
   }
 
   place(object: ThemeObject, cells: Cell[], room: Room, asAnchor: boolean): void {
+    if (object.placement.kind === 'tiled') {
+      let mask = this.tiledCellsByKey.get(object.key);
+      if (!mask) { mask = new Uint8Array(this.size * this.size); this.tiledCellsByKey.set(object.key, mask); }
+      for (const cell of cells) mask[cell] = 1;
+    }
     for (const cell of cells) {
       this.occupied[cell] = 1;
       if (!object.walkable) this.blocked[cell] = 1;
@@ -131,14 +147,98 @@ class Furnishing {
       this.blockedPerRoom.set(room.id, (this.blockedPerRoom.get(room.id) ?? 0) + cells.length);
     }
     this.usedPerKey.set(object.key, (this.usedPerKey.get(object.key) ?? 0) + 1);
-    if (asAnchor) this.anchorKeys.add(object.key);
+    if (asAnchor) {
+      this.anchorKeys.add(object.key);
+      this.anchorIds.push(this.objects.length);
+    }
     this.objects.push({
       id: this.objects.length,
       key: object.key,
       walkable: object.walkable,
+      placement: object.placement.kind,
       roomId: room.id,
       cells,
     });
+  }
+
+  /**
+   * Whether a laid shape of this object may take this cell: inside the room,
+   * free, not touching another instance of the same key, and — for anything
+   * blocking, or for an anchor — off every solution cell it must not cover.
+   */
+  private mayLay(object: ThemeObject, room: Room, cell: Cell, anchorCell: Cell | null): boolean {
+    if (this.roomOfCell[cell] !== room.id || this.occupied[cell] === 1) return false;
+    if (this.solutionCells.has(cell)) {
+      // Blocking would invalidate the solution. An anchor covering somebody
+      // else's square would make "on the carpet" true of two people at once.
+      if (!object.walkable) return false;
+      if (anchorCell !== null && cell !== anchorCell) return false;
+    }
+    const sameKey = this.tiledCellsByKey.get(object.key);
+    if (sameKey) {
+      if (sameKey[cell] === 1) return false;
+      for (const neighbour of orthogonalNeighbours(cell, this.size)) {
+        if (sameKey[neighbour] === 1) return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Grow a laid shape from one cell.
+   *
+   * Each step adds one cell from the rim. A rim cell touching the shape once
+   * weighs 1; one touching it k ≥ 2 times weighs `compactness · k`, so at 0
+   * the shape stays a tree of lanes and at 1 it fills out. Continuing the
+   * direction a neighbour grew in is favoured by `straightness`. Returns null
+   * if the room does not leave room for `minCells`.
+   */
+  growShape(object: ThemeObject, placement: TiledPlacement, room: Room, start: Cell, anchorCell: Cell | null): Cell[] | null {
+    if (!this.mayLay(object, room, start, anchorCell)) return null;
+
+    let target = this.rng.nextIntBetween(placement.minCells, placement.maxCells);
+    if (!object.walkable) {
+      const budget = Math.floor(room.cells.length * MAX_BLOCKED_SHARE) - (this.blockedPerRoom.get(room.id) ?? 0);
+      target = Math.min(target, budget);
+    }
+    if (target < placement.minCells) return null;
+
+    const shape: Cell[] = [start];
+    const inShape = new Set<Cell>(shape);
+    // Direction each cell was entered from, as a cell offset; 0 for the start.
+    const grownBy = new Map<Cell, number>([[start, 0]]);
+
+    while (shape.length < target) {
+      const rim = new Set<Cell>();
+      for (const cell of shape) {
+        for (const neighbour of orthogonalNeighbours(cell, this.size)) {
+          if (!inShape.has(neighbour)) rim.add(neighbour);
+        }
+      }
+      // Sorted before the draw: the result must not depend on the order a
+      // Set happened to be filled in, or the same seed would drift.
+      const candidates: { cell: Cell; weight: number; step: number }[] = [];
+      for (const cell of [...rim].sort((a, b) => a - b)) {
+        if (!this.mayLay(object, room, cell, anchorCell)) continue;
+        const parents = orthogonalNeighbours(cell, this.size).filter((neighbour) => inShape.has(neighbour));
+        const touching = parents.length;
+        let weight = touching === 1 ? 1 : placement.compactness * touching;
+        if (weight <= 0) continue;
+        const straightFrom = parents.find((parent) => grownBy.get(parent) === cell - parent);
+        if (straightFrom !== undefined) weight *= 1 + STRAIGHT_BONUS * placement.straightness;
+        const parent = straightFrom ?? parents[0]!;
+        candidates.push({ cell, weight, step: cell - parent });
+      }
+      if (candidates.length === 0) break;
+
+      const chosen = this.rng.pickWeighted(candidates, (candidate) => candidate.weight);
+      shape.push(chosen.cell);
+      inShape.add(chosen.cell);
+      grownBy.set(chosen.cell, chosen.step);
+    }
+
+    if (shape.length < placement.minCells) return null;
+    return shape.sort((a, b) => a - b);
   }
 
   /**
@@ -187,8 +287,14 @@ class Furnishing {
   anchorUnderfoot(cell: Cell, room: Room): boolean {
     for (const object of this.candidatesFor(room, true)) {
       if (this.isAnchorKey(object.key)) continue;
+      if (object.placement.kind === 'tiled') {
+        const shape = this.growShape(object, object.placement, room, cell, cell);
+        if (!shape) continue;
+        this.place(object, shape, room, true);
+        return true;
+      }
       const bySize = this.rng
-        .shuffled(object.footprints)
+        .shuffled(object.placement.footprints)
         .sort((a, b) => a[0] * a[1] - b[0] * b[1]);
       for (const [width, height] of bySize) {
         const positions = this.positionsFor(room, width, height, cell)
@@ -212,7 +318,10 @@ class Furnishing {
     for (const spot of freeNeighbours) {
       for (const object of this.candidatesFor(room, false)) {
         if (this.isAnchorKey(object.key)) continue;
-        if (!object.footprints.some(([width, height]) => width === 1 && height === 1)) continue;
+        // Only single squares: a laid shape beside a person already counts as
+        // "next to" through the touch set, it needs no special anchoring.
+        if (object.placement.kind !== 'fixed') continue;
+        if (!object.placement.footprints.some(([width, height]) => width === 1 && height === 1)) continue;
         if (!this.canPlace([spot], false, room)) continue;
         this.place(object, [spot], room, true);
         return true;
@@ -230,7 +339,14 @@ class Furnishing {
       if (candidates.length === 0) continue;
 
       const object = this.rng.pickWeighted(candidates, (candidate) => candidate.weight);
-      const [width, height] = this.rng.pick(object.footprints);
+      if (object.placement.kind === 'tiled') {
+        const starts = room.cells.filter((cell) => this.mayLay(object, room, cell, null));
+        if (starts.length === 0) continue;
+        const shape = this.growShape(object, object.placement, room, this.rng.pick(starts), null);
+        if (shape) this.place(object, shape, room, false);
+        continue;
+      }
+      const [width, height] = this.rng.pick(object.placement.footprints);
       const positions = this.positionsFor(room, width, height, null)
         .filter((cells) => this.canPlace(cells, object.walkable, room));
       if (positions.length === 0) continue;
@@ -273,7 +389,7 @@ export function furnishScene(
   }
 
   furnishing.addFiller(Math.min(MAX_OBJECTS, Math.max(MIN_OBJECTS, Math.round(size * density))));
-  return { objects: furnishing.objects, blocked: furnishing.blocked };
+  return { objects: furnishing.objects, blocked: furnishing.blocked, anchorIds: furnishing.anchorIds };
 }
 
 /** Row and column of a cell, for callers that want them named. */

@@ -1,500 +1,501 @@
 {
   "format": "indizio-puzzle",
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "core": {
-    "seed": "v3-garage-10-x-11pr",
-    "generatorVersion": 3,
+    "seed": "v4-garage-10-x-11pr",
+    "generatorVersion": 4,
     "size": 10,
     "difficulty": "expert",
     "themeKey": "garage",
     "rooms": [
       {
         "id": 0,
-        "nameKey": "reception",
+        "nameKey": "washbay",
         "cells": [
           0,
           1,
-          2,
-          3,
-          4,
-          5,
           10,
-          11,
-          12,
-          13,
-          14,
-          15,
-          20,
-          21,
-          22,
-          23,
-          24,
-          25,
-          30,
-          31,
-          32,
-          33,
-          34,
-          40,
-          41,
-          42,
-          43,
-          44,
-          52,
-          53,
-          54,
-          61,
-          62,
-          63,
-          64,
-          71,
-          72,
-          82
+          11
         ],
         "bounds": {
           "minRow": 0,
           "minColumn": 0,
-          "maxRow": 8,
-          "maxColumn": 5
+          "maxRow": 1,
+          "maxColumn": 1
         }
       },
       {
         "id": 1,
-        "nameKey": "storage",
+        "nameKey": "yard",
         "cells": [
+          2,
+          3,
+          4,
+          5,
           6,
+          13,
+          15,
+          16
+        ],
+        "bounds": {
+          "minRow": 0,
+          "minColumn": 2,
+          "maxRow": 1,
+          "maxColumn": 6
+        }
+      },
+      {
+        "id": 2,
+        "nameKey": "office",
+        "cells": [
           7,
-          16,
+          8,
+          9,
           17,
+          18,
+          19,
+          25,
           26,
+          27,
+          28,
+          29,
           35,
           36,
+          37,
+          38,
+          39,
           45,
           46,
+          47,
+          48,
+          49,
           55,
           56,
+          57,
+          58,
+          59,
           65,
           66,
+          67,
+          68,
+          69,
           75,
           76,
+          77,
+          78,
+          79,
           85,
           86,
+          87,
+          88,
+          89,
           95,
-          96
+          96,
+          97,
+          98,
+          99
         ],
         "bounds": {
           "minRow": 0,
           "minColumn": 5,
           "maxRow": 9,
-          "maxColumn": 7
-        }
-      },
-      {
-        "id": 2,
-        "nameKey": "waiting",
-        "cells": [
-          8,
-          9,
-          18,
-          19,
-          27,
-          28
-        ],
-        "bounds": {
-          "minRow": 0,
-          "minColumn": 7,
-          "maxRow": 2,
           "maxColumn": 9
         }
       },
       {
         "id": 3,
-        "nameKey": "yard",
+        "nameKey": "storage",
         "cells": [
-          29,
-          38,
-          39,
-          48,
-          49
+          12,
+          14,
+          22,
+          23,
+          24,
+          32,
+          33,
+          34,
+          42,
+          43,
+          44,
+          53
         ],
         "bounds": {
-          "minRow": 2,
-          "minColumn": 8,
-          "maxRow": 4,
-          "maxColumn": 9
+          "minRow": 1,
+          "minColumn": 2,
+          "maxRow": 5,
+          "maxColumn": 4
         }
       },
       {
         "id": 4,
         "nameKey": "workshop",
         "cells": [
-          37,
-          47,
-          57,
-          58,
-          59,
-          67,
-          68,
-          69
+          20,
+          21,
+          30,
+          31
         ],
         "bounds": {
-          "minRow": 3,
-          "minColumn": 7,
-          "maxRow": 6,
-          "maxColumn": 9
+          "minRow": 2,
+          "minColumn": 0,
+          "maxRow": 3,
+          "maxColumn": 1
         }
       },
       {
         "id": 5,
-        "nameKey": "washbay",
+        "nameKey": "reception",
         "cells": [
+          40,
+          41,
           50,
           51,
+          52,
           60,
+          61,
+          62,
+          63,
           70,
+          71,
+          72,
           73,
-          74,
           80,
           81,
+          90,
+          91
+        ],
+        "bounds": {
+          "minRow": 4,
+          "minColumn": 0,
+          "maxRow": 9,
+          "maxColumn": 3
+        }
+      },
+      {
+        "id": 6,
+        "nameKey": "waiting",
+        "cells": [
+          54,
+          64,
+          74,
+          82,
           83,
           84,
-          90,
-          91,
           92,
           93,
           94
         ],
         "bounds": {
           "minRow": 5,
-          "minColumn": 0,
+          "minColumn": 2,
           "maxRow": 9,
           "maxColumn": 4
-        }
-      },
-      {
-        "id": 6,
-        "nameKey": "office",
-        "cells": [
-          77,
-          78,
-          79,
-          87,
-          88,
-          89,
-          97,
-          98,
-          99
-        ],
-        "bounds": {
-          "minRow": 7,
-          "minColumn": 7,
-          "maxRow": 9,
-          "maxColumn": 9
         }
       }
     ],
     "objects": [
       {
         "id": 0,
-        "key": "plant",
-        "walkable": false,
-        "roomId": 0,
+        "key": "chair",
+        "walkable": true,
+        "placement": "fixed",
+        "roomId": 5,
         "cells": [
-          31
+          71
         ]
       },
       {
         "id": 1,
-        "key": "oilstain",
-        "walkable": true,
-        "roomId": 1,
+        "key": "plant",
+        "walkable": false,
+        "placement": "fixed",
+        "roomId": 2,
         "cells": [
-          86
+          48
         ]
       },
       {
         "id": 2,
-        "key": "chair",
+        "key": "oilstain",
         "walkable": true,
-        "roomId": 0,
+        "placement": "fixed",
+        "roomId": 3,
         "cells": [
-          53
+          44
         ]
       },
       {
         "id": 3,
         "key": "tirestack",
         "walkable": false,
-        "roomId": 1,
+        "placement": "fixed",
+        "roomId": 3,
         "cells": [
-          85
+          33
         ]
       },
       {
         "id": 4,
-        "key": "mat",
+        "key": "car",
         "walkable": true,
-        "roomId": 0,
+        "placement": "fixed",
+        "roomId": 1,
         "cells": [
-          32
+          5,
+          6,
+          15,
+          16
         ]
       },
       {
         "id": 5,
-        "key": "car",
+        "key": "mat",
         "walkable": true,
-        "roomId": 4,
+        "placement": "tiled",
+        "roomId": 5,
         "cells": [
-          58,
-          59,
-          68,
-          69
+          60,
+          70,
+          80
         ]
       },
       {
         "id": 6,
-        "key": "toolbox",
-        "walkable": false,
-        "roomId": 5,
+        "key": "pallet",
+        "walkable": true,
+        "placement": "fixed",
+        "roomId": 3,
         "cells": [
-          91
+          12
         ]
       },
       {
         "id": 7,
-        "key": "shelf",
+        "key": "barrel",
         "walkable": false,
+        "placement": "fixed",
         "roomId": 1,
         "cells": [
-          46,
-          56
+          13
         ]
       },
       {
         "id": 8,
-        "key": "shelf",
+        "key": "toolbox",
         "walkable": false,
-        "roomId": 4,
+        "placement": "fixed",
+        "roomId": 0,
         "cells": [
-          57,
-          67
+          1
         ]
       },
       {
         "id": 9,
-        "key": "shelf",
+        "key": "counter",
         "walkable": false,
-        "roomId": 1,
+        "placement": "fixed",
+        "roomId": 2,
         "cells": [
-          65,
-          66
+          87,
+          88
         ]
       },
       {
         "id": 10,
-        "key": "shelf",
+        "key": "barrel",
         "walkable": false,
-        "roomId": 0,
+        "placement": "fixed",
+        "roomId": 1,
         "cells": [
-          24,
-          34
+          4
         ]
       },
       {
         "id": 11,
-        "key": "pallet",
-        "walkable": true,
-        "roomId": 3,
+        "key": "counter",
+        "walkable": false,
+        "placement": "fixed",
+        "roomId": 5,
         "cells": [
-          38
+          81,
+          91
         ]
       },
       {
         "id": 12,
         "key": "shelf",
         "walkable": false,
-        "roomId": 6,
+        "placement": "fixed",
+        "roomId": 2,
         "cells": [
-          88,
-          98
+          65,
+          75
         ]
       },
       {
         "id": 13,
-        "key": "pallet",
-        "walkable": true,
+        "key": "barrel",
+        "walkable": false,
+        "placement": "fixed",
         "roomId": 1,
         "cells": [
-          36
+          2
         ]
       },
       {
         "id": 14,
-        "key": "counter",
+        "key": "barrel",
         "walkable": false,
-        "roomId": 0,
+        "placement": "fixed",
+        "roomId": 3,
         "cells": [
-          43,
-          44
+          42
         ]
       },
       {
         "id": 15,
-        "key": "counter",
+        "key": "toolbox",
         "walkable": false,
-        "roomId": 0,
+        "placement": "fixed",
+        "roomId": 4,
         "cells": [
-          13,
-          23
+          20
         ]
       },
       {
         "id": 16,
-        "key": "pallet",
-        "walkable": true,
-        "roomId": 3,
+        "key": "shelf",
+        "walkable": false,
+        "placement": "fixed",
+        "roomId": 5,
         "cells": [
-          48,
-          49
+          51,
+          52
         ]
       },
       {
         "id": 17,
-        "key": "workbench",
+        "key": "shelf",
         "walkable": false,
-        "roomId": 5,
+        "placement": "fixed",
+        "roomId": 2,
         "cells": [
-          92,
-          93,
-          94
+          86,
+          96
         ]
       },
       {
         "id": 18,
-        "key": "barrel",
+        "key": "shelf",
         "walkable": false,
-        "roomId": 1,
+        "placement": "fixed",
+        "roomId": 2,
         "cells": [
-          6
+          47,
+          57
         ]
       },
       {
         "id": 19,
-        "key": "pallet",
-        "walkable": true,
-        "roomId": 5,
+        "key": "toolbox",
+        "walkable": false,
+        "placement": "fixed",
+        "roomId": 3,
         "cells": [
-          50,
-          51
+          14
         ]
       },
       {
         "id": 20,
-        "key": "barrel",
+        "key": "shelf",
         "walkable": false,
-        "roomId": 1,
+        "placement": "fixed",
+        "roomId": 5,
         "cells": [
-          35
+          62,
+          72
         ]
       },
       {
         "id": 21,
-        "key": "barrel",
+        "key": "toolbox",
         "walkable": false,
+        "placement": "fixed",
         "roomId": 3,
         "cells": [
-          39
-        ]
-      },
-      {
-        "id": 22,
-        "key": "barrel",
-        "walkable": false,
-        "roomId": 3,
-        "cells": [
-          29
-        ]
-      },
-      {
-        "id": 23,
-        "key": "workbench",
-        "walkable": false,
-        "roomId": 5,
-        "cells": [
-          73,
-          74
+          43
         ]
       }
     ],
     "suspects": [
       {
         "id": 0,
-        "name": "Marek",
-        "gender": "male",
-        "portraitKey": "p06",
+        "name": "Rosa",
+        "gender": "female",
+        "portraitKey": "p04",
         "isVictim": false
       },
       {
         "id": 1,
-        "name": "Anton",
-        "gender": "male",
+        "name": "Dana",
+        "gender": "female",
         "portraitKey": "p07",
-        "isVictim": false
+        "isVictim": true
       },
       {
         "id": 2,
         "name": "Jasmin",
         "gender": "female",
-        "portraitKey": "p10",
+        "portraitKey": "p14",
         "isVictim": false
       },
       {
         "id": 3,
-        "name": "Gustav",
+        "name": "Anton",
         "gender": "male",
-        "portraitKey": "p04",
+        "portraitKey": "p03",
         "isVictim": false
       },
       {
         "id": 4,
-        "name": "Nadja",
-        "gender": "female",
-        "portraitKey": "p02",
-        "isVictim": false
-      },
-      {
-        "id": 5,
-        "name": "Vera",
-        "gender": "female",
+        "name": "Werner",
+        "gender": "male",
         "portraitKey": "p13",
         "isVictim": false
       },
       {
+        "id": 5,
+        "name": "Ivan",
+        "gender": "male",
+        "portraitKey": "p06",
+        "isVictim": false
+      },
+      {
         "id": 6,
-        "name": "Tamara",
-        "gender": "female",
-        "portraitKey": "p08",
+        "name": "Samuel",
+        "gender": "male",
+        "portraitKey": "p10",
         "isVictim": false
       },
       {
         "id": 7,
-        "name": "Oskar",
+        "name": "Urs",
         "gender": "male",
-        "portraitKey": "p12",
+        "portraitKey": "p11",
         "isVictim": false
       },
       {
         "id": 8,
-        "name": "Emilio",
+        "name": "Carlo",
         "gender": "male",
-        "portraitKey": "p03",
-        "isVictim": true
+        "portraitKey": "p02",
+        "isVictim": false
       },
       {
         "id": 9,
-        "name": "Dana",
-        "gender": "female",
-        "portraitKey": "p14",
+        "name": "Emilio",
+        "gender": "male",
+        "portraitKey": "p05",
         "isVictim": false
       }
     ],
@@ -502,68 +503,34 @@
       {
         "ownerId": 0,
         "clue": {
-          "axis": "column",
-          "objectKey": "car",
-          "type": "ALIGNED_WITH_OBJECT"
+          "roomId": 3,
+          "type": "IN_ROOM"
         }
       },
       {
         "ownerId": 1,
         "clue": {
-          "type": "CORNER"
+          "type": "VICTIM"
         }
       },
       {
         "ownerId": 2,
         "clue": {
-          "objectKey": "plant",
-          "type": "ADJACENT_OBJECT"
+          "axis": "row",
+          "objectKey": "tirestack",
+          "type": "ALIGNED_WITH_OBJECT"
         }
       },
       {
         "ownerId": 3,
         "clue": {
-          "objectKey": "toolbox",
-          "type": "ADJACENT_OBJECT"
+          "direction": "south",
+          "objectKey": "mat",
+          "type": "DIRECTION_OF_OBJECT"
         }
       },
       {
         "ownerId": 4,
-        "clue": {
-          "axis": "row",
-          "objectKey": "barrel",
-          "type": "ALIGNED_WITH_OBJECT"
-        }
-      },
-      {
-        "ownerId": 5,
-        "clue": {
-          "objectKey": "chair",
-          "type": "ON_OBJECT"
-        }
-      },
-      {
-        "ownerId": 6,
-        "clue": {
-          "objectKey": "mat",
-          "type": "ON_OBJECT"
-        }
-      },
-      {
-        "ownerId": 7,
-        "clue": {
-          "roomId": 2,
-          "type": "IN_ROOM"
-        }
-      },
-      {
-        "ownerId": 8,
-        "clue": {
-          "type": "VICTIM"
-        }
-      },
-      {
-        "ownerId": 9,
         "clue": {
           "axis": "column",
           "objectKey": "tirestack",
@@ -571,37 +538,80 @@
         }
       },
       {
-        "ownerId": null,
+        "ownerId": 5,
         "clue": {
-          "roomId": 6,
-          "type": "EMPTY_ROOM"
+          "count": 1,
+          "objectKey": "counter",
+          "type": "ADJACENT_OBJECT"
+        }
+      },
+      {
+        "ownerId": 6,
+        "clue": {
+          "objectKey": "barrel",
+          "type": "ADJACENT_OBJECT"
+        }
+      },
+      {
+        "ownerId": 7,
+        "clue": {
+          "objectKey": "chair",
+          "type": "ON_OBJECT"
+        }
+      },
+      {
+        "ownerId": 8,
+        "clue": {
+          "objectKey": "plant",
+          "type": "ADJACENT_OBJECT"
+        }
+      },
+      {
+        "ownerId": 9,
+        "clue": {
+          "objectKey": "oilstain",
+          "type": "ON_OBJECT"
         }
       },
       {
         "ownerId": null,
         "clue": {
           "count": 1,
-          "roomId": 4,
+          "roomId": 1,
           "type": "ROOM_COUNT"
+        }
+      },
+      {
+        "ownerId": null,
+        "clue": {
+          "roomId": 4,
+          "type": "EMPTY_ROOM"
+        }
+      },
+      {
+        "ownerId": null,
+        "clue": {
+          "roomId": 0,
+          "type": "EMPTY_ROOM"
         }
       }
     ],
     "solution": [
-      18,
-      69,
-      41,
-      90,
-      4,
-      53,
-      32,
-      27,
-      86,
-      75
+      12,
+      60,
+      36,
+      97,
+      23,
+      89,
+      5,
+      71,
+      58,
+      44
     ],
-    "murdererId": 9,
+    "murdererId": 7,
     "difficultyProof": {
-      "spread": 11.4,
-      "indirect": 4,
+      "spread": 10.8,
+      "indirect": 3,
       "attempts": 0
     }
   }

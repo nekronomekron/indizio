@@ -2,12 +2,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { columnOf, rowOf } from '@engine';
 import type { Cell, PuzzleCore } from '@engine';
 import { Sprite } from '../render/Sprite.js';
+import { TiledObject } from '../render/TiledObject.js';
 import { artUrl } from '../render/art.js';
 import { DEFAULT_FLOOR, floorFlip, floorFor } from '../render/floors.js';
 import type { GameState } from '../state/game.js';
 import { moveCursor } from '../keys.js';
 import { describeCell, estimateTipWidth, tipSpot } from '../inspect.js';
-import { BoardLines } from './BoardLines.js';
+import { BoardLines, labelRun, wallInset } from './BoardLines.js';
 
 /** Ruhe auf einem Feld, bis die Sprechblase kommt. */
 const TIP_DELAY = 250;
@@ -322,11 +323,19 @@ export function Grid(props: GridProps) {
     return { material, image, shade };
   }, [core.rooms, core.themeKey]);
 
-  /** Beschriftung sitzt auf der obersten, linkesten Zelle des Raumes. */
+  /**
+   * Beschriftung sitzt auf der obersten, linkesten Zelle des Raumes und darf
+   * nur so breit werden, wie der Raum in dieser Zeile reicht.
+   */
   const labelSpots = useMemo(
-    () => core.rooms.map((room) => ({ room, cell: Math.min(...room.cells) })),
-    [core.rooms],
+    () => core.rooms.map((room) => {
+      const cell = Math.min(...room.cells);
+      return { room, cell, run: labelRun(cell, roomOfCell, size) };
+    }),
+    [core.rooms, roomOfCell, size],
   );
+  const labelCells = useMemo(() => new Set(labelSpots.map((spot) => spot.cell)), [labelSpots]);
+  const inset = wallInset(cellPx);
 
   /**
    * Requisite je Zelle, als Zuordnung Zelle → Objekt-Id.
@@ -360,7 +369,7 @@ export function Grid(props: GridProps) {
     : tipSpot(tipCell, size, cellPx, Math.min(boardPx, estimateTipWidth(tipText)));
 
   return (
-    <div className="board" style={{ width: boardPx, height: boardPx }}>
+    <div className="board" style={{ width: boardPx, height: boardPx, ['--wall-inset' as string]: String(inset) + 'px' }}>
       {/* Boden: eine Kachel je Zelle, damit jede Raumform trägt. */}
       <div className="floor" style={{ gridTemplateColumns: 'repeat(' + size + ', ' + cellPx + 'px)' }}>
         {Array.from({ length: size * size }, (_, cell) => {
@@ -389,17 +398,24 @@ export function Grid(props: GridProps) {
       {/* Feldraster und Raumgrenzen, über dem Boden und unter den Figuren. */}
       <BoardLines size={size} cellPx={cellPx} roomOfCell={roomOfCell} hoverRoom={hoverRoom} />
 
-      {labelSpots.map(({ room, cell }) => (
+      {labelSpots.map(({ room, cell, run }) => (
         <span
           key={room.id}
           className={'room-label' + (room.id === hoverRoom ? ' hovered' : '')}
-          style={{ left: columnOf(cell, size) * cellPx + 4, top: rowOf(cell, size) * cellPx + 2 }}
+          style={{
+            left: columnOf(cell, size) * cellPx + inset,
+            top: rowOf(cell, size) * cellPx + inset,
+            maxWidth: run * cellPx - 2 * inset,
+          }}
         >
           {roomLabels[room.id]}
         </span>
       ))}
 
       {core.objects.map((obj) => {
+        if (obj.placement === 'tiled') {
+          return <TiledObject key={obj.id} object={obj} size={size} cellPx={cellPx} theme={core.themeKey} />;
+        }
         const rows = obj.cells.map((c) => rowOf(c, size));
         const cols = obj.cells.map((c) => columnOf(c, size));
         const r0 = Math.min(...rows);
@@ -489,9 +505,10 @@ export function Grid(props: GridProps) {
                 </span>
               )}
               {placedId < 0 && marked && <Sprite kind="icons" name="ui-x" size={Math.round(cellPx * 0.5)} className="mark" />}
-              {/* Bleistiftnotizen sitzen links oben und stehen auch neben einem X. */}
+              {/* Bleistiftnotizen sitzen links oben und stehen auch neben einem X.
+                  Wo der Raumname steht, beginnen sie unter seinem Schild. */}
               {placedId < 0 && notes.length > 0 && (
-                <span className="notes" style={{ fontSize: noteSize }}>
+                <span className={'notes' + (labelCells.has(cell) ? ' below-label' : '')} style={{ fontSize: noteSize }}>
                   {notes.map((id) => (
                     <span key={id} className={'note' + (id === state.selected ? ' chosen' : '')}>
                       {letters[id] ?? '?'}

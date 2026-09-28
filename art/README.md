@@ -17,6 +17,7 @@ art/
     floors/            Rückfallbelag für fremde Themes
   themes/<theme>/
     objects/           die Requisiten dieses Themes
+    tiles/             Blätter der verlegten Requisiten (Teppich, Matte)
     floors/            die Bodenbeläge seiner Räume
 ```
 
@@ -53,6 +54,53 @@ Welche Grundflächen es gibt, bestimmt die **Theme-Definition** der Engine
 Wer für alle Flächen mit einer Datei auskommt, legt sie ohne Zusatz ab
 (`bed.svg`) — das Spiel nimmt sie, wenn es die passende Fläche nicht findet.
 Für die Platzhalter wird davon kein Gebrauch gemacht.
+
+## Verlegte Requisiten: ein Blatt je Art
+
+Teppiche und Matten haben keine feste Grundfläche. Sie liegen in **beliebiger
+Form** im Raum — um Ecken, mit Abzweigen und Kreuzungen, als Bahn oder als
+Fläche. Welche Requisite so verlegt wird, steht in der Theme-Definition
+(`placement: { kind: 'tiled', … }`).
+
+Dafür gibt es **eine Datei je Art**, `tiles/<name>.svg`, mit
+`viewBox="0 0 48 72"` — 2 × 3 Felder, aufgebaut wie ein Autotile im Format
+RPG Maker A2:
+
+```
+x: 0          24          48
+   ┌───────────┬───────────┐ y 0
+   │ Einzelfeld│ Innenecken│      nur Vorschau | die vier Innenecken
+   ├─────┬─────┼─────┬─────┤ y 24
+   │ ┌   │  ─  │  ─  │   ┐ │
+   ├─────┼─────┼─────┼─────┤
+   │ │   │     │     │   │ │      ein 2×2-Block:
+   ├─────┼─────┼─────┼─────┤      Außenecken, Kanten, Füllung
+   │ │   │     │     │   │ │
+   ├─────┼─────┼─────┼─────┤
+   │ └   │  ─  │  ─  │   ┘ │
+   └─────┴─────┴─────┴─────┘ y 72
+```
+
+Das Spiel setzt jede Zelle aus **vier Vierteln zu 12 × 12** zusammen. Welches
+Viertel es nimmt, hängt an den zwei Nachbarn, an die das Viertel grenzt, und an
+der Diagonalen dazwischen: Außenecke, waagerechte Kante, senkrechte Kante,
+Innenecke oder Füllung. Ein Viertel kommt immer aus **derselben Lage** im
+Blatt, in der es auf dem Brett sitzt — das Nordwest-Viertel einer Zelle aus
+einer linken oberen Viertelposition. Gedreht wird nichts.
+
+Damit das aufgeht:
+
+- Was an einer offenen Seite eines Viertels endet, muss an die gegenüberliegende
+  offene Seite **jedes** anderen Viertels passen — Muster, Ränder und Fransen
+  laufen über die Viertelgrenzen durch.
+- Außen bleiben wie bei allen Requisiten **2 Einheiten Luft** zur Zellkante.
+  Die Innenecken sind um genau diese 2 eingekerbt, sonst stößt der Rand an
+  einer Innenecke nicht an die Kanten der Nachbarzellen.
+- Das Einzelfeld oben links erscheint nie auf dem Brett; eine einzelne Zelle
+  setzt sich aus den vier Außenecken zusammen. Es ist die Vorschau.
+
+Die genaue Zuordnung steht in
+[`src/app/render/tiles.ts`](../src/app/render/tiles.ts) und in PLAN.md §13.4.
 
 ## Was eine Datei erfüllen muss
 

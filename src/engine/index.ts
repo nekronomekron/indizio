@@ -31,7 +31,7 @@
 // --- Data model -----------------------------------------------------------
 export type {
   Assignment, Axis, Bounds, Cell, Clue, ClueEntry, ClueType, DifficultyKey,
-  DifficultyProof, Direction, Gender, Puzzle, PuzzleCore, PuzzleMeta, Room,
+  DifficultyProof, Direction, Gender, PlacementKind, Puzzle, PuzzleCore, PuzzleMeta, Room,
   RoomId, RuleLevel, Scene, SceneObject, Suspect, SuspectId,
 } from './core/types.js';
 export { CLUE_TYPES } from './core/types.js';
@@ -75,7 +75,10 @@ export {
 } from './clues/restrictions.js';
 
 // --- Content: replaceable, not baked in -----------------------------------
-export { THEMES, THEME_KEYS, findTheme, type Theme, type ThemeObject } from './content/themes/index.js';
+export {
+  THEMES, THEME_KEYS, findTheme, themeProblems,
+  type FixedPlacement, type Placement, type Theme, type ThemeObject, type TiledPlacement,
+} from './content/themes/index.js';
 export { NAME_POOL, PORTRAIT_KEYS, type NameEntry } from './content/names.js';
 
 // --- Grid arithmetic ------------------------------------------------------
