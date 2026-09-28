@@ -28,6 +28,32 @@ export function gridWidth(cellPx: number): number {
 }
 
 /**
+ * Abstand von der Zellkante, den Beschriftungen halten: Raumname, Buchstabe,
+ * Notizen.
+ *
+ * Die Wand liegt mittig auf der Zellkante und ragt damit um ihre halbe Dicke
+ * in die Zelle. Alles, was näher an der Kante sitzt, schneidet sie an. Der
+ * Abstand gilt immer, nicht nur an Kanten mit Wand — sonst sprängen die
+ * Buchstaben je nach Lage verschieden weit ein.
+ */
+export function wallInset(cellPx: number): number {
+  return wallWidth(cellPx) / 2 + 2;
+}
+
+/**
+ * Wie viele Zellen desselben Raumes ab `cell` nach rechts in dieser Zeile
+ * liegen, `cell` eingeschlossen. So breit darf der Raumname werden, ohne über
+ * eine Wand in den Nachbarraum zu laufen.
+ */
+export function labelRun(cell: number, roomOfCell: Int32Array, size: number): number {
+  const room = roomOfCell[cell];
+  let run = 1;
+  // Spalte 0 heißt: die nächste Zelle liegt schon in der nächsten Zeile.
+  while (cell + run < size * size && columnOf(cell + run, size) !== 0 && roomOfCell[cell + run] === room) run++;
+  return run;
+}
+
+/**
  * Die Linien des Brettes: dünn zwischen Feldern, **dick um jeden Raum**.
  *
  * Raumgrenzen sind Spielinformation, keine Verzierung — fast jeder Hinweis

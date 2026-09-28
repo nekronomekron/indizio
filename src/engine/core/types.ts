@@ -45,6 +45,12 @@ export interface Room {
   bounds: Bounds;
 }
 
+/**
+ * How an object takes up space: `fixed` is a rectangle drawn as one picture,
+ * `tiled` any connected shape drawn cell by cell from a tile sheet.
+ */
+export type PlacementKind = 'fixed' | 'tiled';
+
 /** One concrete object instance placed on the grid. */
 export interface SceneObject {
   id: number;
@@ -52,6 +58,11 @@ export interface SceneObject {
   key: string;
   /** Walkable means a suspect may stand on these cells. */
   walkable: boolean;
+  /**
+   * Carried on the instance rather than looked up in the theme, so a puzzle
+   * from a theme the reader does not know still draws correctly.
+   */
+  placement: PlacementKind;
   roomId: RoomId;
   cells: Cell[];
 }

@@ -122,10 +122,14 @@ export function Calendar(props: CalendarProps) {
             >
               <span className="day-number">{date.day}</span>
               {state !== 'before' && <span className={'day-tier tier-' + difficulty} aria-hidden="true" />}
+              {/* Zustand doppelt: als Füllfarbe der Zelle und als großes Symbol,
+                  damit er auch ohne Farbwahrnehmung auf einen Blick lesbar ist. */}
               {state === 'solved' && (
-                <span className="day-mark"><Sprite kind="icons" name="ui-check" size={12} /></span>
+                <span className="day-mark" aria-hidden="true"><Sprite kind="icons" name="ui-check" size={24} /></span>
               )}
-              {state === 'started' && <span className="day-mark started" aria-hidden="true" />}
+              {state === 'started' && (
+                <span className="day-mark" aria-hidden="true"><Sprite kind="icons" name="ui-note" size={24} /></span>
+              )}
             </button>
           );
         })}

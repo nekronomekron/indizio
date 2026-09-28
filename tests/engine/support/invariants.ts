@@ -1,9 +1,9 @@
 import { expect } from 'vitest';
 import {
-  DIFFICULTY_BANDS, parsePuzzle, stringifyPuzzle, toScene, verifyPuzzle,
+  DIFFICULTY_BANDS, findTheme, parsePuzzle, stringifyPuzzle, toScene, verifyPuzzle,
 } from '../../../src/engine/index.js';
 import type { PuzzleCore } from '../../../src/engine/index.js';
-import { buildSceneIndex } from '../../../src/engine/core/grid.js';
+import { boundsOf, buildSceneIndex, isConnected, orthogonalNeighbours } from '../../../src/engine/core/grid.js';
 import { createClueTranslator, LOCALES } from '../../../src/engine/i18n/index.js';
 
 /**
@@ -48,10 +48,54 @@ export function expectStructurallySound(core: PuzzleCore): void {
       expect(index.roomOfCell[cell], `${object.key} spills out of its room`).toBe(object.roomId);
     }
   }
+  expectObjectShapes(core);
 
   expect(core.suspects.filter((suspect) => suspect.isVictim)).toHaveLength(1);
   const cardClues = core.clues.filter((entry) => entry.ownerId !== null);
   expect(new Set(cardClues.map((entry) => entry.ownerId)).size, 'one clue per card').toBe(size);
+}
+
+/**
+ * Every object has a shape its placement allows (PLAN.md §13.2, G21): one
+ * connected piece; a fixed object a rectangle of one of its footprints; a laid
+ * object within its cell bounds and never touching another of its kind.
+ */
+export function expectObjectShapes(core: PuzzleCore): void {
+  const size = core.size;
+  const theme = findTheme(core.themeKey);
+  const keyOfTiledCell = new Map<number, { key: string; id: number }>();
+
+  for (const object of core.objects) {
+    expect(isConnected(new Set(object.cells), size), `${object.key} #${object.id} is in pieces`).toBe(true);
+    const spec = theme?.objects.find((entry) => entry.key === object.key);
+    if (spec) expect(object.placement, `${object.key} placed as its theme says`).toBe(spec.placement.kind);
+
+    if (object.placement === 'fixed') {
+      const bounds = boundsOf(object.cells, size);
+      const width = bounds.maxColumn - bounds.minColumn + 1;
+      const height = bounds.maxRow - bounds.minRow + 1;
+      expect(object.cells.length, `${object.key} #${object.id} is a rectangle`).toBe(width * height);
+      if (spec?.placement.kind === 'fixed') {
+        const allowed = spec.placement.footprints.some(([w, h]) => w === width && h === height);
+        expect(allowed, `${object.key} ${width}x${height} is an allowed footprint`).toBe(true);
+      }
+      continue;
+    }
+
+    if (spec?.placement.kind === 'tiled') {
+      expect(object.cells.length).toBeGreaterThanOrEqual(spec.placement.minCells);
+      expect(object.cells.length).toBeLessThanOrEqual(spec.placement.maxCells);
+    }
+    for (const cell of object.cells) keyOfTiledCell.set(cell, { key: object.key, id: object.id });
+  }
+
+  for (const [cell, owner] of keyOfTiledCell) {
+    for (const neighbour of orthogonalNeighbours(cell, size)) {
+      const other = keyOfTiledCell.get(neighbour);
+      const touches = other?.key === owner.key && other.id !== owner.id;
+      expect(touches, `two ${owner.key} touch at ${cell}/${neighbour}`).toBe(false);
+    }
+  }
 }
 
 /** Solvable by deduction alone, and to exactly one solution. */

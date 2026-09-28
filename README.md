@@ -184,11 +184,17 @@ immer und auf jedem Gerät. Auf dem Handy gibt es kein Schweben, und eine
 Raumgrenze, die man nur mit der Maus findet, ist für die Hälfte der Spieler
 keine.
 
-92 Dateien: 54 Requisiten, 16 Bodenbeläge, 14 Figuren, 8 Bediensymbole.
+88 Dateien: 48 Requisiten, 2 Blätter verlegter Requisiten, 16 Bodenbeläge,
+14 Figuren, 8 Bediensymbole.
 
 Requisiten haben **je Grundfläche eine eigene Datei** — `bed_2x1.svg` neben
 `bed_1x2.svg`, `table_3x1.svg` —, und das Spiel legt sie über genau diese
 Felder. Ein Bett quer ist damit kein gedrehtes Bett längs.
+
+**Teppiche und Matten** liegen dagegen in beliebiger Form im Raum, um Ecken und
+mit Kreuzungen. Für sie gibt es je Art ein Blatt (`tiles/carpet.svg`), aus dem
+das Spiel jede Form in Vierteln zusammensetzt — siehe
+[art/README.md](art/README.md) und PLAN.md §13.
 
 ## Steuerung
 

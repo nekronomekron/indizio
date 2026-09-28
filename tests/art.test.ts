@@ -40,7 +40,8 @@ describe('Grafikdateien', () => {
     const fehlend: string[] = [];
     for (const theme of THEMES) {
       for (const object of theme.objects) {
-        for (const [width, height] of object.footprints) {
+        if (object.placement.kind !== 'fixed') continue;
+        for (const [width, height] of object.placement.footprints) {
           const datei = `themes/${theme.key}/objects/${object.key}_${width}x${height}.svg`;
           if (!FILES.includes(datei)) fehlend.push(datei);
         }
@@ -49,13 +50,29 @@ describe('Grafikdateien', () => {
     expect(fehlend).toEqual([]);
   });
 
+  it('jede verlegte Requisite hat ein Blatt mit 2 mal 3 Feldern', () => {
+    // Aus dem Blatt setzt das Spiel jede Form aus Vierteln zusammen (PLAN.md
+    // §13.4). Eine andere Zeichenflaeche verschoebe jedes Viertel.
+    const falsch: string[] = [];
+    for (const theme of THEMES) {
+      for (const object of theme.objects) {
+        if (object.placement.kind !== 'tiled') continue;
+        const datei = `themes/${theme.key}/tiles/${object.key}.svg`;
+        if (!FILES.includes(datei)) falsch.push(datei + ' fehlt');
+        else if (!readFileSync(join(ART, datei), 'utf8').includes('viewBox="0 0 48 72"')) falsch.push(datei);
+      }
+    }
+    expect(falsch).toEqual([]);
+  });
+
   it('die Zeichenflaeche passt zur Grundflaeche', () => {
     // Ein Tisch ueber drei Felder braucht 72 mal 24, sonst verzerrt ihn der
     // Renderer beim Einpassen.
     const falsch: string[] = [];
     for (const theme of THEMES) {
       for (const object of theme.objects) {
-        for (const [width, height] of object.footprints) {
+        if (object.placement.kind !== 'fixed') continue;
+        for (const [width, height] of object.placement.footprints) {
           const datei = `themes/${theme.key}/objects/${object.key}_${width}x${height}.svg`;
           if (!FILES.includes(datei)) continue;
           const erwartet = `viewBox="0 0 ${width * 24} ${height * 24}"`;
@@ -112,9 +129,11 @@ describe('Grafikdateien', () => {
       ...ICONS.map((key) => `common/icons/${key}.svg`),
       `common/floors/${DEFAULT_FLOOR}.svg`,
       ...THEMES.flatMap((theme) => [
-        ...theme.objects.flatMap((object) => object.footprints.map(
-          ([width, height]) => `themes/${theme.key}/objects/${object.key}_${width}x${height}.svg`,
-        )),
+        ...theme.objects.flatMap((object) => object.placement.kind === 'tiled'
+          ? [`themes/${theme.key}/tiles/${object.key}.svg`]
+          : object.placement.footprints.map(
+            ([width, height]) => `themes/${theme.key}/objects/${object.key}_${width}x${height}.svg`,
+          )),
         ...theme.roomKeys.map((room) => `themes/${theme.key}/floors/${floorFor(room)}.svg`),
       ]),
     ]);
@@ -174,7 +193,7 @@ describe('Aufloesung der Grafiken', () => {
     // In der Wohnung heisst beides 'carpet': der Teppich, auf dem jemand
     // steht, und der Teppichboden des Schlafzimmers. Ohne die Art im
     // Schluessel bekam das halbe Zimmer die Requisite als Boden ausgelegt.
-    const requisite = artUrl('objects', 'carpet_2x1', 'flat');
+    const requisite = artUrl('tiles', 'carpet', 'flat');
     const belag = artUrl('floors', 'carpet', 'flat');
     expect(requisite).toBeDefined();
     expect(belag).toBeDefined();

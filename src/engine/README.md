@@ -127,8 +127,10 @@ const spaceStation = {
   key: 'station',
   roomKeys: ['bridge', 'galley', 'bay', 'lab', 'airlock', 'quarters', 'hold'],
   objects: [
-    { key: 'console', walkable: false, footprints: [[2, 1]], rooms: ['bridge'], maxPerScene: 3, weight: 4 },
-    { key: 'bunk', walkable: true, footprints: [[2, 2]], rooms: ['quarters'], maxPerScene: 2, weight: 3 },
+    { key: 'console', walkable: false, placement: { kind: 'fixed', footprints: [[2, 1]] }, rooms: ['bridge'], maxPerScene: 3, weight: 4 },
+    { key: 'bunk', walkable: true, placement: { kind: 'fixed', footprints: [[2, 2]] }, rooms: ['quarters'], maxPerScene: 2, weight: 3 },
+    // A corridor: any connected shape, grown as lanes with corners and crossings.
+    { key: 'gangway', walkable: true, placement: { kind: 'tiled', minCells: 3, maxCells: 10, compactness: 0, straightness: 0.8 }, rooms: ['bay', 'hold'], maxPerScene: 2, weight: 3 },
     // …
   ],
 };
@@ -143,8 +145,15 @@ const translator = createClueTranslator({
 });
 ```
 
-Every footprint a theme declares needs a matching file under `art/` — see
-[`art/README.md`](../../art/README.md).
+An object is either `fixed` — one of a few rectangles — or `tiled`: any
+connected shape inside one room, grown cell by cell. `compactness` runs from
+lanes (0) to areas (1), `straightness` from winding to straight. Two tiled
+instances of the same key never touch, so a shape on the board is always one
+object. `themeProblems(theme)` lists what is wrong with a theme, and
+`generatePuzzle` refuses an invalid one.
+
+Every footprint a theme declares needs a matching file under `art/`, and every
+tiled object one tile sheet — see [`art/README.md`](../../art/README.md).
 
 ## How a puzzle is built
 

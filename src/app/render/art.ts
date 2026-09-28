@@ -26,8 +26,12 @@
  * eine Anfrage.
  */
 
-/** Ordner unter `art/`, zugleich die Art einer Grafik. */
-export type ArtKind = 'objects' | 'floors' | 'characters' | 'icons';
+/**
+ * Ordner unter `art/`, zugleich die Art einer Grafik. `tiles` sind die Blätter
+ * verlegter Requisiten (PLAN.md §13.4) — ein eigener Ordner, weil
+ * `objects/carpet.svg` schon „eine Datei fuer alle Grundflaechen" heisst.
+ */
+export type ArtKind = 'objects' | 'tiles' | 'floors' | 'characters' | 'icons';
 
 // Angeschrieben statt behauptet: `import.meta.glob` liefert mit diesen Optionen
 // bereits `Record<string, string>`, ein `as` waere eine Zusicherung, die nichts

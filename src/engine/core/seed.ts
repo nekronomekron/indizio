@@ -10,7 +10,7 @@ import type { DifficultyKey } from './types.js';
  * puzzle, and regenerating from it reproduces it exactly.
  *
  * Format: `v<version>-<theme>-<size>-<difficulty>-<random base36>`
- * Example: `v3-garage-6-vl-k3f9tq` — the leading number is GENERATOR_VERSION below.
+ * Example: `v4-garage-6-vl-k3f9tq` — the leading number is GENERATOR_VERSION below.
  */
 
 /**
@@ -18,7 +18,7 @@ import type { DifficultyKey } from './types.js';
  * are then rejected with a clear message rather than silently producing a
  * different puzzle than the link promised.
  */
-export const GENERATOR_VERSION = 3;
+export const GENERATOR_VERSION = 4;
 
 export const MIN_GRID_SIZE = 5;
 export const MAX_GRID_SIZE = 10;

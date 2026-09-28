@@ -13,6 +13,7 @@ import { Grid } from './Grid.js';
 import { Solved } from './Solved.js';
 import { SuspectCard } from './SuspectCard.js';
 import { Toolbar } from './Toolbar.js';
+import { boardCellPx } from '../render/tiles.js';
 
 
 function formatTime(ms: number): string {
@@ -95,7 +96,7 @@ export function GameScreen({ core, locale, holdMs, vibrate, names, onBack, onSet
   const wide = viewport.w >= 900;
   const availableW = wide ? viewport.w - 300 - 72 : viewport.w - 28;
   const availableH = viewport.h - (wide ? 210 : 340) - FOOTER_PX;
-  const cellPx = Math.min(72, Math.max(24, Math.floor(Math.min(availableW, availableH) / core.size / 8) * 8));
+  const cellPx = boardCellPx(availableW, availableH, core.size);
 
   // Darstellung der Verdaechtigen: Buchstabe aus dem Namen, Opfer zuletzt.
   // Beides haengt nur an den Personen, nicht am Spielstand.

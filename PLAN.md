@@ -4,8 +4,10 @@
 > [Murdoku](https://murdoku.com), mit prozedural generierten Tatorten,
 > seed-reproduzierbaren Rätseln und Pixel-Art im 16×16-Raster.
 
-**Stand:** Plan v13 — Engine im Projekt statt in einem Paket, Kalender statt
-kuratiertem Katalog, Zufallsfall nach Stufe, Spiel ohne Maus bedienbar.
+**Stand:** Plan v14 — verlegte Objekte in freier Form mit festem
+Viertelkachel-Schema (§13). Davor v13: Engine im Projekt statt in einem
+Paket, Kalender statt kuratiertem Katalog, Zufallsfall nach Stufe, Spiel ohne
+Maus bedienbar.
 Prüfprotokoll: [VALIDATION.md](VALIDATION.md)
 **Projektordner:** `C:\Projects\murdoku` (Paketname `indizio`)
 
@@ -28,6 +30,7 @@ die er erfüllt.
 | V8 | Murdoku-Doku und Tutorial vollständig gelesen | §2 |
 | V9 | Generator und Löser als entkoppelte Bibliothek, Austausch per JSON | §8.1, §6.8 |
 | V10 | Nicht-rechteckige Räume: Gänge und L-Formen | §6.2 |
+| V11 | Objekte wie Teppiche oder Gänge in freier Form innerhalb eines Raums — um Ecken, mit Kreuzungen —, als Verlegeart im Theme konfigurierbar statt an einzelne Objekte gebunden, mit einem festen Grafikschema, das jede Form abbildet | §13 |
 
 ---
 
@@ -591,7 +594,7 @@ Puzzle {
   core: {                                  // deterministisch, Grundlage von G4
     seed, generatorVersion, size, difficulty, themeKey,
     rooms:    [{ id, nameKey, cells, bounds }],
-    objects:  [{ id, key, cells, walkable, roomId }],
+    objects:  [{ id, key, cells, walkable, placement, roomId }],   // placement: 'fixed' | 'tiled' (§13)
     suspects: [{ id, nameKey, gender, portraitKey, isVictim }],
     clues:    [{ ownerId | null, clue: { type, … } }],
     solution: [{ suspectId, cell }],
@@ -604,10 +607,11 @@ Puzzle {
 
 Auf der Leitung liegt das Ganze als Dokument mit `format: 'indizio-puzzle'` und
 `schemaVersion`. Zwei Zählungen, die nicht dasselbe meinen und deshalb getrennt
-sind: `generatorVersion` (derzeit **3**) sagt, welcher Algorithmus die Rätsel
+sind: `generatorVersion` (derzeit **4**) sagt, welcher Algorithmus die Rätsel
 erzeugt hat — sie steckt im Seed, weil sich bei einer Änderung dieselbe Zeichen-
-kette auf ein anderes Rätsel bezöge. `schemaVersion` (derzeit **2**) sagt nur,
-wie die Felder heißen.
+kette auf ein anderes Rätsel bezöge. `schemaVersion` (derzeit **3**) sagt nur,
+wie die Felder heißen; Dokumente vor 3 kennen `placement` nicht und werden als
+lauter feste Objekte gelesen.
 
 Die Serialisierung von `core` ist feldstabil sortiert, damit gleiche Seeds
 byte-identische Ausgaben liefern. `meta` enthält alles, was von Rechner und
@@ -617,7 +621,8 @@ sonst wäre das Kriterium prinzipiell unerfüllbar. `attempts` gehört dagegen z
 
 `parsePuzzle` prüft beim Lesen vollständig und sammelt **alle** Beanstandungen,
 statt bei der ersten abzubrechen: Räume zusammenhängend, Zellen in Reichweite,
-Objekte kollisionsfrei, genau ein Opfer, Lösung eine Permutation, Hinweistypen
+Objekte zusammenhängend in ihrem Raum, feste Objekte rechteckig, gleichartige
+verlegte Objekte ohne Berührung (§13.6), genau ein Opfer, Lösung eine Permutation, Hinweistypen
 bekannt. Wer ein kaputtes Dokument einliest, sieht damit in einem Durchgang, was
 alles daran fehlt. → **V6**
 
@@ -646,6 +651,7 @@ art/
   common/icons/        ui-x, ui-check, …
   common/floors/       Rückfall für fremde Themes
   themes/<theme>/objects/   Requisiten dieses Themes
+  themes/<theme>/tiles/     Blätter der verlegten Requisiten (§13.4)
   themes/<theme>/floors/    Beläge seiner Räume
 ```
 
@@ -663,7 +669,11 @@ Der Grund ist nicht Ordnung, sondern Zeichnung: ein Bett quer ist **kein
 gedrehtes Bett längs**. Eine einzige 24×24-Grafik ließe nur zwei schlechte
 Möglichkeiten, sie auf zwei Felder zu bringen — verzerren oder klein in die
 Mitte setzen. Welche Grundflächen es gibt, steht in der Theme-Definition der
-Bibliothek; heute sind es 54 über drei Themes.
+Bibliothek; heute sind es 48 über drei Themes.
+
+**Verlegte Requisiten** — Teppich und Matte — haben keine Grundfläche, sondern
+ein Blatt `tiles/<key>.svg` mit 48 × 72, aus dem das Spiel jede Form in Vierteln
+zusammensetzt (§13.4).
 
 Wer mit einer Datei für alle Flächen auskommt, legt sie ohne Zusatz ab
 (`bed.svg`); der Renderer nimmt sie, wenn er die passende Fläche nicht findet.
@@ -746,20 +756,21 @@ fällt auf Estrich zurück.
 
 | Gruppe | Dateien | Wo |
 |---|---|---|
-| Requisiten | 54 | `art/themes/<theme>/objects/` (21 + 18 + 15), je Grundfläche eine |
+| Requisiten | 48 | `art/themes/<theme>/objects/` (18 + 15 + 15), je Grundfläche eine |
+| Verlegte Requisiten | 2 | `art/themes/<theme>/tiles/` (Teppich, Matte), je Art ein Blatt |
 | Bodenbeläge | 16 | `art/themes/<theme>/floors/` (5 + 4 + 6), dazu der Rückfall |
 | Figuren | 14 | `art/common/characters/` |
 | Bediensymbole | 8 | `art/common/icons/` |
 | App-Symbol | 1 | `public/icon.svg`, zugleich Manifest-Icon |
 
-92 Dateien: `chair` und `plant` kommen in zwei Themes vor und bekommen jeweils
+88 Dateien: `chair` und `plant` kommen in zwei Themes vor und bekommen jeweils
 eine eigene Fassung, und jede Requisite zählt je zulässiger Grundfläche einmal.
 Welche Dateien gebraucht werden, bestimmt allein die **Theme-Definition der
 Bibliothek**; kommt dort ein Objekt oder eine Grundfläche dazu, fehlt hier eine
 Datei — und der Test sagt welche.
 
-Geprüft wird: jede Grundfläche jedes Objekts hat eine Datei mit passender
-Zeichenfläche, jeder Raum den Belag seines Themes, jeder Porträtschlüssel eine Figur, jedes Bediensymbol ist da,
+Geprüft wird: jede Grundfläche jedes festen Objekts hat eine Datei mit passender
+Zeichenfläche, jedes verlegte ein Blatt mit 48 × 72, jeder Raum den Belag seines Themes, jeder Porträtschlüssel eine Figur, jedes Bediensymbol ist da,
 jedes Bild des Tutorials lässt sich auflösen, keine Datei liegt ohne Verwendung
 herum, jede Datei ist ein für sich stehendes SVG im 24er-Raster, und nichts
 zeichnet an eine negative Stelle. Eine fehlende Grafik fiele sonst erst auf,
@@ -1096,6 +1107,7 @@ allein der Offline-Nachweis G11 in einem normalen Browser.
 | M12 ✓ | „Neben" nennt nie das eigene Standobjekt (§4.2.1), Generatorversion 3 | Hinweise sagen, was am nächsten liegt |
 | M13 ✓ | Requisiten je Grundfläche (§7.0), gewählte Person leuchtet im Gitter (§3.1) | Objekte belegen sichtbar ihren Platz |
 | M14 ✓ | Engine zurück ins Projekt hinter zwei Türen (§8.1), Kalender statt Katalog (§8.2), Zufallsfall nach Stufe, Spiel ohne Maus bedienbar (§8.3) | Ein Projekt, ein Testlauf, jeder Tag ein Fall |
+| M15 ✓ | Verlegte Objekte (§13): Verlegeart im Theme, Formwachstum, Viertelkachel-Blatt, Teppich und Matte umgestellt, Generatorversion 4, Schemaversion 3 | Teppiche laufen um Ecken |
 
 Themes: Werkstatt (Auto, Regal, Werkbank, Ölfleck, Reifenstapel), Wohnung (Sofa,
 Küchenzeile, Bett, Teppich, Bücherregal), Hinterhofgarten (Baum, Beet,
@@ -1149,6 +1161,8 @@ Zwei Ergänzungen, die es vorher nicht gab:
 | G18 | Niemand außerhalb von `src/engine/` greift an den beiden Türen vorbei — am Quelltext geprüft, zusätzlich zur Lint-Regel (§8.1.1) |
 | G19 | Jeder Kalendertag ergibt einen Seed der Stufe, die sein Wochentag vorgibt, und trägt die aktuelle Generatorversion (§6.1.1) |
 | G20 | Der Tastaturrahmen bleibt bei jeder Gittergröße und jeder Taste im Brett und bricht am Rand nicht in die nächste Zeile um (§8.3) |
+| G21 | 100 % der Rätsel: jedes Objekt hängt über die Vierernachbarschaft zusammen und liegt ganz in seinem Raum; `fixed`-Objekte sind Rechtecke einer erlaubten Grundfläche; `tiled`-Objekte haben `minCells` bis `maxCells` Zellen und berühren keine gleichartige Instanz orthogonal; ein verlegter Anker überdeckt keine fremde Lösungszelle (§13.2, §13.3) |
+| G22 | Für alle 256 Nachbarschaften einer Zelle liefert die Viertelwahl ein Viertel aus dem Blatt, und je zwei verbundene Nachbarn stoßen mit Kante an Kante, nie mit Rand an Füllung (§13.4) |
 
 ---
 
@@ -1164,4 +1178,267 @@ Zwei Ergänzungen, die es vorher nicht gab:
 | i18next zieht eine Abhängigkeit in den Kern | Nur hinter der Tür `@engine/i18n`; ein Test weist am Quelltext nach, dass außerhalb von `i18n/` kein einziger blanker Import steht (§8.1.1) |
 | Ohne Paketgrenze greift die App irgendwann quer in die Engine | Zwei Wächter statt einer geerbten Grenze: Lint-Regel beim Schreiben, Test beim Prüfen (§8.1.1, G18) |
 | Die Engine ist nicht mehr als Paket veröffentlichbar | **Bewusst aufgegeben.** Die App war der einzige Nutzer. Die Ordnerstruktur bleibt so, dass ein Rückweg billig wäre: `src/engine/` ist in sich geschlossen und greift nach nichts außerhalb |
+| Große verlegte Anker machen `ON_OBJECT` stumpf, die Hinweissuche findet seltener eine Lösung | Ein verlegter Anker überdeckt keine fremde Lösungszelle (§13.3); `maxCells` im Theme begrenzt die Fläche; G6 wird nach M15 neu gemessen, bei Verschlechterung zuerst `maxCells` der Anker senken |
+| Nähte zwischen Vierteln bei krummen Pixelgrößen | `cellPx` ist bereits ein Vielfaches von 8, ein Viertel also ganzzahlig; ein Test hält das fest (§13.5) |
+| Versionssprung auf Generator 4 leert Fortschritt, Kalenderhistorie und Einstellungen | **Bewusst hingenommen** wie beim Schritt auf 3 (§13.6) |
 | Deutsche Beugung in Hinweisen wird holprig | Kasusformen je Objekt in den Sprachdateien statt Zusammenkleben zur Laufzeit; Textprüfung aller Typen in M1 |
+
+---
+
+## 13. Verlegte Objekte
+
+Teppiche, Matten und später Gänge im Raumschiff gibt es bisher nur in festen
+Grundflächen (`2x1`, `1x2`, `2x2` …). Künftig sollen sie **beliebige Formen**
+innerhalb eines Raums annehmen: um Ecken laufen, sich verzweigen, kreuzen, als
+Fläche oder als schmale Bahn. Das hängt nicht an einzelnen Objekten, sondern ist
+eine **Verlegeart**, die jedes Theme für jede Objektart wählen kann. → **V11**
+
+Die Entscheidungen unten sind in einer Befragung am 28.09.2026 getroffen worden;
+die Begründung steht jeweils dabei, damit sie später nicht neu verhandelt werden
+muss.
+
+### 13.1 Was schon passt und was nicht
+
+Das Datenmodell trägt freie Formen bereits: `SceneObject.cells` ist eine
+beliebige Zellmenge, und alle Hinweise rechnen zellweise (§4). **An der
+Bedeutung der Hinweise ändert sich nichts** — `ON_OBJECT`, `ADJACENT_OBJECT`
+(über die Berührmenge im selben Raum), `DIRECTION_OF_OBJECT` (jede Zelle der
+einzigen Instanz) und `ALIGNED_WITH_OBJECT` bleiben wörtlich gültig. Ein langer
+Gang macht `ALIGNED_WITH_OBJECT` schwächer; das ist richtig so und wird vom
+Schwierigkeitsmaß (§5.4) ohnehin erfasst.
+
+Am Rechteck hängen nur drei Stellen: der Generator (`positionsFor` in
+`furnish.ts`), der Renderer (ein Bild über die umschließende Box in `Grid.tsx`)
+und das Grafikschema (eine Datei je Grundfläche, §7.0).
+
+### 13.2 Form: beliebiges Polyomino, eine Fläche je Instanz
+
+- Eine verlegte Instanz ist eine **zusammenhängende Zellmenge** unter der
+  Vierernachbarschaft, ganz in **einem** Raum — wie Räume selbst (§6.2). Diagonal
+  berührende Zellen sind nicht verbunden. Flächen sind ausdrücklich erlaubt, nicht
+  nur ein Feld breite Bahnen: sonst könnte die Verlegeart den heutigen
+  `2x2`-Teppich nicht abbilden, und es gäbe für dieselbe Objektart zwei Systeme.
+- **Verbunden ist, was zur selben Instanz gehört.** Es gibt keine gespeicherten
+  Kanten; die Verbindung einer Zelle zu ihrem Nachbarn folgt allein daraus, ob
+  der Nachbar zur Instanz gehört.
+- **Zwei Instanzen derselben Art berühren sich nie orthogonal.** Sonst sähen zwei
+  Teppiche aus wie einer, und „neben genau zwei Teppichen" hinge an einer Naht,
+  die bei 24 px niemand sieht. Diagonal ist erlaubt. Verschiedene Arten dürfen
+  aneinanderstoßen, sie sehen verschieden aus.
+
+### 13.3 Theme: die Verlegeart
+
+`ThemeObject.footprints` wird zu einer Union; jede Objektart hat **genau eine**
+Verlegeart, damit feststeht, welchen Grafiksatz sie braucht:
+
+```ts
+placement:
+  | { kind: 'fixed'; footprints: readonly (readonly [number, number])[] }
+  | { kind: 'tiled';
+      minCells: number;     // ≥ 1
+      maxCells: number;     // ≥ minCells
+      compactness: number;  // 0 … 1: 0 = nur Bahnen und Verzweigungen, 1 = Flächen
+      straightness: number; // 0 … 1: Neigung, in Laufrichtung weiterzuwachsen
+    }
+```
+
+Umgestellt werden **`carpet`** (Wohnung) und **`mat`** (Werkstatt). `pond` und
+`sandbox` bleiben `fixed`: sie stehen je in genau einem Raum mit
+`maxPerScene: 1` und würden als Anker unnötig große Flächen belegen. Ein
+Raumschiff-Theme mit Gängen ist ein eigener Plan; es braucht hier nichts als die
+Verlegeart.
+
+Richtwerte:
+
+| Art | `minCells` | `maxCells` | `compactness` | `straightness` |
+|---|---|---|---|---|
+| Teppich | 2 | 6 | 0.7 | 0.3 |
+| Matte | 1 | 4 | 0.4 | 0.5 |
+| Gang (später) | 3 | 10 | 0 | 0.8 |
+
+**Formwachstum** (neu in `furnish.ts`, neben `positionsFor`): Start in einer
+Zelle, dann wird schrittweise ein Randfeld hinzugenommen, bis eine gewürfelte
+Zielgröße aus `minCells … maxCells` erreicht ist oder kein Randfeld mehr passt.
+Bleibt die Form unter `minCells`, wird sie verworfen.
+
+- Ein Randfeld mit genau einem Nachbarn in der Form hat Gewicht 1; eines mit
+  *k* ≥ 2 Nachbarn Gewicht `compactness · k`. Bei `compactness` 0 wächst die Form
+  also als Baum — Ecken, T-Stücke und Kreuzungen, aber keine Ringe und keine
+  Flächen. Das ist gewollt.
+- Setzt ein Randfeld die Richtung fort, aus der sein Nachbar gewachsen ist, wird
+  sein Gewicht mit `1 + 3 · straightness` multipliziert.
+- Kandidaten werden in aufsteigender Zellreihenfolge gesammelt, bevor die
+  seed-gebundene `Rng` zieht — sonst hinge das Ergebnis an der Einfügeordnung
+  einer `Set`, und G4 fiele.
+- Ein Randfeld ist nur zulässig, wenn es im Raum liegt, frei ist und keine
+  Instanz derselben Art orthogonal berührt.
+
+**Regeln im Generator** (§6.3 gilt weiter, ergänzt um):
+
+- *Anker darauf.* `anchorUnderfoot` lässt eine verlegte Art von der Lösungszelle
+  aus wachsen. Die Form darf dabei **keine andere Lösungszelle** überdecken —
+  sonst stünde „auf dem Teppich" für mehrere Personen, und der Hinweis wäre
+  stumpf. Beim Füllwerk gilt die heutige Regel: begehbar darf auf Lösungszellen
+  liegen.
+- *Anker daneben.* `anchorBeside` nimmt weiter nur `fixed`-Objekte mit `1x1`.
+  Eine sperrende verlegte Form, die an eine Person grenzt, zählt über
+  `ADJACENT_OBJECT` ohnehin.
+- *Sperrend.* Die Verlegeart ist unabhängig von `walkable`. Eine sperrende
+  verlegte Form wächst nie auf eine Lösungszelle, und ihre Zellen zählen gegen
+  die 40 %-Grenze je Raum.
+- *Dichte.* `addFiller` zählt weiter Objekte, nicht Zellen; `maxCells` begrenzt
+  die Fläche. `maxPerScene` zählt Instanzen.
+
+### 13.4 Grafikschema: ein Viertelkachel-Blatt je Art
+
+Jede verlegte Art hat **eine** Datei, `art/themes/<theme>/tiles/<key>.svg`, mit
+Rückfall auf `art/common/tiles/<key>.svg`. Der eigene Ordner ist zugleich eine
+eigene Grafikart (`ArtKind 'tiles'`): `objects/carpet.svg` bedeutet schon „eine
+Datei für alle Grundflächen", und ein vergessener Umbau würde das Blatt sonst
+still als verzerrtes Rechteck zeichnen.
+
+Das Blatt ist `viewBox="0 0 48 72"`, also 2 × 3 Felder, und folgt dem
+bekannten Autotile-Aufbau (RPG Maker A2), in Vierteln zu 12 × 12:
+
+```
+        x: 0     12    24    36    48
+y:  0   ┌───────────┬───────────┐
+        │  Einzel-  │  Innen-   │   Zeile 0: links Vorschau (Einzelfeld),
+        │   feld    │  ecken    │   rechts die vier Innenecken
+   24   ├─────┬─────┼─────┬─────┤
+        │ ┌NW │ ─N  │ N─  │ NE┐ │
+   36   ├─────┼─────┼─────┼─────┤
+        │ │W  │ ··  │ ··  │  E│ │   Zeilen 1–2: ein 2×2-Block —
+   48   ├─────┼─────┼─────┼─────┤   Außenecken, Kanten, Füllung
+        │ │W  │ ··  │ ··  │  E│ │
+   60   ├─────┼─────┼─────┼─────┤
+        │ └SW │ ─S  │ S─  │ SE┘ │
+   72   └─────┴─────┴─────┴─────┘
+```
+
+Jede Zelle auf dem Brett besteht aus vier Vierteln. Welches Viertel sie bekommt,
+hängt nur an den zwei Nachbarn, die an dieses Viertel grenzen (einer senkrecht,
+einer waagerecht), und an der Diagonalen dazwischen:
+
+| senkrecht | waagerecht | diagonal | Viertel |
+|---|---|---|---|
+| fehlt | fehlt | – | Außenecke |
+| fehlt | da | – | waagerechte Kante |
+| da | fehlt | – | senkrechte Kante |
+| da | da | fehlt | Innenecke |
+| da | da | da | Füllung |
+
+**Ein Viertel kommt immer aus derselben Lage im Blatt**, in der es auf dem Brett
+sitzt: das Nordwest-Viertel einer Zelle stammt aus einer linken oberen
+Viertelposition des Blatts. Für die Lage Nordwest heißt das:
+
+| Fall | Quelle (x, y) |
+|---|---|
+| Außenecke | 0, 24 |
+| waagerechte Kante | 24, 24 |
+| senkrechte Kante | 0, 48 |
+| Füllung | 24, 48 |
+| Innenecke | 24, 0 |
+
+Die anderen drei Lagen entsprechen dem: für Ost kommt die Quelle aus der rechten
+Hälfte ihres Feldes (Außenecke und senkrechte Kante ganz rechts bei x = 36,
+waagerechte Kante und Füllung bei x = 12, Innenecke bei x = 36), für Süd aus der
+unteren (Außenecke und waagerechte Kante bei y = 60, senkrechte Kante und
+Füllung bei y = 36, Innenecke bei y = 12). Das Einzelfeld oben links wird auf dem
+Brett nie verwendet — eine Einzelzelle setzt sich aus den vier Außenecken
+zusammen — und dient als Vorschau in Anleitung und Übersichten.
+
+Damit ist **jede** Form darstellbar: alle 47 unterscheidbaren Nachbarschaften,
+Bahnen von einem Feld Breite, Kreuzungen, Flächen mit Innenecken. Nichts wird
+gedreht, Licht und Perspektive der Zeichnung bleiben stimmig. Eine Grafikerin
+zeichnet ein Blatt statt 47 Kacheln.
+
+Anforderungen an das Blatt, zusätzlich zu §7.0:
+
+- Kanten und Füllung laufen **nahtlos** über Viertelgrenzen: was an einer
+  offenen Seite eines Viertels endet, muss an die gegenüberliegende offene Seite
+  jedes anderen Viertels passen.
+- Außen bleibt wie bei festen Requisiten ein, zwei Einheiten **Luft zur
+  Zellkante**, damit der Boden als Rahmen sichtbar bleibt; an verbundenen Seiten
+  läuft die Zeichnung bis an die Kante.
+
+**Platzhalter** (`scripts/build-art.ts`): eine Platte im Ton des Sinnbilds über
+den 2×2-Block, 2 Einheiten eingerückt und mit abgerundeten Außenecken; oben
+rechts eine volle Fläche mit vier kleinen Aussparungen in den Ecken als
+Innenecken; oben links das Sinnbild auf einer Einzelplatte. Die bisherigen
+`carpet_*.svg` und `mat_*.svg` räumt der vorhandene Aufräumlauf weg.
+
+### 13.5 Darstellung
+
+- Neue reine Funktion `quarterTiles(cells, size)` in
+  `src/app/render/tiles.ts`: liefert je Zelle die vier Quellpositionen im Blatt
+  und die offenen Außenkanten. Keine DOM-Abhängigkeit, vollständig testbar (G22).
+- Neue Komponente `TiledObject`: je Zelle vier Viertel als Elemente mit dem
+  Blatt als Hintergrund (`background-size: 2·cellPx × 3·cellPx`,
+  `background-position` aus `quarterTiles`).
+- Die Tönung „begehbar/sperrend" (`.object.walkable`, `.object.blocking`) geht
+  **zellweise** mit, der Innenrahmen nur an den Außenkanten derselben Maske —
+  heute läge sie über der ganzen umschließenden Box und färbte bei einer L-Form
+  die Lücke mit ein.
+- `Grid.tsx` verzweigt nach `object.placement`; feste Objekte bleiben unverändert.
+- `cellPx` ist schon heute ein Vielfaches von 8 (`GameScreen.tsx`), ein Viertel
+  also ganzzahlig und ohne Subpixelnaht. Ein Test hält das fest, damit es beim
+  nächsten Umbau der Größenrechnung nicht verloren geht.
+- Die Logik der Viertelwahl gehört in die App, nicht in die Engine: die Engine
+  kennt keine Grafik (§8.1.1).
+
+### 13.6 Format und Versionen
+
+- `SceneObject` bekommt `placement: 'fixed' | 'tiled'`. Das Dokument bleibt so
+  selbstbeschreibend (§6.8, V9): ein fremdes Theme per JSON kann verlegte Objekte
+  mitbringen, ohne dass die App seinen Katalog kennen muss. `schemaVersion` steigt
+  auf **3**; `parsePuzzle` liest Dokumente ohne das Feld als `fixed`.
+- `parsePuzzle` prüft zusätzlich und sammelt wie bisher alle Beanstandungen:
+  Zellen jeder Instanz zusammenhängend und im Raum `roomId`, `fixed`-Objekte
+  rechteckig, gleichartige `tiled`-Instanzen ohne orthogonale Berührung.
+- `generatorVersion` steigt auf **4**; die Referenz unter
+  `tests/engine/reference/` wird mit `scripts/write-reference.ts` neu geschrieben.
+- Der Speicher zieht mit (`VERSION = 'v4'` in `store.ts`). **Fortschritt,
+  Kalenderhistorie, Spielstände und Einstellungen beginnen damit neu** — so wie
+  beim Schritt auf 3. Das ist bewusst entschieden; eine Übernahme des
+  Fortschritts wurde erwogen und verworfen.
+
+### 13.7 Umsetzung
+
+Fünf Schritte, **jeder für sich grün** unter `npm run verify`:
+
+1. **Engine.** `placement`-Union in `themes/types.ts`, alle drei Themes auf
+   `{ kind: 'fixed', … }` umgeschrieben (noch keine verlegte Art). Formwachstum
+   und die Regeln aus §13.3 in `furnish.ts`. `SceneObject.placement` setzen.
+   Themeprüfung (Parameter in ihren Grenzen) und die Invarianten aus G21 in
+   `tests/engine/support/invariants.ts`. Eigenschaftstest: Formwachstum mit
+   zufälligen Parametern liefert nur zulässige Formen.
+2. **Format.** `SCHEMA_VERSION` 3, Standardwert beim Lesen, Formprüfungen in
+   `document.ts`, Fälle in `tests/engine/io.test.ts` (altes Dokument ohne Feld,
+   zerrissene Form, berührende Instanzen, nicht-rechteckiges `fixed`).
+3. **Grafik.** `ArtKind 'tiles'` in `art.ts`, Platzhalter-Blatt in
+   `build-art.ts`, `art.test.ts`: je `tiled`-Art ein Blatt mit
+   `viewBox="0 0 48 72"`, je `fixed`-Art weiter je Grundfläche eine Datei.
+   `art/README.md` und §7.0/§7.4 um das Blatt ergänzen.
+4. **App.** `quarterTiles` mit Tests (G22), `TiledObject`, zellweise Tönung,
+   Test für ganzzahlige Viertel.
+5. **Umstellung.** `carpet` und `mat` auf `tiled` mit den Richtwerten aus §13.3,
+   `GENERATOR_VERSION` 4, Referenz neu, Speicher `v4`, `npm run art`.
+   `npm run test:deep` und G6 neu messen; verschlechtert sich die Laufzeit,
+   zuerst `maxCells` senken.
+
+Schritt 1 verändert bereits, wie der Generator würfelt, falls die Umschreibung
+auf `placement` die Zugriffsreihenfolge der `Rng` berührt. Das ist erlaubt, aber
+dann wandern `GENERATOR_VERSION` und Referenz schon in Schritt 1 mit, nicht erst
+in Schritt 5 — die eingefrorenen Prüfsummen (§11) melden es.
+
+### 13.8 Bewusst nicht Teil dieses Plans
+
+- **Kachelvarianten** gegen Tapetenwirkung auf großen Flächen. Ausbau ohne
+  Bruch möglich: ein breiteres Blatt (`0 0 96 72`), dessen zweite Spalte eine
+  andere Füllung trägt, gewählt per Hash aus der Zellnummer wie bei den Böden
+  (§7.3). Ein 48 × 72-Blatt bleibt gültig.
+- **Raumschiff-Theme** mit Gängen.
+- **Ringe** bei `compactness` 0; eine Bahn um ein Hindernis entsteht nur über
+  höhere Kompaktheit.
+- Verlegte Formen **über Raumgrenzen** hinweg.

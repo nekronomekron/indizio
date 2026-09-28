@@ -10,8 +10,12 @@ import type { GameState } from '../state/game.js';
  * Beim Schritt auf Generator 3 ist genau das unterblieben — die Schlüssel
  * standen weiter unter `v2` und versprachen damit eine Version, die nicht
  * stimmte. Nachgeholt, und {@link sweepOldStorage} räumt die alten weg.
+ *
+ * Generator 4 (verlegte Teppiche und Matten, PLAN.md §13) zieht genauso mit:
+ * Fortschritt, Kalender, Spielstände und Einstellungen beginnen neu. Eine
+ * Übernahme des Fortschritts war erwogen und ist bewusst verworfen (§13.6).
  */
-const VERSION = 'v3';
+const VERSION = 'v4';
 const PREFIX = 'indizio:' + VERSION + ':';
 const SAVE_PREFIX = PREFIX + 'save:';
 const PUZZLE_PREFIX = PREFIX + 'puzzle:';

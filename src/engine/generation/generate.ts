@@ -1,7 +1,7 @@
 import { allCluesTrue } from '../clues/evaluate.js';
 import { buildOccupancy } from '../clues/occupancy.js';
 import { findClueRestrictionViolations } from '../clues/restrictions.js';
-import { THEMES, findTheme, type Theme } from '../content/themes/index.js';
+import { THEMES, findTheme, themeProblems, type Theme } from '../content/themes/index.js';
 import { meetsBand } from '../core/difficulty.js';
 import { buildSceneIndex } from '../core/grid.js';
 import { Rng } from '../core/rng.js';
@@ -76,6 +76,8 @@ function pickSolutionCells(rng: Rng, size: number, rooms: readonly Room[]): Cell
 function resolveTheme(themeKey: string, themes: readonly Theme[]): Theme {
   const theme = findTheme(themeKey, themes);
   if (!theme) throw new GenerationError(`Unknown theme: ${themeKey}`);
+  const problems = themeProblems(theme);
+  if (problems.length > 0) throw new GenerationError(`Invalid theme ${themeKey}: ${problems.join('; ')}`);
   return theme;
 }
 
