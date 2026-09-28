@@ -1,9 +1,9 @@
 import { useMemo, type ReactElement } from 'react';
 import type { CalendarDate, DifficultyKey } from '@engine';
 import type { Locale } from '@engine/i18n';
-import { compareMonth, monthGrid, sameDate, type YearMonth } from '../calendar.js';
-import { t } from '../i18n.js';
-import { Sprite } from '../render/Sprite.js';
+import { compareMonth, monthGrid, sameDate, type YearMonth } from './calendarDates.js';
+import { t } from '../../shared/i18n/uiTexts.js';
+import { Sprite } from '../../shared/art/Sprite.js';
 
 /** Was ein Tag im Kalender über sich zu sagen hat. */
 export type DayState =

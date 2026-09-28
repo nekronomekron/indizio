@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { columnOf, rowOf } from '@engine';
 import type { Cell, PuzzleCore } from '@engine';
-import { Sprite } from '../render/Sprite.js';
-import { TiledObject } from '../render/TiledObject.js';
-import { artUrl } from '../render/art.js';
-import { DEFAULT_FLOOR, floorFlip, floorFor } from '../render/floors.js';
-import type { GameState } from '../state/game.js';
-import { moveCursor } from '../keys.js';
-import { describeCell, estimateTipWidth, tipSpot } from '../inspect.js';
+import { Sprite } from '../../../shared/art/Sprite.js';
+import { TiledObject } from './TiledObject.js';
+import { artUrl } from '../../../shared/art/art.js';
+import { DEFAULT_FLOOR, floorFlip, floorFor } from '../../../shared/art/floors.js';
+import type { GameState } from '../gameReducer.js';
+import { moveCursor } from './keyboard.js';
+import { describeCell, estimateTipWidth, tipSpot } from './cellInfo.js';
 import { BoardLines, labelRun, wallInset } from './BoardLines.js';
 
 /** Ruhe auf einem Feld, bis die Sprechblase kommt. */

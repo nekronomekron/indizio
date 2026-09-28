@@ -1,5 +1,4 @@
 import type { PuzzleCore } from '@engine';
-import type { GameState } from '../state/game.js';
 
 /**
  * Zieht mit der Generatorversion mit: ein Spielstand zeigt auf einen Seed, und
@@ -17,13 +16,15 @@ import type { GameState } from '../state/game.js';
  */
 const VERSION = 'v4';
 const PREFIX = 'indizio:' + VERSION + ':';
-const SAVE_PREFIX = PREFIX + 'save:';
+/** Key of the game in progress for a seed. The game feature owns what is stored there. */
+export const saveKey = (seed: string): string => PREFIX + 'save:' + seed;
 const PUZZLE_PREFIX = PREFIX + 'puzzle:';
 const PROGRESS_KEY = PREFIX + 'progress';
-const SETTINGS_KEY = PREFIX + 'settings';
+/** Key of the player's settings. The settings feature owns what is stored there. */
+export const SETTINGS_KEY = PREFIX + 'settings';
 
 /** localStorage kann fehlen oder werfen (privates Fenster, blockierte Daten). */
-function readJson(key: string): unknown {
+export function readJson(key: string): unknown {
   try {
     const raw = localStorage.getItem(key);
     return raw ? (JSON.parse(raw) as unknown) : null;
@@ -32,27 +33,11 @@ function readJson(key: string): unknown {
   }
 }
 
-function writeJson(key: string, value: unknown): void {
+export function writeJson(key: string, value: unknown): void {
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {
     /* Speicher nicht verfuegbar */
-  }
-}
-
-export function loadSave(seed: string): GameState | null {
-  return readJson(SAVE_PREFIX + seed) as GameState | null;
-}
-
-export function saveGame(seed: string, state: GameState): void {
-  writeJson(SAVE_PREFIX + seed, state);
-}
-
-export function dropSave(seed: string): void {
-  try {
-    localStorage.removeItem(SAVE_PREFIX + seed);
-  } catch {
-    /* egal */
   }
 }
 
@@ -65,7 +50,7 @@ export function dropSave(seed: string): void {
  */
 export function hasSave(seed: string): boolean {
   try {
-    return localStorage.getItem(SAVE_PREFIX + seed) !== null;
+    return localStorage.getItem(saveKey(seed)) !== null;
   } catch {
     return false;
   }
@@ -136,24 +121,6 @@ export function recordProgress(seed: string, entry: Partial<ProgressEntry>): Pro
   progress[seed] = next;
   writeJson(PROGRESS_KEY, progress);
   return progress;
-}
-
-export interface Settings {
-  locale: 'de' | 'en';
-  holdMs: number;
-  vibrate: boolean;
-  /** Namen von Raum, Requisite und Person beim Verweilen auf einem Feld. */
-  names: boolean;
-}
-
-export const DEFAULT_SETTINGS: Settings = { locale: 'de', holdMs: 350, vibrate: true, names: true };
-
-export function loadSettings(): Settings {
-  return { ...DEFAULT_SETTINGS, ...((readJson(SETTINGS_KEY) as Partial<Settings> | null) ?? {}) };
-}
-
-export function saveSettings(settings: Settings): void {
-  writeJson(SETTINGS_KEY, settings);
 }
 
 const TUTORIAL_KEY = 'indizio:' + VERSION + ':tutorialSeen';

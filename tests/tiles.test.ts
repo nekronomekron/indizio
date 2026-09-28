@@ -2,7 +2,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import type { SceneObject } from '@engine';
-import { TiledObject } from '../src/app/render/TiledObject.js';
+import { TiledObject } from '../src/app/features/game/board/TiledObject.js';
 import {
   SHEET_HEIGHT,
   SHEET_WIDTH,
@@ -11,7 +11,7 @@ import {
   quarterTiles,
   type Corner,
   type QuarterCase,
-} from '../src/app/render/tiles.js';
+} from '../src/app/features/game/board/tiles.js';
 
 /**
  * Verlegte Requisiten werden aus Vierteln eines festen Blatts zusammengesetzt

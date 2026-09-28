@@ -4,8 +4,8 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { nextAppVersion, parseAppVersion, readAppVersion } from '../scripts/app-version.js';
-import { Footer } from '../src/app/components/Footer.js';
-import { APP_VERSION } from '../src/app/version.js';
+import { Footer } from '../src/app/shared/layout/Footer.js';
+import { APP_VERSION } from '../src/app/shared/version.js';
 
 /**
  * Eine Versionsnummer taugt nur, solange man ihr glauben kann. Geprueft wird

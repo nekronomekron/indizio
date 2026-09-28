@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import type { ReactNode } from 'react';
 import type { DifficultyKey } from '@engine';
-import { Dashboard } from './components/Dashboard.js';
-import { SettingsDialog } from './components/Settings.js';
-import { Footer } from './components/Footer.js';
-import { GameScreen } from './components/GameScreen.js';
-import { t } from './i18n.js';
-import { randomSeed, redrawFor } from './random.js';
-import { loadSettings, saveSettings, type Settings } from './storage/store.js';
-import { usePuzzle } from './usePuzzle.js';
+import { Dashboard } from './features/calendar/Dashboard.js';
+import { SettingsDialog } from './features/settings/SettingsDialog.js';
+import { Footer } from './shared/layout/Footer.js';
+import { GameScreen } from './features/game/GameScreen.js';
+import { t } from './shared/i18n/uiTexts.js';
+import { randomSeed, redrawFor } from './features/calendar/randomSeed.js';
+import { loadSettings, saveSettings, type Settings } from './features/settings/settings.js';
+import { usePuzzle } from './shared/puzzle/usePuzzle.js';
 
 function seedFromHash(): string | null {
   const match = /^#\/p\/([a-z0-9-]+)$/i.exec(window.location.hash);

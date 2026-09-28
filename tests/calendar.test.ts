@@ -12,10 +12,10 @@ import {
   monthOf,
   sameDate,
   shiftMonth,
-} from '../src/app/calendar.js';
-import { Dashboard } from '../src/app/components/Dashboard.js';
-import { moveCursor } from '../src/app/keys.js';
-import { redrawFor } from '../src/app/random.js';
+} from '../src/app/features/calendar/calendarDates.js';
+import { Dashboard } from '../src/app/features/calendar/Dashboard.js';
+import { moveCursor } from '../src/app/features/game/board/keyboard.js';
+import { redrawFor } from '../src/app/features/calendar/randomSeed.js';
 
 /**
  * Der Kalender ist die Startseite geworden, und damit die Stelle, an der jeder

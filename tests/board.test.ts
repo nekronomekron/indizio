@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { BoardLines, labelRun, wallInset, wallWidth } from '../src/app/components/BoardLines.js';
+import { BoardLines, labelRun, wallInset, wallWidth } from '../src/app/features/game/board/BoardLines.js';
 
 /**
  * Beschriftungen auf dem Brett — Raumname, Buchstabe, Notizen — dürfen die

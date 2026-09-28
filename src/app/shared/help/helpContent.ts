@@ -1,5 +1,5 @@
-import type { ArtKind } from './render/art.js';
-import type { Locale } from './types.js';
+import type { ArtKind } from '../art/art.js';
+import type { Locale } from '../types.js';
 
 export interface TutorialStep {
   icon: string;

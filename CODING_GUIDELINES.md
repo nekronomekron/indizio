@@ -24,7 +24,8 @@ src/
 - The engine is reached only through `@engine` and `@engine/i18n`.
 - A feature may import from `shared/`, **never from another feature**. If two
   features need the same thing, it moves to `shared/`.
-- Both rules are enforced by ESLint and by `tests/boundary.test.ts`.
+- The engine door is enforced by ESLint and by `tests/boundary.test.ts`; the
+  feature boundaries by `tests/boundary.test.ts`.
 
 ## TypeScript
 

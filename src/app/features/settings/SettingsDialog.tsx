@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
-import { t } from '../i18n.js';
-import type { Settings } from '../storage/store.js';
-import type { Locale } from '../types.js';
+import { t } from '../../shared/i18n/uiTexts.js';
+import type { Settings } from './settings.js';
+import type { Locale } from '../../shared/types.js';
 
 /**
  * Einstellungen.

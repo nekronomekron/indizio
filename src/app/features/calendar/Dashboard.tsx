@@ -10,7 +10,7 @@ import {
   parseSeed,
 } from '@engine';
 import type { CalendarDate, DifficultyKey } from '@engine';
-import type { Locale } from '../types.js';
+import type { Locale } from '../../shared/types.js';
 import {
   FIRST_MONTH,
   compareDate,
@@ -19,12 +19,12 @@ import {
   shiftMonth,
   today,
   type YearMonth,
-} from '../calendar.js';
-import { t } from '../i18n.js';
-import { Sprite } from '../render/Sprite.js';
-import { hasSave, loadProgress } from '../storage/store.js';
+} from './calendarDates.js';
+import { t } from '../../shared/i18n/uiTexts.js';
+import { Sprite } from '../../shared/art/Sprite.js';
+import { hasSave, loadProgress } from '../../shared/storage/store.js';
 import { Calendar, type DayState } from './Calendar.js';
-import { RulesDialog } from './Help.js';
+import { RulesDialog } from '../../shared/help/Help.js';
 
 /**
  * Die Startseite: der Kalender **ist** die Hauptsache.

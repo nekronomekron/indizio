@@ -1,10 +1,10 @@
 import { useState, type ReactElement } from 'react';
 import type { Locale } from '@engine/i18n';
 import type { PuzzleCore } from '@engine';
-import { t } from '../i18n.js';
-import { Sprite } from '../render/Sprite.js';
+import { t } from '../../shared/i18n/uiTexts.js';
+import { Sprite } from '../../shared/art/Sprite.js';
 
-export function Solved({
+export function SolvedDialog({
   core,
   locale,
   elapsedMs,

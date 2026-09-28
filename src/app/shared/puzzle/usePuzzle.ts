@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { GENERATOR_VERSION } from '@engine';
 import type { PuzzleCore } from '@engine';
-import { cachePuzzle, loadPuzzle } from './storage/store.js';
-import type { GenerateResponse } from '../worker/generate.worker.js';
+import { cachePuzzle, loadPuzzle } from '../storage/store.js';
+import type { GenerateResponse } from '../../../worker/generate.worker.js';
 
 export type PuzzleStatus =
   | { state: 'loading' }
@@ -65,7 +65,9 @@ export function usePuzzle(seed: string | null, options: PuzzleOptions = {}): Puz
   useEffect(() => {
     if (seed === null || isOutdated(seed) || cached !== null) return;
 
-    const worker = new Worker(new URL('../worker/generate.worker.ts', import.meta.url), { type: 'module' });
+    const worker = new Worker(new URL('../../../worker/generate.worker.ts', import.meta.url), {
+      type: 'module',
+    });
     worker.onmessage = (event: MessageEvent<GenerateResponse>) => {
       if (event.data.ok) {
         cachePuzzle(event.data.core);

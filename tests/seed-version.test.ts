@@ -7,8 +7,8 @@ import {
   generatePuzzle,
   makeSeed,
 } from '@engine';
-import { randomSeed } from '../src/app/random.js';
-import { UI } from '../src/app/i18n.js';
+import { randomSeed } from '../src/app/features/calendar/randomSeed.js';
+import { UI } from '../src/app/shared/i18n/uiTexts.js';
 
 /**
  * Ein Seed traegt die Generatorversion. Aendert sich der Generator, beschriebe

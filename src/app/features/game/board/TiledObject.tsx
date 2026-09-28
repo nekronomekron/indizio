@@ -1,6 +1,6 @@
 import { useMemo, type ReactElement } from 'react';
 import type { SceneObject } from '@engine';
-import { artUrl } from './art.js';
+import { artUrl } from '../../../shared/art/art.js';
 import { SHEET_UNIT, quarterTiles, type OpenEdges } from './tiles.js';
 
 export interface TiledObjectProps {

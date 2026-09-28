@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './app/App.js';
-import { sweepOldStorage } from './app/storage/store.js';
+import { sweepOldStorage } from './app/shared/storage/store.js';
 import './styles/base.css';
 
 // Einmal beim Start: Eintraege frueherer Fassungen wegraeumen. Sie werden nie

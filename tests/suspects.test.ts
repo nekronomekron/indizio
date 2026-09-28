@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { generatePuzzle, makeSeed } from '@engine';
 import type { Suspect } from '@engine';
-import { cardOrder, suspectLetters } from '../src/app/suspects.js';
+import { cardOrder, suspectLetters } from '../src/app/features/game/suspects.js';
 
 /**
  * Darstellung der Verdaechtigen. Beides sind Anzeigefragen — die Id bleibt

@@ -1,5 +1,5 @@
 import type { ReactNode, ReactElement } from 'react';
-import type { FloorMaterial } from '../../src/app/render/floors.js';
+import type { FloorMaterial } from '../../src/app/shared/art/floors.js';
 
 /**
  * Platzhalter-Zeichnungen der Bodenbelaege.

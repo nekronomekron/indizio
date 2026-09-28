@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import type { Suspect } from '@engine';
-import { Sprite } from '../render/Sprite.js';
+import { Sprite } from '../../shared/art/Sprite.js';
 
 export interface SuspectCardProps {
   suspect: Suspect;

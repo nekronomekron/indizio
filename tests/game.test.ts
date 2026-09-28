@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { generatePuzzle, makeSeed } from '@engine';
-import { gameReducer, initialGame, type GameSession } from '../src/app/state/game.js';
+import { gameReducer, initialGame, type GameSession } from '../src/app/features/game/gameReducer.js';
 
 const { core } = generatePuzzle(makeSeed('garage', 5, 31337));
 const size = core.size;

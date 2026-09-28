@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { t } from '../i18n.js';
+import { t } from '../i18n/uiTexts.js';
 import type { Locale } from '../types.js';
 import { APP_VERSION } from '../version.js';
 

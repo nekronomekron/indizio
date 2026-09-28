@@ -36,7 +36,7 @@ export type ArtKind = 'objects' | 'tiles' | 'floors' | 'characters' | 'icons';
 // Angeschrieben statt behauptet: `import.meta.glob` liefert mit diesen Optionen
 // bereits `Record<string, string>`, ein `as` waere eine Zusicherung, die nichts
 // zusichert. Die Annotation dokumentiert dasselbe und wird geprueft.
-const FILES: Record<string, string> = import.meta.glob('../../../art/**/*.svg', {
+const FILES: Record<string, string> = import.meta.glob('../../../../art/**/*.svg', {
   query: '?raw',
   import: 'default',
   eager: true,

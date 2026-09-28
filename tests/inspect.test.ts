@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeCell, estimateTipWidth, tipSpot } from '../src/app/inspect.js';
+import { describeCell, estimateTipWidth, tipSpot } from '../src/app/features/game/board/cellInfo.js';
 
 /**
  * Die Namen der Felder.

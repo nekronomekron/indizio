@@ -1,7 +1,7 @@
 import { useState, type ReactElement } from 'react';
-import { HELP } from '../help.js';
-import { t } from '../i18n.js';
-import { Sprite } from '../render/Sprite.js';
+import { HELP } from './helpContent.js';
+import { t } from '../i18n/uiTexts.js';
+import { Sprite } from '../art/Sprite.js';
 import type { Locale } from '../types.js';
 
 /** Sechsschrittiges Tutorial, beim ersten Fall automatisch. */

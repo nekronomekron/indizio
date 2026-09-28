@@ -2,18 +2,19 @@ import { useEffect, useMemo, useReducer, useState, type ReactElement } from 'rea
 import { boardLayout, hintFor } from '@engine';
 import type { Cell, PuzzleCore } from '@engine';
 import { createClueTranslator, type Locale } from '@engine/i18n';
-import { t } from '../i18n.js';
-import { cardOrder, suspectLetters } from '../suspects.js';
-import { allPlaced, gameReducer, initialGame } from '../state/game.js';
-import type { GameSession } from '../state/game.js';
-import { loadSave, markTutorialSeen, recordProgress, saveGame, tutorialSeen } from '../storage/store.js';
-import { RulesDialog, Tutorial } from './Help.js';
-import { FOOTER_PX } from './Footer.js';
-import { Grid } from './Grid.js';
-import { Solved } from './Solved.js';
+import { t } from '../../shared/i18n/uiTexts.js';
+import { cardOrder, suspectLetters } from './suspects.js';
+import { allPlaced, gameReducer, initialGame } from './gameReducer.js';
+import type { GameSession } from './gameReducer.js';
+import { markTutorialSeen, recordProgress, tutorialSeen } from '../../shared/storage/store.js';
+import { loadSave, saveGame } from './gameStorage.js';
+import { RulesDialog, Tutorial } from '../../shared/help/Help.js';
+import { FOOTER_PX } from '../../shared/layout/Footer.js';
+import { Grid } from './board/Grid.js';
+import { SolvedDialog } from './SolvedDialog.js';
 import { SuspectCard } from './SuspectCard.js';
 import { Toolbar } from './Toolbar.js';
-import { boardCellPx } from '../render/tiles.js';
+import { boardCellPx } from './board/tiles.js';
 
 function formatTime(ms: number): string {
   const total = Math.floor(ms / 1000);
@@ -300,7 +301,7 @@ export function GameScreen({
       {showRules && <RulesDialog locale={locale} onClose={() => setShowRules(false)} />}
 
       {state.verdict === 'solved' && (
-        <Solved
+        <SolvedDialog
           core={core}
           locale={locale}
           elapsedMs={state.elapsedMs}

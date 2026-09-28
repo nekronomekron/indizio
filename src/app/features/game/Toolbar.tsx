@@ -1,6 +1,6 @@
 import { useRef, type ReactElement } from 'react';
-import { Sprite } from '../render/Sprite.js';
-import type { Tool } from '../state/game.js';
+import { Sprite } from '../../shared/art/Sprite.js';
+import type { Tool } from './gameReducer.js';
 
 export interface ToolbarProps {
   tool: Tool;
