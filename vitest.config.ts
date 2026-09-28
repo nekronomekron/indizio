@@ -27,6 +27,7 @@ export default defineConfig({
   resolve: { alias },
   // Wie beim Bauen, sonst läuft der Footer im Test ins Leere.
   define: { __APP_VERSION__: JSON.stringify(readAppVersion().text) },
+  css: { modules: { localsConvention: 'camelCaseOnly' } },
   test: {
     projects: [
       {
@@ -44,6 +45,8 @@ export default defineConfig({
         test: {
           name: 'app',
           environment: 'node',
+          // Real class names in rendered markup, so tests read like the CSS.
+          css: { include: [/\.module\.css$/], modules: { classNameStrategy: 'non-scoped' } },
           include: ['tests/*.test.ts'],
           testTimeout: 60_000,
         },

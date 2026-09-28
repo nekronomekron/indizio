@@ -2,6 +2,11 @@ import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { isLocale } from '../../shared/i18n/i18n.js';
 import { HOLD_MS_MAX, HOLD_MS_MIN, type Settings } from './settings.js';
+import { cx } from '../../shared/ui/cx.js';
+import button from '../../shared/ui/button.module.css';
+import dialog from '../../shared/ui/dialog.module.css';
+import text from '../../shared/ui/text.module.css';
+import styles from './SettingsDialog.module.css';
 
 /**
  * Einstellungen.
@@ -25,11 +30,11 @@ export function SettingsDialog({
 }): ReactElement {
   const { t } = useTranslation();
   return (
-    <div className="overlay" role="dialog" aria-modal="true" aria-label={t('settings')}>
-      <div className="panel settings-panel">
+    <div className={dialog.overlay} role="dialog" aria-modal="true" aria-label={t('settings')}>
+      <div className={cx(dialog.panel, styles.panel)}>
         <h2>{t('settings')}</h2>
 
-        <label className="setting">
+        <label className={styles.setting}>
           <span>{t('language')}</span>
           <select
             value={settings.locale}
@@ -43,7 +48,7 @@ export function SettingsDialog({
           </select>
         </label>
 
-        <label className="setting">
+        <label className={styles.setting}>
           <span>
             {t('holdTime')}
             <small>{settings.holdMs} ms</small>
@@ -57,9 +62,9 @@ export function SettingsDialog({
             onChange={(event) => onChange({ ...settings, holdMs: Number(event.target.value) })}
           />
         </label>
-        <p className="hint-line">{t('holdTimeWhy')}</p>
+        <p className={cx(text.hintLine, styles.why)}>{t('holdTimeWhy')}</p>
 
-        <label className="setting">
+        <label className={styles.setting}>
           <span>{t('vibrate')}</span>
           <input
             type="checkbox"
@@ -68,7 +73,7 @@ export function SettingsDialog({
           />
         </label>
 
-        <label className="setting">
+        <label className={styles.setting}>
           <span>{t('cellNames')}</span>
           <input
             type="checkbox"
@@ -77,8 +82,8 @@ export function SettingsDialog({
           />
         </label>
 
-        <div className="actions">
-          <button type="button" className="primary" onClick={onClose}>
+        <div className={dialog.actions}>
+          <button type="button" className={button.primary} onClick={onClose}>
             {t('close')}
           </button>
         </div>

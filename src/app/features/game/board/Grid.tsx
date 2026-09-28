@@ -9,6 +9,9 @@ import type { GameState } from '../gameReducer.js';
 import { moveCursor } from './keyboard.js';
 import { describeCell, estimateTipWidth, tipSpot } from './cellInfo.js';
 import { BoardLines, labelRun, wallInset } from './BoardLines.js';
+import { cx } from '../../../shared/ui/cx.js';
+import text from '../../../shared/ui/text.module.css';
+import styles from './board.module.css';
 
 /** Ruhe auf einem Feld, bis die Sprechblase kommt. */
 const TIP_DELAY = 250;
@@ -433,11 +436,11 @@ export function Grid(props: GridProps): ReactElement {
 
   return (
     <div
-      className="board"
+      className={styles.board}
       style={{ width: boardPx, height: boardPx, ['--wall-inset' as string]: String(inset) + 'px' }}
     >
       {/* Boden: eine Kachel je Zelle, damit jede Raumform trägt. */}
-      <div className="floor" style={{ gridTemplateColumns: 'repeat(' + size + ', ' + cellPx + 'px)' }}>
+      <div className={styles.floor} style={{ gridTemplateColumns: 'repeat(' + size + ', ' + cellPx + 'px)' }}>
         {Array.from({ length: size * size }, (_, cell) => {
           const room = roomOfCell[cell]!;
           const material = floors.material.get(room) ?? DEFAULT_FLOOR;
@@ -448,7 +451,7 @@ export function Grid(props: GridProps): ReactElement {
           return (
             <div
               key={cell}
-              className={'tile' + (room === hoverRoom ? ' in-hovered' : '')}
+              className={cx(styles.floorTile, room === hoverRoom && styles.inHovered)}
               style={{
                 width: cellPx,
                 height: cellPx,
@@ -470,7 +473,7 @@ export function Grid(props: GridProps): ReactElement {
       {labelSpots.map(({ room, cell, run }) => (
         <span
           key={room.id}
-          className={'room-label' + (room.id === hoverRoom ? ' hovered' : '')}
+          className={cx(styles.roomLabel, room.id === hoverRoom && styles.hovered)}
           style={{
             left: columnOf(cell, size) * cellPx + inset,
             top: rowOf(cell, size) * cellPx + inset,
@@ -494,7 +497,7 @@ export function Grid(props: GridProps): ReactElement {
         return (
           <div
             key={obj.id}
-            className={'object' + (obj.walkable ? ' walkable' : ' blocking')}
+            className={cx(styles.object, obj.walkable ? styles.walkable : styles.blocking)}
             style={{ left: c0 * cellPx, top: r0 * cellPx, width: w * cellPx, height: h * cellPx }}
           >
             {/* Die Grafik fuellt ihre Grundflaeche: ein Tisch ueber drei
@@ -516,7 +519,7 @@ export function Grid(props: GridProps): ReactElement {
           plugin does not count as interactive. */}
       {/* eslint-disable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */}
       <div
-        className="cells"
+        className={styles.cells}
         style={{ gridTemplateColumns: 'repeat(' + size + ', ' + cellPx + 'px)' }}
         tabIndex={0}
         role="application"
@@ -564,21 +567,18 @@ export function Grid(props: GridProps): ReactElement {
           const placedId = state.placements.findIndex((c) => c === cell);
           const notes = state.notes[cell] ?? [];
           const marked = state.marks.includes(cell);
-          const classes = ['cell'];
-          if (state.hint?.cell === cell) classes.push('hint');
-          if (focused && cursor === cell) classes.push('cursor');
-          if (isBlocked(cell)) classes.push('blocked');
-          if (denied === cell) classes.push('denied');
+          const className = cx(
+            styles.cell,
+            state.hint?.cell === cell && styles.hint,
+            focused && cursor === cell && styles.cursor,
+            isBlocked(cell) && styles.blocked,
+            denied === cell && styles.denied,
+          );
 
           return (
-            <div
-              key={cell}
-              data-cell={cell}
-              className={classes.join(' ')}
-              style={{ width: cellPx, height: cellPx }}
-            >
+            <div key={cell} data-cell={cell} className={className} style={{ width: cellPx, height: cellPx }}>
               {placedId >= 0 && (
-                <span className="placed">
+                <span className={styles.placed}>
                   <Sprite
                     kind="characters"
                     name={core.suspects[placedId]!.portraitKey}
@@ -586,23 +586,23 @@ export function Grid(props: GridProps): ReactElement {
                   />
                   {/* Der Buchstabe der gewaehlten Person leuchtet auf - so
                       findet man sie auf dem Brett, ohne zu suchen. */}
-                  <span className={'placed-letter' + (placedId === state.selected ? ' chosen' : '')}>
+                  <span className={cx(styles.placedLetter, placedId === state.selected && styles.chosen)}>
                     {letters[placedId] ?? '?'}
                   </span>
                 </span>
               )}
               {placedId < 0 && marked && (
-                <Sprite kind="icons" name="ui-x" size={Math.round(cellPx * 0.5)} className="mark" />
+                <Sprite kind="icons" name="ui-x" size={Math.round(cellPx * 0.5)} className={styles.mark} />
               )}
               {/* Bleistiftnotizen sitzen links oben und stehen auch neben einem X.
                   Wo der Raumname steht, beginnen sie unter seinem Schild. */}
               {placedId < 0 && notes.length > 0 && (
                 <span
-                  className={'notes' + (labelCells.has(cell) ? ' below-label' : '')}
+                  className={cx(styles.notes, labelCells.has(cell) && styles.belowLabel)}
                   style={{ fontSize: noteSize }}
                 >
                   {notes.map((id) => (
-                    <span key={id} className={'note' + (id === state.selected ? ' chosen' : '')}>
+                    <span key={id} className={cx(styles.note, id === state.selected && styles.chosen)}>
                       {letters[id] ?? '?'}
                     </span>
                   ))}
@@ -620,11 +620,11 @@ export function Grid(props: GridProps): ReactElement {
         // Am oberen Rand, wenn der Finger in der untersten Reihe liegt: auf
         // einem 10x10 ist ein Feld keine 34 Bildpunkte hoch, die Leiste
         // verdeckte sonst genau das Feld, von dem sie erzaehlt.
-        <div className={'cell-bar' + (rowOf(tip.cell, size) === size - 1 ? ' top' : '')}>{tipText}</div>
+        <div className={cx(styles.bar, rowOf(tip.cell, size) === size - 1 && styles.top)}>{tipText}</div>
       )}
       {tipAt !== null && tip !== null && tip.source !== 'touch' && (
         <div
-          className={'cell-tip' + (tipAt.below ? ' below' : '')}
+          className={cx(styles.tip, tipAt.below && styles.below)}
           style={{ left: tipAt.left, top: tipAt.top, maxWidth: boardPx }}
         >
           {tipText}
@@ -635,7 +635,7 @@ export function Grid(props: GridProps): ReactElement {
           Vorleseprogramm sonst durchgehend mit, waehrend der Blick schon
           woanders ist. Die Region steht immer da, damit sie bereit ist, wenn
           der erste Text kommt. */}
-      <span className="sr-only" role="status">
+      <span className={text.srOnly} role="status">
         {tip?.source === 'keys' ? tipText : ''}
       </span>
     </div>

@@ -1,0 +1,19 @@
+/* Button variants. Element plus class, so a variant outranks a feature's own
+   button class the way it always did. */
+
+button.primary {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: transparent;
+  font-weight: 650;
+}
+
+button.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--dim);
+  padding-left: 0;
+}
+button.ghost:hover {
+  color: var(--text);
+}

@@ -1,0 +1,126 @@
+.dashboard {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 16px 32px;
+}
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.tagline {
+  margin: 2px 0 0;
+  color: var(--dim);
+}
+.head-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.counter {
+  color: var(--dim);
+  font-variant-numeric: tabular-nums;
+}
+.intro {
+  color: var(--dim);
+  max-width: 60ch;
+  margin: 0 0 12px;
+}
+
+/* The one button that matters: play today. */
+.today {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  text-align: left;
+  width: 100%;
+  margin: 20px 0 18px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, var(--panel-2), var(--panel));
+  border-color: var(--accent);
+}
+.today span {
+  display: flex;
+  flex-direction: column;
+}
+.today strong {
+  font-size: 16px;
+}
+.today small {
+  color: var(--dim);
+  font-size: 12px;
+}
+.today.done {
+  border-color: var(--ok);
+}
+
+/* ---------- Random case and own seed ---------- */
+
+.aside {
+  display: grid;
+  gap: 22px;
+}
+.aside h2 {
+  font-size: 15px;
+  margin: 0 0 2px;
+}
+.tier-row {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+}
+.tier {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  text-align: left;
+  padding: 10px 12px;
+  border-left: 3px solid var(--tier-colour);
+}
+.tier small {
+  color: var(--dim);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.tier-very-easy {
+  --tier-colour: var(--tier-very-easy);
+}
+.tier-easy {
+  --tier-colour: var(--tier-easy);
+}
+.tier-medium {
+  --tier-colour: var(--tier-medium);
+}
+.tier-hard {
+  --tier-colour: var(--tier-hard);
+}
+.tier-expert {
+  --tier-colour: var(--tier-expert);
+}
+
+.seed-row {
+  display: flex;
+  gap: 8px;
+}
+.seed-row input {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+@media (min-width: 760px) {
+  .aside {
+    grid-template-columns: 1.4fr 1fr;
+    gap: 28px;
+  }
+}
+
+@media print {
+  .head-actions {
+    display: none !important;
+  }
+}

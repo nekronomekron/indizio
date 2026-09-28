@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { APP_VERSION } from '../version.js';
+import styles from './Footer.module.css';
 
 /**
  * Hoehe des Footers in Pixeln.
@@ -22,9 +23,9 @@ export const FOOTER_PX = 30; // Zwilling von --footer-h in styles/base.css
 export function Footer(): ReactElement {
   const { t } = useTranslation();
   return (
-    <footer className="app-footer">
+    <footer className={styles.footer}>
       <span>{t('appTitle')}</span>
-      <span className="app-version" title={t('version')}>
+      <span className={styles.version} title={t('version')}>
         {APP_VERSION}
       </span>
     </footer>

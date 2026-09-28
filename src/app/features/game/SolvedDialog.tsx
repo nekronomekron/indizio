@@ -2,6 +2,10 @@ import { useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { PuzzleCore } from '@engine';
 import { Sprite } from '../../shared/art/Sprite.js';
+import { cx } from '../../shared/ui/cx.js';
+import button from '../../shared/ui/button.module.css';
+import dialog from '../../shared/ui/dialog.module.css';
+import styles from './SolvedDialog.module.css';
 
 export function SolvedDialog({
   core,
@@ -31,22 +35,22 @@ export function SolvedDialog({
   };
 
   return (
-    <div className="overlay" role="dialog" aria-modal="true">
-      <div className="panel solved-panel">
+    <div className={dialog.overlay} role="dialog" aria-modal="true">
+      <div className={cx(dialog.panel, styles.panel)}>
         <h2>{t('solvedTitle')}</h2>
-        <div className="reveal">
-          <div className="reveal-person">
+        <div className={styles.reveal}>
+          <div className={styles.person}>
             <Sprite kind="characters" name={murderer.portraitKey} size={64} />
-            <span className="reveal-role">{t('murdererIs')}</span>
+            <span className={styles.role}>{t('murdererIs')}</span>
             <strong>{murderer.name}</strong>
           </div>
-          <div className="reveal-person dim">
+          <div className={cx(styles.person, styles.faded)}>
             <Sprite kind="characters" name={victim.portraitKey} size={64} />
-            <span className="reveal-role">{t('victimWas')}</span>
+            <span className={styles.role}>{t('victimWas')}</span>
             <strong>{victim.name}</strong>
           </div>
         </div>
-        <dl className="stats">
+        <dl className={styles.stats}>
           <div>
             <dt>{t('time')}</dt>
             <dd>
@@ -58,8 +62,8 @@ export function SolvedDialog({
             <dd>{hintsUsed}</dd>
           </div>
         </dl>
-        <div className="actions">
-          <button type="button" className="primary" onClick={onBack}>
+        <div className={dialog.actions}>
+          <button type="button" className={button.primary} onClick={onBack}>
             {t('again')}
           </button>
           {/* Absichtlich abgeschickt und nicht abgewartet: `share` fängt selbst
@@ -77,7 +81,7 @@ export function SolvedDialog({
             {t('print')}
           </button>
         </div>
-        <p className="seed-line">{core.seed}</p>
+        <p className={styles.seed}>{core.seed}</p>
       </div>
     </div>
   );

@@ -20,6 +20,8 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
+    // Lets `X.module.css` find its generated `X.module.d.css.ts`.
+    "allowArbitraryExtensions": true,
     "noEmit": true
   }
 }

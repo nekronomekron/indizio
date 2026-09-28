@@ -1,0 +1,28 @@
+/* Text styles several screens share. */
+
+.dim {
+  color: var(--dim);
+  font-weight: 400;
+}
+
+/* A quiet line of explanation under a heading. */
+.hint-line {
+  margin: 0 0 10px;
+  color: var(--dim);
+  font-size: 12px;
+}
+
+.error {
+  color: var(--danger);
+  font-size: 13px;
+  margin: 6px 0 0;
+}
+
+/* Only there for screen readers. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}

@@ -26,6 +26,18 @@ import { hasSave, loadProgress } from '../../shared/storage/store.js';
 import { Calendar, type DayState } from './Calendar.js';
 import { RulesDialog } from '../../shared/help/Help.js';
 import { useClueTranslator } from '../../shared/i18n/useClueTranslator.js';
+import { cx } from '../../shared/ui/cx.js';
+import button from '../../shared/ui/button.module.css';
+import text from '../../shared/ui/text.module.css';
+import styles from './Dashboard.module.css';
+
+const TIER_CLASS: Record<DifficultyKey, string> = {
+  veryEasy: styles.tierVeryEasy,
+  easy: styles.tierEasy,
+  medium: styles.tierMedium,
+  hard: styles.tierHard,
+  expert: styles.tierExpert,
+};
 
 /**
  * Example seed for the input field, built from the generator version: typed
@@ -94,20 +106,20 @@ export function Dashboard({
   };
 
   return (
-    <div className="dashboard">
-      <header className="dashboard-head">
+    <div className={styles.dashboard}>
+      <header className={styles.head}>
         <div>
           <h1>{t('appTitle')}</h1>
-          <p className="tagline">{t('tagline')}</p>
+          <p className={styles.tagline}>{t('tagline')}</p>
         </div>
-        <div className="head-actions">
-          <button type="button" className="ghost" onClick={() => setShowRules(true)}>
+        <div className={styles.headActions}>
+          <button type="button" className={button.ghost} onClick={() => setShowRules(true)}>
             {t('rules')}
           </button>
-          <span className="counter">
+          <span className={styles.counter}>
             {solvedCount} {t('solvedLabel')}
           </span>
-          <button type="button" className="ghost" onClick={onSettings}>
+          <button type="button" className={button.ghost} onClick={onSettings}>
             {t('settings')}
           </button>
         </div>
@@ -115,7 +127,7 @@ export function Dashboard({
 
       <button
         type="button"
-        className={'today-card' + (todayDone ? ' done' : '')}
+        className={cx(styles.today, todayDone && styles.done)}
         onClick={() => onOpen(todaySeed)}
       >
         <Sprite kind="icons" name={todayDone ? 'ui-check' : 'ui-timer'} size={28} />
@@ -128,7 +140,7 @@ export function Dashboard({
         </span>
       </button>
 
-      <p className="dashboard-intro">{t('calendarIntro')}</p>
+      <p className={styles.intro}>{t('calendarIntro')}</p>
 
       <Calendar
         at={at}
@@ -141,11 +153,11 @@ export function Dashboard({
         onToday={() => setAt(monthOf(now))}
       />
 
-      <div className="dashboard-aside">
-        <section className="random">
+      <div className={styles.aside}>
+        <section>
           <h2>{t('randomTitle')}</h2>
-          <p className="hint-line">{t('randomIntro')}</p>
-          <div className="tier-row">
+          <p className={text.hintLine}>{t('randomIntro')}</p>
+          <div className={styles.tierRow}>
             {DIFFICULTY_ORDER.map((difficulty) => {
               // „5×5–6×6" statt „5–6×5–6": die Stufe „sehr leicht" hat zwei
               // Größen, und ein Bereich über beide Achsen liest sich nicht.
@@ -159,7 +171,7 @@ export function Dashboard({
                 <button
                   key={difficulty}
                   type="button"
-                  className={'tier-button tier-' + difficulty}
+                  className={cx(styles.tier, TIER_CLASS[difficulty])}
                   onClick={() => onDraw(difficulty)}
                 >
                   <strong>{t(difficulty)}</strong>
@@ -170,10 +182,10 @@ export function Dashboard({
           </div>
         </section>
 
-        <section className="seed-entry">
+        <section>
           <h2>{t('ownSeed')}</h2>
-          <p className="hint-line">{t('ownSeedIntro')}</p>
-          <div className="seed-row">
+          <p className={text.hintLine}>{t('ownSeedIntro')}</p>
+          <div className={styles.seedRow}>
             <input
               id="seed"
               value={seedInput}
@@ -191,7 +203,7 @@ export function Dashboard({
               {t('play')}
             </button>
           </div>
-          {seedError && <p className="error">{t('seedInvalid')}</p>}
+          {seedError && <p className={text.error}>{t('seedInvalid')}</p>}
         </section>
       </div>
 

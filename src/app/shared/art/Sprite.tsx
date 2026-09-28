@@ -1,6 +1,8 @@
 import type { ReactElement } from 'react';
 import { artUrl } from './art.js';
 import type { ArtKind } from './art.js';
+import { cx } from '../ui/cx.js';
+import styles from './Sprite.module.css';
 
 export interface SpriteProps {
   /** Dateiname ohne Endung, so wie die Grafik in `art/` heisst. */
@@ -58,7 +60,7 @@ export function Sprite(props: SpriteProps): ReactElement {
 
   return (
     <img
-      className={'sprite' + (className ? ' ' + className : '')}
+      className={cx(styles.sprite, className)}
       src={url}
       width={width}
       height={height}

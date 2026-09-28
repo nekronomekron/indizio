@@ -10,6 +10,9 @@ import { loadSettings, saveSettings, type Settings } from './features/settings/s
 import { usePuzzle } from './shared/puzzle/usePuzzle.js';
 import { ErrorBoundary } from './shared/errors/ErrorBoundary.js';
 import { ErrorPanel } from './shared/errors/ErrorPanel.js';
+import button from './shared/ui/button.module.css';
+import statusScreen from './shared/layout/StatusScreen.module.css';
+import styles from './App.module.css';
 
 function seedFromHash(): string | null {
   const match = /^#\/p\/([a-z0-9-]+)$/i.exec(window.location.hash);
@@ -17,10 +20,9 @@ function seedFromHash(): string | null {
 }
 
 /**
- * Wie oft ein ausgelostes Rätsel neu gewürfelt wird, wenn die Erzeugung
- * fehlschlägt. Gemessen tritt das praktisch nicht auf — über 130 erzeugte Fälle
- * kein einziges Mal —, aber „praktisch nicht" ist kein Versprechen, und der
- * Spieler hat sich diesen Fall nicht ausgesucht.
+ * How often a drawn puzzle is redrawn when generation fails. Measured, it
+ * practically never happens — not once in over 130 generated cases — but
+ * "practically never" is no promise, and the player did not choose this case.
  */
 const MAX_REDRAWS = 3;
 
@@ -48,10 +50,10 @@ export function App(): ReactElement {
     if (next.locale !== i18n.language) void i18n.changeLanguage(next.locale);
   };
 
-  // Welcher Seed ausgelost war und wie oft schon nachgewürfelt wurde. Beides
-  // liegt in Refs, weil es nur **innerhalb** der Rückmeldung des Workers gelesen
-  // wird und nie beim Zeichnen. Ein selbst eingetippter Seed wird nie ersetzt:
-  // wer einen bestimmten Fall aufruft, will genau den und keinen ähnlichen.
+  // Which seed was drawn and how often it has been redrawn. Both live in refs
+  // because they are read only *inside* the worker's answer, never while
+  // rendering. A typed-in seed is never replaced: whoever opens a particular
+  // case wants exactly that one, not a similar one.
   const drawn = useRef<string | null>(null);
   const redraws = useRef(0);
   const [redrew, setRedrew] = useState(false);
@@ -65,8 +67,8 @@ export function App(): ReactElement {
   };
 
   /**
-   * Läuft aus der Antwort des Workers heraus, nicht beim Zeichnen — deshalb
-   * dürfen hier Refs gelesen und geschrieben werden.
+   * Runs from the worker's answer, not while rendering — which is why it may
+   * read and write refs.
    */
   const replaceOnFailure = (badSeed: string): string | null => {
     const next = redrawFor(badSeed, drawn.current, redraws.current, MAX_REDRAWS);
@@ -74,8 +76,8 @@ export function App(): ReactElement {
     redraws.current += 1;
     drawn.current = next;
     setRedrew(true);
-    // `replace` statt `hash =`: die fehlgeschlagenen Versuche sollen nicht als
-    // Stationen im Verlauf liegen, durch die man sich zurückklicken kann.
+    // `replace` rather than `hash =`: failed attempts should not sit in the
+    // history as stations to click back through.
     window.location.replace('#/p/' + next);
     return next;
   };
@@ -83,7 +85,7 @@ export function App(): ReactElement {
   const status = usePuzzle(seed, { replaceOnFailure });
 
   const backButton = (
-    <button type="button" className="primary" onClick={back}>
+    <button type="button" className={button.primary} onClick={back}>
       {t('back')}
     </button>
   );
@@ -94,9 +96,9 @@ export function App(): ReactElement {
     screen = <Dashboard onOpen={open} onDraw={draw} onSettings={() => setShowSettings(true)} />;
   } else if (status.state === 'loading') {
     screen = (
-      <div className="loading">
-        <div className="loading-inner">
-          <div className="scanner" aria-hidden="true" />
+      <div className={statusScreen.status}>
+        <div className={statusScreen.inner}>
+          <div className={statusScreen.scanner} aria-hidden="true" />
           <p>{t(redrew ? 'randomRetry' : 'generating')}</p>
           <small>{t('generatingLong')}</small>
           <code>{seed}</code>
@@ -127,15 +129,15 @@ export function App(): ReactElement {
     );
   }
 
-  // Der Footer steht auf jedem Bildschirm. Deshalb wird erst der Bildschirm
-  // bestimmt und danach einmal ausgegeben, statt ihn in jeden Zweig zu
-  // kopieren — wo er beim nächsten Zweig zuverlässig fehlen würde.
+  // The footer is on every screen. So the screen is decided first and output
+  // once, rather than copying the footer into every branch — where the next
+  // branch would reliably forget it.
   return (
     <>
-      <div className="screen">{screen}</div>
+      <div className={styles.screen}>{screen}</div>
       <Footer />
-      {/* Ein Dialog fuer beide Bildschirme: die Haltedauer stellt man dort ein,
-          wo sie stoert - beim Spielen -, und nicht nur auf der Startseite. */}
+      {/* One dialog for both screens: the hold time gets adjusted where it
+          bothers you — while playing — not only on the start page. */}
       {showSettings && (
         <SettingsDialog settings={settings} onChange={applySettings} onClose={() => setShowSettings(false)} />
       )}

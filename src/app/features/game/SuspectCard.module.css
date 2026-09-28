@@ -1,0 +1,56 @@
+.card {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  text-align: left;
+  background: var(--panel);
+  padding: 8px 10px;
+  width: 100%;
+}
+.selected {
+  border-color: var(--accent);
+  background: var(--panel-2);
+}
+.victim {
+  border-style: dashed;
+  opacity: 0.9;
+}
+.placed .name {
+  color: var(--ok);
+}
+.portrait {
+  position: relative;
+  flex: none;
+}
+.letter {
+  position: absolute;
+  left: -4px;
+  bottom: -4px;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 11px;
+  font-weight: 700;
+}
+.badge {
+  position: absolute;
+  right: -6px;
+  top: -6px;
+}
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.name {
+  font-weight: 650;
+}
+.clue {
+  color: var(--dim);
+  font-size: 13px;
+}

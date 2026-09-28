@@ -1,5 +1,6 @@
 import { useMemo, type ReactElement } from 'react';
 import { columnOf, rowOf } from '@engine';
+import styles from './board.module.css';
 
 export interface BoardLinesProps {
   size: number;
@@ -137,25 +138,25 @@ export function BoardLines({ size, cellPx, roomOfCell, hoverRoom }: BoardLinesPr
 
   return (
     <svg
-      className="board-lines"
+      className={styles.lines}
       width={boardPx}
       height={boardPx}
       viewBox={'0 0 ' + String(boardPx) + ' ' + String(boardPx)}
       aria-hidden="true"
       focusable="false"
     >
-      <path className="line-grid" d={paths.grid} strokeWidth={thin} shapeRendering="crispEdges" />
-      <path className="line-wall" d={paths.walls} strokeWidth={thick} />
+      <path className={styles.lineGrid} d={paths.grid} strokeWidth={thin} shapeRendering="crispEdges" />
+      <path className={styles.lineWall} d={paths.walls} strokeWidth={thick} />
       {/* Der Brettrand liegt halb innen, sonst schneidet ihn die Kante ab. */}
       <rect
-        className="line-wall"
+        className={styles.lineWall}
         x={thick / 2}
         y={thick / 2}
         width={boardPx - thick}
         height={boardPx - thick}
         strokeWidth={thick}
       />
-      {hovered !== '' && <path className="line-hover" d={hovered} strokeWidth={thick} />}
+      {hovered !== '' && <path className={styles.lineHover} d={hovered} strokeWidth={thick} />}
     </svg>
   );
 }

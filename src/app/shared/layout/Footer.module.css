@@ -1,0 +1,30 @@
+/* Name and version on every screen. Quiet: there when looked for, otherwise
+   out of the way. */
+
+.footer {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: var(--footer-h);
+  padding: 0 16px;
+  color: var(--dim);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  border-top: 1px solid var(--line);
+}
+
+.version {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}
+
+@media print {
+  /* On paper the version belongs there too: a printed puzzle should say which
+     build it came from. */
+  .footer {
+    border-top: none;
+    color: #555;
+  }
+}

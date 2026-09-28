@@ -1,0 +1,332 @@
+/*
+ * The board: floor, lines, labels, objects and the cells the player acts on.
+ * Shared by Grid, BoardLines and TiledObject — one surface, one stylesheet.
+ *
+ * Layers, bottom to top: floor (0), objects (1), lines (2), room labels (3),
+ * cells with people and notes (4), name tip (6).
+ */
+
+/* No text selection on the board. On a phone a long press is both the gesture
+   to place someone *and* the system's gesture to select text; without this a
+   blue selection, the magnifier and a "Copy" menu appeared while placing.
+   `touch-action` alone does not help — it stops scrolling and zooming, not
+   selection. Only here: clues and the seed field stay selectable. */
+.board {
+  position: relative;
+  border-radius: 6px;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  max-width: 100%;
+}
+
+/* ---------- Floor: one tile per cell, from the theme's drawings ---------- */
+
+.floor {
+  position: absolute;
+  inset: 0;
+  display: grid;
+}
+.floor-tile {
+  position: relative;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  transition: filter 0.12s ease;
+  filter: brightness(var(--room-shade, 1));
+}
+.in-hovered {
+  filter: brightness(calc(var(--room-shade, 1) * 1.32)) saturate(1.25);
+}
+
+/* ---------- Lines: thin between cells, thick around every room ----------
+   Always, not only on hover: phones have none, and a room border is game
+   information (PLAN.md §8.3). */
+
+.lines {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.line-grid {
+  fill: none;
+  stroke: var(--grid-line);
+}
+.line-wall {
+  fill: none;
+  stroke: var(--wall);
+  stroke-linecap: square;
+}
+.line-hover {
+  fill: none;
+  stroke: var(--accent-2);
+  stroke-linecap: square;
+  filter: drop-shadow(0 0 6px var(--accent-2-glow));
+}
+
+/* ---------- Room names ----------
+   A small sign: readable on dark concrete and light sand alike. It keeps clear
+   of the wall (--wall-inset, set by Grid) and is cut to the room's width in its
+   row — the full name is in the tip. Its height (12 + 2 × 1) is known to
+   `.below-label`. */
+
+.room-label {
+  position: absolute;
+  box-sizing: border-box;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--label-fill);
+  font-size: 10px;
+  line-height: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--label-text);
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 3;
+}
+.hovered {
+  color: var(--accent-2);
+}
+
+/* ---------- Objects ----------
+   Below the room lines: a line disappearing behind a cupboard makes a room
+   look open where it is closed. */
+
+.object {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  z-index: 1;
+}
+.blocking {
+  --object-edge: var(--blocking-edge);
+  background: var(--blocking-fill);
+  box-shadow: inset 0 0 0 1px var(--object-edge);
+}
+.walkable {
+  --object-edge: var(--walkable-edge);
+  background: var(--walkable-fill);
+  box-shadow: inset 0 0 0 1px var(--object-edge);
+}
+/* Laid objects: four quarters per cell from one sheet. TiledObject draws the
+   edge only along the outside of the shape. */
+.laid {
+  display: block;
+}
+.quarter {
+  position: absolute;
+  background-repeat: no-repeat;
+}
+
+/* ---------- Cells: what the player sets, above everything ---------- */
+
+.cells {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  z-index: 4;
+}
+/* The board is one tab stop; the frame inside moves with the arrow keys, and
+   seeing it is half of using it. */
+.cells:focus {
+  outline: none;
+}
+.cells:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.hint {
+  box-shadow: inset 0 0 0 3px var(--accent);
+}
+/* Blocked cells take no input at all — nobody can stand there. */
+.blocked {
+  cursor: not-allowed;
+}
+.denied::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--refuse-fill);
+  box-shadow: inset 0 0 0 2px var(--danger);
+  animation: refuse 0.45s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes refuse {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+.cursor::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border: 2px solid var(--accent-2);
+  border-radius: 4px;
+  box-shadow: 0 0 8px var(--accent-2-glow);
+  pointer-events: none;
+}
+/* Refusal wins over the frame: a blocked cell shows both, and the refusal is
+   the more urgent message. */
+.cursor.denied::after {
+  border-color: var(--danger);
+}
+
+.mark {
+  opacity: 0.75;
+}
+
+/* The letter hangs on the cell, not on the portrait: so it keeps the same
+   distance from the wall as room name and notes. */
+.placed {
+  display: grid;
+  place-items: center;
+}
+.placed-letter {
+  position: absolute;
+  right: var(--wall-inset, 2px);
+  bottom: var(--wall-inset, 2px);
+  min-width: 15px;
+  height: 15px;
+  padding: 0 2px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 10px;
+  font-weight: 700;
+  transition:
+    background 0.12s ease,
+    box-shadow 0.12s ease;
+}
+/* Whoever is selected lights up on the board — placement and notes alike. On
+   a full 10×10 there are a dozen identical letters otherwise. */
+.placed-letter.chosen {
+  background: var(--chosen);
+  box-shadow:
+    0 0 0 2px var(--chosen-ring),
+    0 0 10px var(--chosen-glow);
+}
+
+/* Pencil notes sit top left and run on to the right, leaving room below for
+   object and X. */
+.notes {
+  position: absolute;
+  left: var(--wall-inset, 3px);
+  top: var(--wall-inset, 1px);
+  right: var(--wall-inset, 2px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 3px;
+  align-content: flex-start;
+  justify-content: flex-start;
+  line-height: 1.05;
+  pointer-events: none;
+}
+/* In the cell with the room name: below its sign (14 px) and 2 px of air. */
+.below-label {
+  top: calc(var(--wall-inset, 1px) + 16px);
+}
+.note {
+  color: var(--accent-2);
+  font-weight: 700;
+  text-shadow: 0 1px 2px var(--note-shadow);
+  transition: color 0.12s ease;
+}
+.note.chosen {
+  color: var(--chosen);
+  text-shadow:
+    0 0 6px var(--chosen-glow),
+    0 1px 2px var(--note-shadow);
+}
+
+/* ---------- Names of a cell ---------- */
+
+/* Tip at the cell, for mouse and keyboard. Its height is the twin of
+   TIP_HEIGHT in cellInfo.ts: 3 + 16 + 3. */
+.tip {
+  position: absolute;
+  z-index: 6;
+  pointer-events: none;
+  height: 22px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: var(--tip-fill);
+  color: var(--text);
+  font-size: 11px;
+  line-height: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow:
+    0 1px 6px var(--tip-shadow),
+    inset 0 0 0 1px var(--tip-edge);
+}
+/* Flipped below in the top row — visible by the shadow coming from the other side. */
+.below {
+  box-shadow:
+    0 -1px 6px var(--tip-shadow),
+    inset 0 0 0 1px var(--tip-edge);
+}
+
+/* Bar along the board's bottom edge, for a finger: it covers its own cell,
+   and a tip at the cell would be under the hand. */
+.bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  pointer-events: none;
+  padding: 4px 8px;
+  text-align: center;
+  background: var(--bar-fill);
+  color: var(--text);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* In the bottom row the finger is where the bar would be. */
+.top {
+  top: 0;
+  bottom: auto;
+}
+
+@media (hover: none) {
+  /* No mouse, no hover. There the thick black borders carry the information
+     alone — which is why they are not tied to hover. */
+  .line-hover {
+    display: none;
+  }
+  .in-hovered {
+    filter: brightness(var(--room-shade, 1));
+  }
+}
+
+@media print {
+  .line-wall {
+    stroke: #000;
+  }
+  .line-grid {
+    stroke: rgba(0, 0, 0, 0.45);
+  }
+}

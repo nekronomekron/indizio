@@ -3,6 +3,9 @@ import { useTranslation } from 'react-i18next';
 import type { CalendarDate, DifficultyKey } from '@engine';
 import { compareMonth, monthGrid, sameDate, type YearMonth } from './calendarDates.js';
 import { Sprite } from '../../shared/art/Sprite.js';
+import { cx } from '../../shared/ui/cx.js';
+import button from '../../shared/ui/button.module.css';
+import styles from './Calendar.module.css';
 
 /** Was ein Tag im Kalender über sich zu sagen hat. */
 export type DayState =
@@ -13,6 +16,23 @@ export type DayState =
   | 'open'
   | 'started'
   | 'solved';
+
+/** How a day's state shows: only some states change the cell's look. */
+const STATE_CLASS: Record<DayState, string | undefined> = {
+  before: styles.before,
+  future: undefined,
+  open: undefined,
+  started: styles.started,
+  solved: styles.solved,
+};
+
+const TIER_CLASS: Record<DifficultyKey, string> = {
+  veryEasy: styles.tierVeryEasy,
+  easy: styles.tierEasy,
+  medium: styles.tierMedium,
+  hard: styles.tierHard,
+  expert: styles.tierExpert,
+};
 
 export interface CalendarProps {
   at: YearMonth;
@@ -66,11 +86,11 @@ export function Calendar(props: CalendarProps): ReactElement {
   const atCurrent = compareMonth(at, { year: today.year, month: today.month }) >= 0;
 
   return (
-    <section className="calendar" aria-label={t('calendar')}>
-      <header className="calendar-head">
+    <section className={styles.calendar} aria-label={t('calendar')}>
+      <header className={styles.head}>
         <button
           type="button"
-          className="ghost calendar-step"
+          className={cx(button.ghost, styles.step)}
           onClick={() => onShift(-1)}
           disabled={atFirst}
           aria-label={t('prevMonth')}
@@ -80,15 +100,15 @@ export function Calendar(props: CalendarProps): ReactElement {
 
         <h2>{labels.month}</h2>
 
-        <div className="calendar-head-right">
+        <div className={styles.headRight}>
           {!atCurrent && (
-            <button type="button" className="ghost calendar-today" onClick={onToday}>
+            <button type="button" className={button.ghost} onClick={onToday}>
               {t('thisMonth')}
             </button>
           )}
           <button
             type="button"
-            className="ghost calendar-step"
+            className={cx(button.ghost, styles.step)}
             onClick={() => onShift(1)}
             disabled={atCurrent}
             aria-label={t('nextMonth')}
@@ -98,22 +118,22 @@ export function Calendar(props: CalendarProps): ReactElement {
         </div>
       </header>
 
-      <div className="calendar-weekdays" aria-hidden="true">
+      <div className={styles.weekdays} aria-hidden="true">
         {labels.weekdays.map((name) => (
           <span key={name}>{name}</span>
         ))}
       </div>
 
-      <div className="calendar-grid" role="grid">
+      <div className={styles.grid} role="grid">
         {cells.map((date, index) => {
-          if (date === null) return <span key={'leer-' + String(index)} className="day empty" />;
+          if (date === null)
+            return <span key={'leer-' + String(index)} className={cx(styles.day, styles.empty)} />;
 
           const state = stateOf(date);
           const difficulty = difficultyOf(date);
           const locked = state === 'before' || state === 'future';
           const isToday = sameDate(date, today);
-          const classes = ['day', state];
-          if (isToday) classes.push('today');
+          const className = cx(styles.day, STATE_CLASS[state], isToday && styles.today);
 
           // Der Vorlesetext trägt, was die Zelle zeigt: Datum, Stufe, Zustand.
           // Eine Farbe und ein Häkchen allein sagen nichts, wer nicht hinsieht.
@@ -129,23 +149,25 @@ export function Calendar(props: CalendarProps): ReactElement {
             <button
               key={date.day}
               type="button"
-              className={classes.join(' ')}
+              className={className}
               disabled={locked}
               onClick={() => onPick(date)}
               aria-label={spoken}
               aria-current={isToday ? 'date' : undefined}
             >
-              <span className="day-number">{date.day}</span>
-              {state !== 'before' && <span className={'day-tier tier-' + difficulty} aria-hidden="true" />}
+              <span className={styles.number}>{date.day}</span>
+              {state !== 'before' && (
+                <span className={cx(styles.tier, TIER_CLASS[difficulty])} aria-hidden="true" />
+              )}
               {/* Zustand doppelt: als Füllfarbe der Zelle und als großes Symbol,
                   damit er auch ohne Farbwahrnehmung auf einen Blick lesbar ist. */}
               {state === 'solved' && (
-                <span className="day-mark" aria-hidden="true">
+                <span className={styles.mark} aria-hidden="true">
                   <Sprite kind="icons" name="ui-check" size={24} />
                 </span>
               )}
               {state === 'started' && (
-                <span className="day-mark" aria-hidden="true">
+                <span className={styles.mark} aria-hidden="true">
                   <Sprite kind="icons" name="ui-note" size={24} />
                 </span>
               )}

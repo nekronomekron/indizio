@@ -15,6 +15,10 @@ import { SolvedDialog } from './SolvedDialog.js';
 import { SuspectCard } from './SuspectCard.js';
 import { Toolbar } from './Toolbar.js';
 import { boardCellPx } from './board/tiles.js';
+import { cx } from '../../shared/ui/cx.js';
+import button from '../../shared/ui/button.module.css';
+import text from '../../shared/ui/text.module.css';
+import styles from './GameScreen.module.css';
 
 function formatTime(ms: number): string {
   const total = Math.floor(ms / 1000);
@@ -182,35 +186,44 @@ export function GameScreen({
   })();
 
   return (
-    <div className="game">
-      <header className="game-head">
+    <div className={styles.game}>
+      <header className={styles.head}>
         {/* Auf schmalen Geraeten bleibt nur der Pfeil: mit drei beschrifteten
             Knoepfen brach die Kopfzeile um und schob das Brett aus dem Bild. */}
-        <button type="button" className="ghost back" onClick={onBack} aria-label={t('back')}>
-          &larr; <span className="back-label">{t('back')}</span>
+        <button
+          type="button"
+          className={cx(button.ghost, styles.headButton)}
+          onClick={onBack}
+          aria-label={t('back')}
+        >
+          &larr; <span className={styles.backLabel}>{t('back')}</span>
         </button>
         <h1>
           {translator.themeName(core.themeKey)}{' '}
-          <span className="dim">
+          <span className={text.dim}>
             {core.size}&times;{core.size}
           </span>
         </h1>
-        <div className="head-actions">
-          <button type="button" className="ghost" onClick={() => setShowRules(true)}>
+        <div className={styles.headActions}>
+          <button
+            type="button"
+            className={cx(button.ghost, styles.headButton)}
+            onClick={() => setShowRules(true)}
+          >
             {t('rules')}
           </button>
-          <button type="button" className="ghost" onClick={onSettings}>
+          <button type="button" className={cx(button.ghost, styles.headButton)} onClick={onSettings}>
             {t('settings')}
           </button>
-          <span className="timer">{formatTime(state.elapsedMs)}</span>
+          <span className={styles.timer}>{formatTime(state.elapsedMs)}</span>
         </div>
       </header>
 
-      <div className="game-body">
-        <section className="suspects">
+      <div className={styles.body}>
+        <section className={styles.suspects}>
           <h2>{t('suspects')}</h2>
-          <p className="hint-line">{t('suspectsHelp')}</p>
-          <div className="card-list">
+          <p className={text.hintLine}>{t('suspectsHelp')}</p>
+          <div className={styles.cardList}>
             {cards.map((suspect) => (
               <SuspectCard
                 key={suspect.id}
@@ -224,7 +237,7 @@ export function GameScreen({
             ))}
           </div>
           {clues.globals.length > 0 && (
-            <div className="globals">
+            <div className={styles.globals}>
               {clues.globals.map((text) => (
                 <p key={text}>{text}</p>
               ))}
@@ -232,7 +245,7 @@ export function GameScreen({
           )}
         </section>
 
-        <section className="board-area">
+        <section className={styles.boardArea}>
           <Grid
             core={core}
             state={state}
@@ -259,9 +272,9 @@ export function GameScreen({
           {/* Angesagt statt nur gezeigt: Urteil und Tipp sind die beiden
               Stellen, an denen das Spiel antwortet. */}
           <div role="status" aria-live="polite">
-            {hintText !== null && <p className="hint-box">{hintText}</p>}
+            {hintText !== null && <p className={styles.hintBox}>{hintText}</p>}
             {state.verdict === 'wrong' && (
-              <p className="verdict wrong">
+              <p className={styles.verdict}>
                 <strong>{t('wrongTitle')}.</strong> {t('wrong')}
               </p>
             )}

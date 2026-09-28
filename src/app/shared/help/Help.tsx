@@ -2,6 +2,10 @@ import { useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Sprite } from '../art/Sprite.js';
 import { TUTORIAL_ICONS } from './tutorialIcons.js';
+import { cx } from '../ui/cx.js';
+import button from '../ui/button.module.css';
+import dialog from '../ui/dialog.module.css';
+import styles from './Help.module.css';
 
 export interface TutorialProps {
   onDone: () => void;
@@ -17,13 +21,13 @@ export function Tutorial({ onDone }: TutorialProps): ReactElement {
   const last = step === steps.length - 1;
 
   return (
-    <div className="overlay" role="dialog" aria-modal="true" aria-label={current.title}>
-      <div className="panel tutorial">
-        <div className="tutorial-top">
-          <span className="step-count">
+    <div className={dialog.overlay} role="dialog" aria-modal="true" aria-label={current.title}>
+      <div className={cx(dialog.panel, styles.tutorial)}>
+        <div className={styles.top}>
+          <span className={styles.stepCount}>
             {String(step + 1).padStart(2, '0')} / {String(steps.length).padStart(2, '0')}
           </span>
-          <button type="button" className="ghost" onClick={onDone}>
+          <button type="button" className={button.ghost} onClick={onDone}>
             {t('skip')}
           </button>
         </div>
@@ -37,18 +41,22 @@ export function Tutorial({ onDone }: TutorialProps): ReactElement {
         )}
         <h2>{current.title}</h2>
         <p>{current.body}</p>
-        <div className="tutorial-dots" aria-hidden="true">
+        <div className={styles.dots} aria-hidden="true">
           {steps.map((_, i) => (
-            <span key={i} className={'dot' + (i === step ? ' on' : '')} />
+            <span key={i} className={cx(styles.dot, i === step && styles.on)} />
           ))}
         </div>
-        <div className="actions">
+        <div className={dialog.actions}>
           {step > 0 && (
             <button type="button" onClick={() => setStep(step - 1)}>
               {t('prev')}
             </button>
           )}
-          <button type="button" className="primary" onClick={() => (last ? onDone() : setStep(step + 1))}>
+          <button
+            type="button"
+            className={button.primary}
+            onClick={() => (last ? onDone() : setStep(step + 1))}
+          >
             {last ? t('start') : t('next')}
           </button>
         </div>
@@ -67,7 +75,7 @@ interface Term {
 
 function TermList({ items }: { items: readonly Term[] }): ReactElement {
   return (
-    <dl className="terms">
+    <dl className={styles.terms}>
       {items.map((item) => (
         <div key={item.term}>
           <dt>{item.term}</dt>
@@ -89,22 +97,22 @@ export function RulesDialog({ onClose }: RulesDialogProps): ReactElement {
   const [tab, setTab] = useState<Tab>('rules');
 
   return (
-    <div className="overlay" role="dialog" aria-modal="true" aria-label={t('tabs.rules')}>
-      <div className="panel rules-panel">
-        <div className="rules-head">
+    <div className={dialog.overlay} role="dialog" aria-modal="true" aria-label={t('tabs.rules')}>
+      <div className={cx(dialog.panel, styles.rules)}>
+        <div className={styles.head}>
           <h2>{t(`tabs.${tab}`)}</h2>
-          <button type="button" className="ghost" onClick={onClose}>
+          <button type="button" className={button.ghost} onClick={onClose}>
             {tUi('close')}
           </button>
         </div>
-        <div className="tabs" role="tablist">
+        <div className={styles.tabs} role="tablist">
           {TABS.map((key) => (
             <button
               key={key}
               type="button"
               role="tab"
               aria-selected={tab === key}
-              className={'tab' + (tab === key ? ' active' : '')}
+              className={cx(styles.tab, tab === key && styles.active)}
               onClick={() => setTab(key)}
             >
               {t(`tabs.${key}`)}
@@ -112,11 +120,11 @@ export function RulesDialog({ onClose }: RulesDialogProps): ReactElement {
           ))}
         </div>
 
-        <div className="rules-body">
+        <div className={styles.body}>
           {tab === 'rules' && (
             <>
-              <p className="lead">{t('goal')}</p>
-              <ul className="bullets">
+              <p className={styles.lead}>{t('goal')}</p>
+              <ul className={styles.bullets}>
                 {t('rules', { returnObjects: true }).map((rule) => (
                   <li key={rule}>{rule}</li>
                 ))}

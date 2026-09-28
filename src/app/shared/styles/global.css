@@ -1,0 +1,87 @@
+/*
+ * The only global styles: a small reset and element defaults. Everything with
+ * a class name lives in a CSS module next to its component.
+ */
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  height: 100%;
+}
+
+/* Screen on top, footer below. `min-height` rather than `height`, so the page
+   still grows and scrolls — the start page is longer than any window. */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(1200px 600px at 50% -10%, var(--bg-glow) 0%, transparent 60%), var(--bg);
+  color: var(--text);
+  font:
+    15px/1.5 'Segoe UI',
+    system-ui,
+    -apple-system,
+    sans-serif;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+h1 {
+  font-size: 1.25rem;
+}
+h2 {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--dim);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 8px 14px;
+  cursor: pointer;
+  /* Thumb-sized, on every device (PLAN.md §11, G10). */
+  min-height: 44px;
+}
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+input,
+select {
+  font: inherit;
+  color: inherit;
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 9px 12px;
+  min-height: 44px;
+}
+
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+  }
+}

@@ -25,6 +25,8 @@ export default defineConfig({
       '@app': fileURLToPath(new URL('./src/app', import.meta.url)),
     },
   },
+  // Stylesheets use kebab-case, components read camelCase (styles.roomLabel).
+  css: { modules: { localsConvention: 'camelCaseOnly' } },
   worker: { format: 'es' },
   build: { target: 'es2022' },
 });

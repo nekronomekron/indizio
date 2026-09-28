@@ -1,0 +1,33 @@
+.panel {
+  display: grid;
+  gap: 14px;
+  max-width: 420px;
+}
+.setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.setting > span {
+  display: flex;
+  flex-direction: column;
+}
+.setting > span small {
+  color: var(--dim);
+  font-variant-numeric: tabular-nums;
+}
+.setting input[type='range'] {
+  flex: 1;
+  max-width: 190px;
+  accent-color: var(--accent);
+}
+.setting input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+}
+/* The explanation belongs to the slider above it. */
+.why {
+  margin: -8px 0 0;
+}

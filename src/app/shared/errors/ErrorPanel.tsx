@@ -1,6 +1,7 @@
 import type { ReactElement, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { UiResource } from '../i18n/resources/en/ui.js';
+import status from '../layout/StatusScreen.module.css';
 
 /** Every failure the player can be told about, each with a title and an explanation. */
 export type ErrorKind = keyof UiResource['errors'];
@@ -20,12 +21,12 @@ export interface ErrorPanelProps {
 export function ErrorPanel({ kind, detail, action }: ErrorPanelProps): ReactElement {
   const { t } = useTranslation();
   return (
-    <div className="loading" role="alert">
-      <div className="loading-inner">
+    <div className={status.status} role="alert">
+      <div className={status.inner}>
         <p>{t(`errors.${kind}.title`)}</p>
         <small>{t(`errors.${kind}.text`)}</small>
         {detail !== undefined && detail !== '' && (
-          <details className="error-details">
+          <details className={status.details}>
             <summary>{t('errorDetails')}</summary>
             <code>{detail}</code>
           </details>

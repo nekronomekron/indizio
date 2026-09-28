@@ -2,6 +2,8 @@ import { useRef, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Sprite } from '../../shared/art/Sprite.js';
 import type { Tool } from './gameReducer.js';
+import { cx } from '../../shared/ui/cx.js';
+import styles from './Toolbar.module.css';
 
 export interface ToolbarProps {
   tool: Tool;
@@ -34,11 +36,11 @@ export function Toolbar(props: ToolbarProps): ReactElement {
   };
 
   return (
-    <div className="toolbar">
-      <div className="tools">
+    <div className={styles.toolbar}>
+      <div className={styles.tools}>
         <button
           type="button"
-          className={'tool' + (tool === 'mark' ? ' active' : '')}
+          className={cx(styles.tool, tool === 'mark' && styles.active)}
           onClick={() => onTool(tool === 'mark' ? 'place' : 'mark')}
           title={t('mark')}
         >
@@ -46,7 +48,7 @@ export function Toolbar(props: ToolbarProps): ReactElement {
         </button>
         <button
           type="button"
-          className={'tool' + (tool === 'erase' ? ' active' : '')}
+          className={cx(styles.tool, tool === 'erase' && styles.active)}
           onPointerDown={startEraserHold}
           onPointerUp={endEraserHold}
           onPointerLeave={() => {
@@ -57,14 +59,14 @@ export function Toolbar(props: ToolbarProps): ReactElement {
         >
           <Sprite kind="icons" name="ui-eraser" size={24} />
         </button>
-        <button type="button" className="tool" onClick={onUndo} disabled={!canUndo} title={t('undo')}>
+        <button type="button" className={styles.tool} onClick={onUndo} disabled={!canUndo} title={t('undo')}>
           <Sprite kind="icons" name="ui-undo" size={24} />
         </button>
-        <button type="button" className="tool" onClick={onHint} title={t('hint')}>
+        <button type="button" className={styles.tool} onClick={onHint} title={t('hint')}>
           <Sprite kind="icons" name="ui-hint" size={24} />
         </button>
       </div>
-      <button type="button" className="confirm" onClick={onCheck} disabled={!canCheck}>
+      <button type="button" className={styles.confirm} onClick={onCheck} disabled={!canCheck}>
         <Sprite kind="icons" name="ui-check" size={20} />
         <span>{t('confirm')}</span>
         {!canCheck && <small>{t('confirmHint')}</small>}

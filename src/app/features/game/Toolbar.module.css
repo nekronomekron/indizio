@@ -1,0 +1,35 @@
+.toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.tools {
+  display: flex;
+  gap: 6px;
+}
+.tool {
+  padding: 8px 10px;
+  display: grid;
+  place-items: center;
+}
+.active {
+  border-color: var(--accent);
+  background: var(--panel-2);
+}
+.confirm {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.confirm small {
+  color: var(--dim);
+  font-size: 11px;
+}
+
+@media print {
+  .toolbar {
+    display: none !important;
+  }
+}

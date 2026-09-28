@@ -1,0 +1,6 @@
+/* The screen stays an ordinary block. As a grid or flexbox the screens inside
+   lose their width: dashboard and game centre themselves with `margin: 0
+   auto`, and automatic margins switch off stretching in both. */
+.screen {
+  flex: 1 0 auto;
+}

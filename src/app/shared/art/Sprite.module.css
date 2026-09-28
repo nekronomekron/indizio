@@ -1,0 +1,11 @@
+/* Drawings are image files from art/ — never a pointer target, never dragged. */
+.sprite {
+  display: block;
+  flex: none;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
+  /* Keeps the aspect ratio if a replaced drawing does not quite fit its
+     footprint — better some air than a squashed table. */
+  object-fit: contain;
+}

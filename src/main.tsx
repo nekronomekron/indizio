@@ -7,13 +7,15 @@ import { createAppI18n } from './app/shared/i18n/i18n.js';
 import { ErrorBoundary } from './app/shared/errors/ErrorBoundary.js';
 import { ErrorPanel } from './app/shared/errors/ErrorPanel.js';
 import { sweepOldStorage } from './app/shared/storage/store.js';
-import './styles/base.css';
+import './app/shared/styles/tokens.css';
+import './app/shared/styles/global.css';
+import button from './app/shared/ui/button.module.css';
 
-// Einmal beim Start: Eintraege frueherer Fassungen wegraeumen. Sie werden nie
-// wieder gelesen und belegen bei einem 10x10 schnell hunderte Kilobyte.
+// Once at start-up: clear entries of earlier versions. They are never read
+// again and take hundreds of kilobytes after a few 10×10 puzzles.
 sweepOldStorage();
 
-// Offline-Betrieb nur im gebauten Stand - im Entwicklungsserver stoert der Cache.
+// Offline support only in the built app — in the dev server the cache gets in the way.
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     void navigator.serviceWorker.register(import.meta.env.BASE_URL + 'sw.js');
@@ -38,7 +40,7 @@ createRoot(document.getElementById('root')!).render(
             kind="app"
             detail={error.message}
             action={
-              <button type="button" className="primary" onClick={() => window.location.reload()}>
+              <button type="button" className={button.primary} onClick={() => window.location.reload()}>
                 {i18n.t('reload')}
               </button>
             }

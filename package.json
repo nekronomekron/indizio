@@ -13,6 +13,7 @@
     "dev": "vite",
     "build": "npm run typecheck && vite build",
     "preview": "vite preview",
+    "css:types": "tsx scripts/css-types.ts",
     "typecheck": "tsc -p tsconfig.engine.json --noEmit && tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

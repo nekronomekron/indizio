@@ -1,0 +1,68 @@
+/*
+ * Design tokens: every colour, radius and fixed size the UI uses. Components
+ * read these and never invent a raw colour of their own (CODING_GUIDELINES.md).
+ */
+:root {
+  color-scheme: dark;
+
+  /* Surfaces and text */
+  --bg: #14111d;
+  --bg-soft: #1c1828;
+  --bg-glow: #241f36;
+  --panel: #221d31;
+  --panel-2: #2b2540;
+  --line: #3a3350;
+  --text: #ece9f5;
+  --dim: #9b93b4;
+  /* Text on an accent-coloured surface. */
+  --on-accent: #1a1524;
+  --overlay: rgba(10, 8, 16, 0.82);
+
+  /* Signal colours */
+  --accent: #e0b64a;
+  --accent-2: #4fa8c0;
+  --accent-2-glow: rgba(79, 168, 192, 0.65);
+  --danger: #d05a4a;
+  --ok: #5fb36a;
+  --hint-fill: rgba(224, 182, 74, 0.12);
+  /* The selected person: lifts their marks out of the board. */
+  --chosen: #f07fb8;
+  --chosen-ring: rgba(240, 127, 184, 0.45);
+  --chosen-glow: rgba(240, 127, 184, 0.6);
+
+  /* Difficulty tiers, from very easy to expert */
+  --tier-very-easy: #5fb36a;
+  --tier-easy: #8ec04a;
+  --tier-medium: var(--accent);
+  --tier-hard: #d98b3f;
+  --tier-expert: var(--danger);
+
+  /* Calendar: how far a day's case has come */
+  --day-started: rgba(217, 139, 63, 0.28);
+  --day-solved: rgba(95, 179, 106, 0.28);
+
+  /* Board */
+  --wall: #07060d;
+  --grid-line: rgba(8, 6, 14, 0.5);
+  --label-fill: rgba(10, 8, 18, 0.6);
+  --label-text: rgba(255, 255, 255, 0.85);
+  --blocking-fill: rgba(0, 0, 0, 0.42);
+  --blocking-edge: rgba(0, 0, 0, 0.5);
+  --walkable-fill: rgba(255, 255, 255, 0.06);
+  --walkable-edge: rgba(255, 255, 255, 0.08);
+  --refuse-fill: rgba(208, 90, 74, 0.32);
+  --note-shadow: rgba(0, 0, 0, 0.75);
+  --tip-fill: rgba(16, 12, 26, 0.94);
+  --bar-fill: rgba(16, 12, 26, 0.88);
+  --tip-edge: rgba(255, 255, 255, 0.12);
+  --tip-shadow: rgba(0, 0, 0, 0.5);
+
+  /* Shapes and sizes */
+  --radius: 10px;
+  --radius-panel: 14px;
+  /* Height of the footer. Twin of FOOTER_PX in shared/layout/Footer.tsx — the
+     game screen sizes the board from it. */
+  --footer-h: 30px;
+  --cardw: 300px;
+  --font-mono: ui-monospace, monospace;
+}

@@ -158,8 +158,8 @@ describe('Darstellung', () => {
     const html = renderToStaticMarkup(
       createElement(TiledObject, { object: rug, size: 5, cellPx: 48, theme: 'flat' }),
     );
-    expect(html.match(/class="object tile walkable"/g)).toHaveLength(3);
-    expect(html.match(/class="tile-quarter"/g)).toHaveLength(12);
+    expect(html.match(/class="object laid walkable"/g)).toHaveLength(3);
+    expect(html.match(/class="quarter"/g)).toHaveLength(12);
     expect(html).toContain('background-size:96px 144px');
     // Die Aussenecke Nordwest liegt im Blatt bei (0, 24), bei 48 px je Feld also bei -48 px.
     expect(html).toContain('background-position:0px -48px');
@@ -187,7 +187,7 @@ describe('Darstellung', () => {
         theme: 'flat',
       }),
     );
-    expect(html.match(/class="object tile walkable"/g)).toHaveLength(3);
-    expect(html).not.toContain('tile-quarter');
+    expect(html.match(/class="object laid walkable"/g)).toHaveLength(3);
+    expect(html).not.toContain('quarter');
   });
 });

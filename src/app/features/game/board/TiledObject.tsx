@@ -2,6 +2,8 @@ import { useMemo, type ReactElement } from 'react';
 import type { SceneObject } from '@engine';
 import { artUrl } from '../../../shared/art/art.js';
 import { SHEET_UNIT, quarterTiles, type OpenEdges } from './tiles.js';
+import { cx } from '../../../shared/ui/cx.js';
+import styles from './board.module.css';
 
 export interface TiledObjectProps {
   object: SceneObject;
@@ -33,14 +35,14 @@ export function TiledObject({ object, size, cellPx, theme }: TiledObjectProps): 
   const url = artUrl('tiles', object.key, theme);
   const half = cellPx / 2;
   const scale = cellPx / SHEET_UNIT;
-  const kind = object.walkable ? ' walkable' : ' blocking';
+  const kind = object.walkable ? styles.walkable : styles.blocking;
 
   return (
     <>
       {tiles.map((tile) => (
         <div
           key={tile.cell}
-          className={'object tile' + kind}
+          className={cx(styles.object, styles.laid, kind)}
           style={{
             left: tile.column * cellPx,
             top: tile.row * cellPx,
@@ -53,7 +55,7 @@ export function TiledObject({ object, size, cellPx, theme }: TiledObjectProps): 
             tile.quarters.map((quarter) => (
               <span
                 key={quarter.corner}
-                className="tile-quarter"
+                className={styles.quarter}
                 style={{
                   left: quarter.corner.endsWith('e') ? half : 0,
                   top: quarter.corner.startsWith('s') ? half : 0,
