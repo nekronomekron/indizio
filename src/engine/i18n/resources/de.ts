@@ -288,6 +288,11 @@ export const de = {
       from: 'vom Sandkasten',
     },
   },
+  theme: {
+    garage: { name: 'Autowerkstatt' },
+    flat: { name: 'Wohnung' },
+    garden: { name: 'Hinterhofgarten' },
+  },
   room: {
     workshop: {
       in: 'in der Werkstatt',

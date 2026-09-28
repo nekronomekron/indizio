@@ -28,9 +28,10 @@
     "bump": "tsx scripts/bump-version.ts"
   },
   "dependencies": {
-    "i18next": "^24.2.3",
+    "i18next": "^26.4.2",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-i18next": "^17.0.15"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

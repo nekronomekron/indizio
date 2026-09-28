@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
-import { t } from '../../shared/i18n/uiTexts.js';
+import { useTranslation } from 'react-i18next';
+import { isLocale } from '../../shared/i18n/i18n.js';
 import type { Settings } from './settings.js';
-import type { Locale } from '../../shared/types.js';
 
 /**
  * Einstellungen.
@@ -16,25 +16,27 @@ import type { Locale } from '../../shared/types.js';
  */
 export function SettingsDialog({
   settings,
-  locale,
   onChange,
   onClose,
 }: {
   settings: Settings;
-  locale: Locale;
   onChange: (next: Settings) => void;
   onClose: () => void;
 }): ReactElement {
+  const { t } = useTranslation();
   return (
-    <div className="overlay" role="dialog" aria-modal="true" aria-label={t(locale, 'settings')}>
+    <div className="overlay" role="dialog" aria-modal="true" aria-label={t('settings')}>
       <div className="panel settings-panel">
-        <h2>{t(locale, 'settings')}</h2>
+        <h2>{t('settings')}</h2>
 
         <label className="setting">
-          <span>{t(locale, 'language')}</span>
+          <span>{t('language')}</span>
           <select
             value={settings.locale}
-            onChange={(event) => onChange({ ...settings, locale: event.target.value as Locale })}
+            onChange={(event) => {
+              const locale = event.target.value;
+              if (isLocale(locale)) onChange({ ...settings, locale });
+            }}
           >
             <option value="de">Deutsch</option>
             <option value="en">English</option>
@@ -43,7 +45,7 @@ export function SettingsDialog({
 
         <label className="setting">
           <span>
-            {t(locale, 'holdTime')}
+            {t('holdTime')}
             <small>{settings.holdMs} ms</small>
           </span>
           <input
@@ -55,10 +57,10 @@ export function SettingsDialog({
             onChange={(event) => onChange({ ...settings, holdMs: Number(event.target.value) })}
           />
         </label>
-        <p className="hint-line">{t(locale, 'holdTimeWhy')}</p>
+        <p className="hint-line">{t('holdTimeWhy')}</p>
 
         <label className="setting">
-          <span>{t(locale, 'vibrate')}</span>
+          <span>{t('vibrate')}</span>
           <input
             type="checkbox"
             checked={settings.vibrate}
@@ -67,7 +69,7 @@ export function SettingsDialog({
         </label>
 
         <label className="setting">
-          <span>{t(locale, 'cellNames')}</span>
+          <span>{t('cellNames')}</span>
           <input
             type="checkbox"
             checked={settings.names}
@@ -77,7 +79,7 @@ export function SettingsDialog({
 
         <div className="actions">
           <button type="button" className="primary" onClick={onClose}>
-            {t(locale, 'close')}
+            {t('close')}
           </button>
         </div>
       </div>

@@ -1,48 +1,55 @@
 import { useState, type ReactElement } from 'react';
-import { HELP } from './helpContent.js';
-import { t } from '../i18n/uiTexts.js';
+import { useTranslation } from 'react-i18next';
 import { Sprite } from '../art/Sprite.js';
-import type { Locale } from '../types.js';
+import { TUTORIAL_ICONS } from './tutorialIcons.js';
 
-/** Sechsschrittiges Tutorial, beim ersten Fall automatisch. */
-export function Tutorial({ locale, onDone }: { locale: Locale; onDone: () => void }): ReactElement {
-  const help = HELP[locale];
+export interface TutorialProps {
+  onDone: () => void;
+}
+
+/** The six-step tutorial, shown automatically before the first case. */
+export function Tutorial({ onDone }: TutorialProps): ReactElement {
+  const { t } = useTranslation('help');
+  const steps = t('tutorial', { returnObjects: true });
   const [step, setStep] = useState(0);
-  const current = help.tutorial[step]!;
-  const last = step === help.tutorial.length - 1;
+  const current = steps[step]!;
+  const icon = TUTORIAL_ICONS[step];
+  const last = step === steps.length - 1;
 
   return (
     <div className="overlay" role="dialog" aria-modal="true" aria-label={current.title}>
       <div className="panel tutorial">
         <div className="tutorial-top">
           <span className="step-count">
-            {String(step + 1).padStart(2, '0')} / {String(help.tutorial.length).padStart(2, '0')}
+            {String(step + 1).padStart(2, '0')} / {String(steps.length).padStart(2, '0')}
           </span>
           <button type="button" className="ghost" onClick={onDone}>
-            {help.skip}
+            {t('skip')}
           </button>
         </div>
-        <Sprite
-          name={current.icon}
-          size={64}
-          {...(current.iconKind && { kind: current.iconKind })}
-          {...(current.iconTheme && { theme: current.iconTheme })}
-        />
+        {icon && (
+          <Sprite
+            name={icon.name}
+            size={64}
+            {...(icon.kind && { kind: icon.kind })}
+            {...(icon.theme && { theme: icon.theme })}
+          />
+        )}
         <h2>{current.title}</h2>
         <p>{current.body}</p>
         <div className="tutorial-dots" aria-hidden="true">
-          {help.tutorial.map((_, i) => (
+          {steps.map((_, i) => (
             <span key={i} className={'dot' + (i === step ? ' on' : '')} />
           ))}
         </div>
         <div className="actions">
           {step > 0 && (
             <button type="button" onClick={() => setStep(step - 1)}>
-              {help.prev}
+              {t('prev')}
             </button>
           )}
           <button type="button" className="primary" onClick={() => (last ? onDone() : setStep(step + 1))}>
-            {last ? help.start : help.next}
+            {last ? t('start') : t('next')}
           </button>
         </div>
       </div>
@@ -50,24 +57,48 @@ export function Tutorial({ locale, onDone }: { locale: Locale; onDone: () => voi
   );
 }
 
-type Tab = 'rules' | 'keywords' | 'techniques' | 'faq';
+const TABS = ['rules', 'keywords', 'techniques', 'faq'] as const;
+type Tab = (typeof TABS)[number];
 
-/** Dauerhaft erreichbare Regelseite mit vier Abschnitten. */
-export function RulesDialog({ locale, onClose }: { locale: Locale; onClose: () => void }): ReactElement {
-  const help = HELP[locale];
+interface Term {
+  term: string;
+  text: string;
+}
+
+function TermList({ items }: { items: readonly Term[] }): ReactElement {
+  return (
+    <dl className="terms">
+      {items.map((item) => (
+        <div key={item.term}>
+          <dt>{item.term}</dt>
+          <dd>{item.text}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+export interface RulesDialogProps {
+  onClose: () => void;
+}
+
+/** The rules, always within reach, in four sections. */
+export function RulesDialog({ onClose }: RulesDialogProps): ReactElement {
+  const { t } = useTranslation('help');
+  const { t: tUi } = useTranslation('ui');
   const [tab, setTab] = useState<Tab>('rules');
 
   return (
-    <div className="overlay" role="dialog" aria-modal="true" aria-label={help.tabs.rules}>
+    <div className="overlay" role="dialog" aria-modal="true" aria-label={t('tabs.rules')}>
       <div className="panel rules-panel">
         <div className="rules-head">
-          <h2>{help.tabs[tab]}</h2>
+          <h2>{t(`tabs.${tab}`)}</h2>
           <button type="button" className="ghost" onClick={onClose}>
-            {t(locale, 'close')}
+            {tUi('close')}
           </button>
         </div>
         <div className="tabs" role="tablist">
-          {(['rules', 'keywords', 'techniques', 'faq'] as Tab[]).map((key) => (
+          {TABS.map((key) => (
             <button
               key={key}
               type="button"
@@ -76,7 +107,7 @@ export function RulesDialog({ locale, onClose }: { locale: Locale; onClose: () =
               className={'tab' + (tab === key ? ' active' : '')}
               onClick={() => setTab(key)}
             >
-              {help.tabs[key]}
+              {t(`tabs.${key}`)}
             </button>
           ))}
         </div>
@@ -84,52 +115,18 @@ export function RulesDialog({ locale, onClose }: { locale: Locale; onClose: () =
         <div className="rules-body">
           {tab === 'rules' && (
             <>
-              <p className="lead">{help.goal}</p>
+              <p className="lead">{t('goal')}</p>
               <ul className="bullets">
-                {help.rules.map((rule) => (
+                {t('rules', { returnObjects: true }).map((rule) => (
                   <li key={rule}>{rule}</li>
                 ))}
               </ul>
-              <dl className="terms">
-                {help.controls.map((item) => (
-                  <div key={item.term}>
-                    <dt>{item.term}</dt>
-                    <dd>{item.text}</dd>
-                  </div>
-                ))}
-              </dl>
+              <TermList items={t('controls', { returnObjects: true })} />
             </>
           )}
-          {tab === 'keywords' && (
-            <dl className="terms">
-              {help.keywords.items.map((item) => (
-                <div key={item.term}>
-                  <dt>{item.term}</dt>
-                  <dd>{item.text}</dd>
-                </div>
-              ))}
-            </dl>
-          )}
-          {tab === 'techniques' && (
-            <dl className="terms">
-              {help.techniques.items.map((item) => (
-                <div key={item.term}>
-                  <dt>{item.term}</dt>
-                  <dd>{item.text}</dd>
-                </div>
-              ))}
-            </dl>
-          )}
-          {tab === 'faq' && (
-            <dl className="terms">
-              {help.faq.map((item) => (
-                <div key={item.term}>
-                  <dt>{item.term}</dt>
-                  <dd>{item.text}</dd>
-                </div>
-              ))}
-            </dl>
-          )}
+          {tab === 'keywords' && <TermList items={t('keywords.items', { returnObjects: true })} />}
+          {tab === 'techniques' && <TermList items={t('techniques.items', { returnObjects: true })} />}
+          {tab === 'faq' && <TermList items={t('faq', { returnObjects: true })} />}
         </div>
       </div>
     </div>

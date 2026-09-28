@@ -1,22 +1,20 @@
 import { useState, type ReactElement } from 'react';
-import type { Locale } from '@engine/i18n';
+import { useTranslation } from 'react-i18next';
 import type { PuzzleCore } from '@engine';
-import { t } from '../../shared/i18n/uiTexts.js';
 import { Sprite } from '../../shared/art/Sprite.js';
 
 export function SolvedDialog({
   core,
-  locale,
   elapsedMs,
   hintsUsed,
   onBack,
 }: {
   core: PuzzleCore;
-  locale: Locale;
   elapsedMs: number;
   hintsUsed: number;
   onBack: () => void;
 }): ReactElement {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const murderer = core.suspects[core.murdererId]!;
   const victim = core.suspects.find((s) => s.isVictim)!;
@@ -35,34 +33,34 @@ export function SolvedDialog({
   return (
     <div className="overlay" role="dialog" aria-modal="true">
       <div className="panel solved-panel">
-        <h2>{t(locale, 'solvedTitle')}</h2>
+        <h2>{t('solvedTitle')}</h2>
         <div className="reveal">
           <div className="reveal-person">
             <Sprite kind="characters" name={murderer.portraitKey} size={64} />
-            <span className="reveal-role">{t(locale, 'murdererIs')}</span>
+            <span className="reveal-role">{t('murdererIs')}</span>
             <strong>{murderer.name}</strong>
           </div>
           <div className="reveal-person dim">
             <Sprite kind="characters" name={victim.portraitKey} size={64} />
-            <span className="reveal-role">{t(locale, 'victimWas')}</span>
+            <span className="reveal-role">{t('victimWas')}</span>
             <strong>{victim.name}</strong>
           </div>
         </div>
         <dl className="stats">
           <div>
-            <dt>{t(locale, 'time')}</dt>
+            <dt>{t('time')}</dt>
             <dd>
               {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, '0')}
             </dd>
           </div>
           <div>
-            <dt>{t(locale, 'hintsUsed')}</dt>
+            <dt>{t('hintsUsed')}</dt>
             <dd>{hintsUsed}</dd>
           </div>
         </dl>
         <div className="actions">
           <button type="button" className="primary" onClick={onBack}>
-            {t(locale, 'again')}
+            {t('again')}
           </button>
           {/* Absichtlich abgeschickt und nicht abgewartet: `share` fängt selbst
               ab, wenn die Zwischenablage fehlt. Ohne das `void` übergäbe man
@@ -73,10 +71,10 @@ export function SolvedDialog({
               void share();
             }}
           >
-            {copied ? t(locale, 'copied') : t(locale, 'share')}
+            {copied ? t('copied') : t('share')}
           </button>
           <button type="button" onClick={() => window.print()}>
-            {t(locale, 'print')}
+            {t('print')}
           </button>
         </div>
         <p className="seed-line">{core.seed}</p>

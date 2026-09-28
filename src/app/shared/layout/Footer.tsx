@@ -1,6 +1,5 @@
 import type { ReactElement } from 'react';
-import { t } from '../i18n/uiTexts.js';
-import type { Locale } from '../types.js';
+import { useTranslation } from 'react-i18next';
 import { APP_VERSION } from '../version.js';
 
 /**
@@ -20,11 +19,12 @@ export const FOOTER_PX = 30; // Zwilling von --footer-h in styles/base.css
  * nicht stimmt: Wer einen Fehler meldet, soll ohne Nachfrage sagen koennen,
  * welchen Stand er vor sich hat.
  */
-export function Footer({ locale }: { locale: Locale }): ReactElement {
+export function Footer(): ReactElement {
+  const { t } = useTranslation();
   return (
     <footer className="app-footer">
-      <span>{t(locale, 'appTitle')}</span>
-      <span className="app-version" title={t(locale, 'version')}>
+      <span>{t('appTitle')}</span>
+      <span className="app-version" title={t('version')}>
         {APP_VERSION}
       </span>
     </footer>

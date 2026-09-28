@@ -1,11 +1,10 @@
-import { useEffect, useRef, useState, type ReactElement } from 'react';
-import type { ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactElement, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { DifficultyKey } from '@engine';
 import { Dashboard } from './features/calendar/Dashboard.js';
 import { SettingsDialog } from './features/settings/SettingsDialog.js';
 import { Footer } from './shared/layout/Footer.js';
 import { GameScreen } from './features/game/GameScreen.js';
-import { t } from './shared/i18n/uiTexts.js';
 import { randomSeed, redrawFor } from './features/calendar/randomSeed.js';
 import { loadSettings, saveSettings, type Settings } from './features/settings/settings.js';
 import { usePuzzle } from './shared/puzzle/usePuzzle.js';
@@ -24,6 +23,7 @@ function seedFromHash(): string | null {
 const MAX_REDRAWS = 3;
 
 export function App(): ReactElement {
+  const { t, i18n } = useTranslation();
   const [settings, setSettings] = useState(() => loadSettings());
   const [seed, setSeed] = useState<string | null>(() => seedFromHash());
   const [showSettings, setShowSettings] = useState(false);
@@ -43,6 +43,7 @@ export function App(): ReactElement {
   const applySettings = (next: Settings) => {
     setSettings(next);
     saveSettings(next);
+    if (next.locale !== i18n.language) void i18n.changeLanguage(next.locale);
   };
 
   // Welcher Seed ausgelost war und wie oft schon nachgewürfelt wurde. Beides
@@ -82,21 +83,14 @@ export function App(): ReactElement {
   let screen: ReactNode;
 
   if (!seed) {
-    screen = (
-      <Dashboard
-        locale={settings.locale}
-        onOpen={open}
-        onDraw={draw}
-        onSettings={() => setShowSettings(true)}
-      />
-    );
+    screen = <Dashboard onOpen={open} onDraw={draw} onSettings={() => setShowSettings(true)} />;
   } else if (status.state === 'loading') {
     screen = (
       <div className="loading">
         <div className="loading-inner">
           <div className="scanner" aria-hidden="true" />
-          <p>{t(settings.locale, redrew ? 'randomRetry' : 'generating')}</p>
-          <small>{t(settings.locale, 'generatingLong')}</small>
+          <p>{t(redrew ? 'randomRetry' : 'generating')}</p>
+          <small>{t('generatingLong')}</small>
           <code>{seed}</code>
         </div>
       </div>
@@ -106,11 +100,11 @@ export function App(): ReactElement {
     screen = (
       <div className="loading">
         <div className="loading-inner">
-          <p>{t(settings.locale, outdated ? 'outdatedSeed' : 'generateError')}</p>
-          {outdated && <small>{t(settings.locale, 'outdatedSeedWhy')}</small>}
+          <p>{t(outdated ? 'outdatedSeed' : 'generateError')}</p>
+          {outdated && <small>{t('outdatedSeedWhy')}</small>}
           <code>{status.message}</code>
           <button type="button" className="primary" onClick={back}>
-            {t(settings.locale, 'back')}
+            {t('back')}
           </button>
         </div>
       </div>
@@ -123,7 +117,6 @@ export function App(): ReactElement {
       <GameScreen
         key={status.core.seed}
         core={status.core}
-        locale={settings.locale}
         holdMs={settings.holdMs}
         vibrate={settings.vibrate}
         names={settings.names}
@@ -139,16 +132,11 @@ export function App(): ReactElement {
   return (
     <>
       <div className="screen">{screen}</div>
-      <Footer locale={settings.locale} />
+      <Footer />
       {/* Ein Dialog fuer beide Bildschirme: die Haltedauer stellt man dort ein,
           wo sie stoert - beim Spielen -, und nicht nur auf der Startseite. */}
       {showSettings && (
-        <SettingsDialog
-          settings={settings}
-          locale={settings.locale}
-          onChange={applySettings}
-          onClose={() => setShowSettings(false)}
-        />
+        <SettingsDialog settings={settings} onChange={applySettings} onClose={() => setShowSettings(false)} />
       )}
     </>
   );

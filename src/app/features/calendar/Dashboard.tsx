@@ -1,7 +1,9 @@
 import { useMemo, useState, type ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   DAILY_START,
   DIFFICULTY_ORDER,
+  GENERATOR_VERSION,
   SIZES_BY_DIFFICULTY,
   THEME_KEYS,
   dailyDifficulty,
@@ -10,7 +12,6 @@ import {
   parseSeed,
 } from '@engine';
 import type { CalendarDate, DifficultyKey } from '@engine';
-import type { Locale } from '../../shared/types.js';
 import {
   FIRST_MONTH,
   compareDate,
@@ -20,11 +21,18 @@ import {
   today,
   type YearMonth,
 } from './calendarDates.js';
-import { t } from '../../shared/i18n/uiTexts.js';
 import { Sprite } from '../../shared/art/Sprite.js';
 import { hasSave, loadProgress } from '../../shared/storage/store.js';
 import { Calendar, type DayState } from './Calendar.js';
 import { RulesDialog } from '../../shared/help/Help.js';
+import { useClueTranslator } from '../../shared/i18n/useClueTranslator.js';
+
+/**
+ * Example seed for the input field, built from the generator version: typed
+ * in by hand it once still said `v1` long after version 2 shipped — an example
+ * the app itself would have refused.
+ */
+const SEED_EXAMPLE = `v${String(GENERATOR_VERSION)}-garage-6-vl-k3f9tq`;
 
 /**
  * Die Startseite: der Kalender **ist** die Hauptsache.
@@ -35,17 +43,17 @@ import { RulesDialog } from '../../shared/help/Help.js';
  * tritt einen Schritt zurück.
  */
 export function Dashboard({
-  locale,
   onOpen,
   onDraw,
   onSettings,
 }: {
-  locale: Locale;
   onOpen: (seed: string) => void;
   /** Losen gehoert in die App: nur sie weiss spaeter, dass sie neu wuerfeln darf. */
   onDraw: (difficulty: DifficultyKey) => void;
   onSettings: () => void;
 }): ReactElement {
+  const { t } = useTranslation();
+  const translator = useClueTranslator();
   // Einmal beim Öffnen bestimmt: wechselt der Tag, während jemand die Seite
   // offen hat, ist das beim nächsten Laden richtig — ein Kalender, der unter
   // den Händen umspringt, wäre die unangenehmere Überraschung.
@@ -89,18 +97,18 @@ export function Dashboard({
     <div className="dashboard">
       <header className="dashboard-head">
         <div>
-          <h1>{t(locale, 'appTitle')}</h1>
-          <p className="tagline">{t(locale, 'tagline')}</p>
+          <h1>{t('appTitle')}</h1>
+          <p className="tagline">{t('tagline')}</p>
         </div>
         <div className="head-actions">
           <button type="button" className="ghost" onClick={() => setShowRules(true)}>
-            {t(locale, 'rules')}
+            {t('rules')}
           </button>
           <span className="counter">
-            {solvedCount} {t(locale, 'solvedLabel')}
+            {solvedCount} {t('solvedLabel')}
           </span>
           <button type="button" className="ghost" onClick={onSettings}>
-            {t(locale, 'settings')}
+            {t('settings')}
           </button>
         </div>
       </header>
@@ -112,18 +120,17 @@ export function Dashboard({
       >
         <Sprite kind="icons" name={todayDone ? 'ui-check' : 'ui-timer'} size={28} />
         <span>
-          <strong>{t(locale, todayDone ? 'todaySolved' : 'playToday')}</strong>
+          <strong>{t(todayDone ? 'todaySolved' : 'playToday')}</strong>
           <small>
-            {t(locale, todayParts.difficulty)} &middot; {todayParts.size}&times;{todayParts.size} &middot;{' '}
-            {t(locale, todayParts.themeKey)}
+            {t(todayParts.difficulty)} &middot; {todayParts.size}&times;{todayParts.size} &middot;{' '}
+            {translator.themeName(todayParts.themeKey)}
           </small>
         </span>
       </button>
 
-      <p className="dashboard-intro">{t(locale, 'calendarIntro')}</p>
+      <p className="dashboard-intro">{t('calendarIntro')}</p>
 
       <Calendar
-        locale={locale}
         at={at}
         today={now}
         first={FIRST_MONTH}
@@ -136,8 +143,8 @@ export function Dashboard({
 
       <div className="dashboard-aside">
         <section className="random">
-          <h2>{t(locale, 'randomTitle')}</h2>
-          <p className="hint-line">{t(locale, 'randomIntro')}</p>
+          <h2>{t('randomTitle')}</h2>
+          <p className="hint-line">{t('randomIntro')}</p>
           <div className="tier-row">
             {DIFFICULTY_ORDER.map((difficulty) => {
               // „5×5–6×6" statt „5–6×5–6": die Stufe „sehr leicht" hat zwei
@@ -155,7 +162,7 @@ export function Dashboard({
                   className={'tier-button tier-' + difficulty}
                   onClick={() => onDraw(difficulty)}
                 >
-                  <strong>{t(locale, difficulty)}</strong>
+                  <strong>{t(difficulty)}</strong>
                   <small>{span}</small>
                 </button>
               );
@@ -164,14 +171,14 @@ export function Dashboard({
         </section>
 
         <section className="seed-entry">
-          <h2>{t(locale, 'ownSeed')}</h2>
-          <p className="hint-line">{t(locale, 'ownSeedIntro')}</p>
+          <h2>{t('ownSeed')}</h2>
+          <p className="hint-line">{t('ownSeedIntro')}</p>
           <div className="seed-row">
             <input
               id="seed"
               value={seedInput}
-              placeholder={t(locale, 'seedPlaceholder')}
-              aria-label={t(locale, 'ownSeed')}
+              placeholder={t('seedPlaceholder', { example: SEED_EXAMPLE })}
+              aria-label={t('ownSeed')}
               onChange={(e) => {
                 setSeedInput(e.target.value);
                 setSeedError(false);
@@ -181,14 +188,14 @@ export function Dashboard({
               }}
             />
             <button type="button" onClick={openSeed}>
-              {t(locale, 'play')}
+              {t('play')}
             </button>
           </div>
-          {seedError && <p className="error">{t(locale, 'seedInvalid')}</p>}
+          {seedError && <p className="error">{t('seedInvalid')}</p>}
         </section>
       </div>
 
-      {showRules && <RulesDialog locale={locale} onClose={() => setShowRules(false)} />}
+      {showRules && <RulesDialog onClose={() => setShowRules(false)} />}
     </div>
   );
 }

@@ -55,7 +55,7 @@ function createInstance(options: ClueTranslatorOptions): I18nInstance {
       defaultNS: NAMESPACE,
       ns: [NAMESPACE],
       resources: Object.fromEntries(LOCALES.map((locale) => [locale, { [NAMESPACE]: RESOURCES[locale] }])),
-      initImmediate: false,
+      initAsync: false,
       interpolation: { escapeValue: false },
     });
   } else {
@@ -74,6 +74,16 @@ function createInstance(options: ClueTranslatorOptions): I18nInstance {
 
 /** Looks up one key. Returns a plain string, which is all this module needs. */
 type Translate = (key: string, values?: Record<string, unknown>) => string;
+
+/**
+ * The language an instance currently speaks, as one of ours. An instance
+ * shared with an app may be set to anything; what we cannot speak falls back
+ * to English, as i18next itself does.
+ */
+function localeOf(instance: I18nInstance): Locale {
+  const current = instance.resolvedLanguage ?? instance.language;
+  return LOCALES.find((locale) => locale === current) ?? 'en';
+}
 
 /** Reads a word form, falling back to the key so a gap is visible, not silent. */
 function wordForm(translate: Translate, path: string): string {
@@ -98,14 +108,29 @@ export interface ClueTranslator {
    * Regal`. The sentence forms stay inside `render`; this is the name alone.
    */
   objectName(key: string): string;
+  /** Display name of a theme, e.g. `Autowerkstatt`. */
+  themeName(key: string): string;
   setLocale(locale: Locale): void;
 }
 
+/**
+ * Clue sentences in the language of the i18next instance.
+ *
+ * The translator keeps no language of its own: with a shared instance, the
+ * app switching language switches the clues too, and there is no second truth
+ * about which language is on screen.
+ */
 export function createClueTranslator(options: ClueTranslatorOptions = {}): ClueTranslator {
   const instance = createInstance(options);
-  let locale: Locale = options.locale ?? 'de';
 
-  const translate: Translate = (key, values) => instance.getFixedT(locale, NAMESPACE)(key, values ?? {});
+  // i18next types t() against the consuming app's own resource declarations,
+  // which know nothing of this namespace. All this module needs is "key and
+  // values in, string out", so that is the shape it is given.
+  const lookUp = instance.t.bind(instance) as unknown as (
+    key: string,
+    options: Record<string, unknown>,
+  ) => string;
+  const translate: Translate = (key, values) => lookUp(key, { ...values, ns: NAMESPACE });
 
   const object = (key: string, form: string): string => wordForm(translate, `object.${key}.${form}`);
   const roomIn = (scene: ClueScene, roomId: number): string => {
@@ -207,14 +232,15 @@ export function createClueTranslator(options: ClueTranslatorOptions = {}): ClueT
 
   return {
     get locale() {
-      return locale;
+      return localeOf(instance);
     },
     instance,
     render: (scene, entry) => renderClue(scene, entry.ownerId, entry.clue),
     roomName: (nameKey) => wordForm(translate, `room.${nameKey}.name`),
     objectName: (key) => object(key, 'bare'),
+    themeName: (key) => wordForm(translate, `theme.${key}.name`),
     setLocale: (next) => {
-      locale = next;
+      void instance.changeLanguage(next);
     },
   };
 }

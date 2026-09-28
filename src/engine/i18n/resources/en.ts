@@ -288,6 +288,11 @@ export const en = {
       from: 'the sandbox',
     },
   },
+  theme: {
+    garage: { name: 'Car repair shop' },
+    flat: { name: 'Flat' },
+    garden: { name: 'Backyard garden' },
+  },
   room: {
     workshop: {
       in: 'in the workshop',

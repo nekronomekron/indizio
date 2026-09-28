@@ -1,5 +1,5 @@
 import { createElement } from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
+import { renderWithI18n } from './support/render.js';
 import { describe, expect, it } from 'vitest';
 import { DAILY_START, THEME_KEYS, dailyDifficulty, dailySeed, parseSeed } from '@engine';
 import {
@@ -92,9 +92,8 @@ describe('Die gezeichnete Startseite', () => {
    * Funktionen allein nicht prüfen. `localStorage` fehlt in dieser Umgebung —
    * der Speicher fängt das ab, und genau das soll hier mitgeprüft sein.
    */
-  const markup = renderToStaticMarkup(
+  const markup = renderWithI18n(
     createElement(Dashboard, {
-      locale: 'de' as const,
       onOpen: () => undefined,
       onDraw: () => undefined,
       onSettings: () => undefined,

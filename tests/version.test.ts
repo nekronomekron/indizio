@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createElement } from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
+import { renderWithI18n } from './support/render.js';
 import { describe, expect, it } from 'vitest';
 import { nextAppVersion, parseAppVersion, readAppVersion } from '../scripts/app-version.js';
 import { Footer } from '../src/app/shared/layout/Footer.js';
@@ -55,13 +55,13 @@ describe('Versionsnummer', () => {
 
 describe('Fusszeile', () => {
   it('zeigt Name und Version', () => {
-    const markup = renderToStaticMarkup(createElement(Footer, { locale: 'de' }));
+    const markup = renderWithI18n(createElement(Footer), 'de');
     expect(markup).toContain('Indizio');
     expect(markup).toContain(APP_VERSION);
   });
 
   it('beschriftet die Nummer in der gewaehlten Sprache', () => {
-    expect(renderToStaticMarkup(createElement(Footer, { locale: 'de' }))).toContain('title="Version"');
-    expect(renderToStaticMarkup(createElement(Footer, { locale: 'en' }))).toContain('title="Version"');
+    expect(renderWithI18n(createElement(Footer), 'de')).toContain('title="Version"');
+    expect(renderWithI18n(createElement(Footer), 'en')).toContain('title="Version"');
   });
 });

@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useReducer, useState, type ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 import { boardLayout, hintFor } from '@engine';
 import type { Cell, PuzzleCore } from '@engine';
-import { createClueTranslator, type Locale } from '@engine/i18n';
-import { t } from '../../shared/i18n/uiTexts.js';
+import { useClueTranslator } from '../../shared/i18n/useClueTranslator.js';
 import { cardOrder, suspectLetters } from './suspects.js';
 import { allPlaced, gameReducer, initialGame } from './gameReducer.js';
 import type { GameSession } from './gameReducer.js';
@@ -23,7 +23,6 @@ function formatTime(ms: number): string {
 
 export interface GameScreenProps {
   core: PuzzleCore;
-  locale: Locale;
   holdMs: number;
   vibrate: boolean;
   /** Namen der Felder beim Verweilen zeigen - abschaltbar in den Einstellungen. */
@@ -56,14 +55,14 @@ function openSession(core: PuzzleCore): GameSession {
 
 export function GameScreen({
   core,
-  locale,
   holdMs,
   vibrate,
   names,
   onBack,
   onSettings,
 }: GameScreenProps): ReactElement {
-  const translator = useMemo(() => createClueTranslator({ locale }), [locale]);
+  const { t } = useTranslation();
+  const translator = useClueTranslator();
   const layout = useMemo(() => boardLayout(core), [core]);
   const [session, dispatch] = useReducer(gameReducer, core, openSession);
   const { state } = session;
@@ -169,7 +168,7 @@ export function GameScreen({
   const onHint = () => {
     const hint = hintFor(core, state.placements);
     if (!hint) {
-      dispatch({ type: 'hint', cell: -1, text: t(locale, 'noHintLeft') });
+      dispatch({ type: 'hint', cell: -1, text: t('noHintLeft') });
       return;
     }
     const name = core.suspects[hint.suspectId]!.name;
@@ -181,35 +180,26 @@ export function GameScreen({
     });
   };
 
-  const labels = {
-    mark: t(locale, 'mark'),
-    erase: t(locale, 'erase'),
-    undo: t(locale, 'undo'),
-    hint: t(locale, 'hint'),
-    confirm: t(locale, 'confirm'),
-    confirmHint: t(locale, 'confirmHint'),
-  };
-
   return (
     <div className="game">
       <header className="game-head">
         {/* Auf schmalen Geraeten bleibt nur der Pfeil: mit drei beschrifteten
             Knoepfen brach die Kopfzeile um und schob das Brett aus dem Bild. */}
-        <button type="button" className="ghost back" onClick={onBack} aria-label={t(locale, 'back')}>
-          &larr; <span className="back-label">{t(locale, 'back')}</span>
+        <button type="button" className="ghost back" onClick={onBack} aria-label={t('back')}>
+          &larr; <span className="back-label">{t('back')}</span>
         </button>
         <h1>
-          {t(locale, core.themeKey)}{' '}
+          {translator.themeName(core.themeKey)}{' '}
           <span className="dim">
             {core.size}&times;{core.size}
           </span>
         </h1>
         <div className="head-actions">
           <button type="button" className="ghost" onClick={() => setShowRules(true)}>
-            {t(locale, 'rules')}
+            {t('rules')}
           </button>
           <button type="button" className="ghost" onClick={onSettings}>
-            {t(locale, 'settings')}
+            {t('settings')}
           </button>
           <span className="timer">{formatTime(state.elapsedMs)}</span>
         </div>
@@ -217,8 +207,8 @@ export function GameScreen({
 
       <div className="game-body">
         <section className="suspects">
-          <h2>{t(locale, 'suspects')}</h2>
-          <p className="hint-line">{t(locale, 'suspectsHelp')}</p>
+          <h2>{t('suspects')}</h2>
+          <p className="hint-line">{t('suspectsHelp')}</p>
           <div className="card-list">
             {cards.map((suspect) => (
               <SuspectCard
@@ -252,7 +242,7 @@ export function GameScreen({
             objectLabels={objectLabels}
             suspectNames={core.suspects.map((suspect) => suspect.name)}
             names={names}
-            occupiedLabel={t(locale, 'occupied')}
+            occupiedLabel={t('occupied')}
             roomOfCell={layout.roomOfCell}
             blocked={layout.blocked}
             letters={letters}
@@ -263,7 +253,7 @@ export function GameScreen({
             onNote={(cell) => dispatch({ type: 'note', cell })}
             onClear={(cell) => dispatch({ type: 'clearCell', cell })}
             onCycle={cycleSuspect}
-            keyboardLabel={t(locale, 'keyboardHelp')}
+            keyboardLabel={t('keyboardHelp')}
           />
           {/* Angesagt statt nur gezeigt: Urteil und Tipp sind die beiden
               Stellen, an denen das Spiel antwortet. */}
@@ -271,7 +261,7 @@ export function GameScreen({
             {state.hintText && <p className="hint-box">{state.hintText}</p>}
             {state.verdict === 'wrong' && (
               <p className="verdict wrong">
-                <strong>{t(locale, 'wrongTitle')}.</strong> {t(locale, 'wrong')}
+                <strong>{t('wrongTitle')}.</strong> {t('wrong')}
               </p>
             )}
           </div>
@@ -284,30 +274,22 @@ export function GameScreen({
             onClearAll={() => dispatch({ type: 'clearAll' })}
             onHint={onHint}
             onCheck={onCheck}
-            labels={labels}
           />
         </section>
       </div>
 
       {showTutorial && (
         <Tutorial
-          locale={locale}
           onDone={() => {
             markTutorialSeen();
             setShowTutorial(false);
           }}
         />
       )}
-      {showRules && <RulesDialog locale={locale} onClose={() => setShowRules(false)} />}
+      {showRules && <RulesDialog onClose={() => setShowRules(false)} />}
 
       {state.verdict === 'solved' && (
-        <SolvedDialog
-          core={core}
-          locale={locale}
-          elapsedMs={state.elapsedMs}
-          hintsUsed={state.hintsUsed}
-          onBack={onBack}
-        />
+        <SolvedDialog core={core} elapsedMs={state.elapsedMs} hintsUsed={state.hintsUsed} onBack={onBack} />
       )}
     </div>
   );

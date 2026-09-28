@@ -4,7 +4,8 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { PORTRAIT_KEYS, THEMES } from '@engine';
-import { HELP } from '../src/app/shared/help/helpContent.js';
+import { TUTORIAL_ICONS } from '../src/app/shared/help/tutorialIcons.js';
+import { RESOURCES } from '../src/app/shared/i18n/i18n.js';
 import { artNames, artThemes, artUrl, hasArt } from '../src/app/shared/art/art.js';
 import { Sprite } from '../src/app/shared/art/Sprite.js';
 import { DEFAULT_FLOOR, FLOOR_MATERIALS, floorFlip, floorFor } from '../src/app/shared/art/floors.js';
@@ -112,15 +113,12 @@ describe('Grafikdateien', () => {
   it('jedes Bild des Tutorials laesst sich aufloesen', () => {
     // Das Tutorial mischt alle drei Arten: Symbol, Requisite, Figur. Ohne die
     // Art im Schluessel greift es sonst ins Leere und zeigt eine leere Flaeche.
-    const fehlend: string[] = [];
-    for (const [locale, help] of Object.entries(HELP)) {
-      for (const step of help.tutorial) {
-        if (!hasArt(step.iconKind ?? 'objects', step.icon, step.iconTheme)) {
-          fehlend.push(`${locale}/${step.icon}`);
-        }
-      }
-    }
+    const fehlend = TUTORIAL_ICONS.filter((icon) => !hasArt(icon.kind ?? 'objects', icon.name, icon.theme));
     expect(fehlend).toEqual([]);
+    // One picture per step, in every language.
+    for (const resources of Object.values(RESOURCES)) {
+      expect(resources.help.tutorial).toHaveLength(TUTORIAL_ICONS.length);
+    }
   });
 
   it('keine Datei ohne Verwendung', () => {

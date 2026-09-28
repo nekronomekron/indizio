@@ -8,7 +8,10 @@ import {
   makeSeed,
 } from '@engine';
 import { randomSeed } from '../src/app/features/calendar/randomSeed.js';
-import { UI } from '../src/app/shared/i18n/uiTexts.js';
+import { createElement } from 'react';
+import { Dashboard } from '../src/app/features/calendar/Dashboard.js';
+import { RESOURCES } from '../src/app/shared/i18n/i18n.js';
+import { renderWithI18n } from './support/render.js';
 
 /**
  * Ein Seed traegt die Generatorversion. Aendert sich der Generator, beschriebe
@@ -76,7 +79,15 @@ describe('Beispiel im Eingabefeld', () => {
   it('nennt einen Seed, den die App auch annimmt', () => {
     // Fest eingetippt stand dort `v1`, lange nachdem Version 2 lief.
     for (const locale of ['de', 'en'] as const) {
-      const beispiel = /v\d+-[a-z]+-\d+-[a-z]+-[a-z0-9]+/.exec(UI[locale]['seedPlaceholder'] ?? '')?.[0];
+      const placeholder = renderWithI18n(
+        createElement(Dashboard, {
+          onOpen: () => undefined,
+          onDraw: () => undefined,
+          onSettings: () => undefined,
+        }),
+        locale,
+      );
+      const beispiel = /placeholder="[^"]*?(v\d+-[a-z]+-\d+-[a-z]+-[a-z0-9]+)/.exec(placeholder)?.[1];
       expect(beispiel, locale).toBeDefined();
       expect(versionOf(beispiel!), locale).toBe(GENERATOR_VERSION);
     }
@@ -86,14 +97,14 @@ describe('Beispiel im Eingabefeld', () => {
 describe('Texte zum alten Link', () => {
   it('liegen in beiden Sprachen vor', () => {
     for (const locale of ['de', 'en'] as const) {
-      expect(UI[locale]['outdatedSeed'], locale).toBeTruthy();
-      expect(UI[locale]['outdatedSeedWhy'], locale).toBeTruthy();
+      expect(RESOURCES[locale].ui.outdatedSeed, locale).toBeTruthy();
+      expect(RESOURCES[locale].ui.outdatedSeedWhy, locale).toBeTruthy();
     }
   });
 
   it('sagen nicht, die Erzeugung sei fehlgeschlagen', () => {
     // Der alte Text behauptete das und war damit schlicht falsch.
-    expect(UI.de['outdatedSeed']).not.toContain('erzeugen');
-    expect(UI.en['outdatedSeed']!.toLowerCase()).not.toContain('could not');
+    expect(RESOURCES.de.ui.outdatedSeed).not.toContain('erzeugen');
+    expect(RESOURCES.en.ui.outdatedSeed.toLowerCase()).not.toContain('could not');
   });
 });

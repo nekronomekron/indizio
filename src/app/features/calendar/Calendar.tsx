@@ -1,8 +1,7 @@
 import { useMemo, type ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { CalendarDate, DifficultyKey } from '@engine';
-import type { Locale } from '@engine/i18n';
 import { compareMonth, monthGrid, sameDate, type YearMonth } from './calendarDates.js';
-import { t } from '../../shared/i18n/uiTexts.js';
 import { Sprite } from '../../shared/art/Sprite.js';
 
 /** Was ein Tag im Kalender über sich zu sagen hat. */
@@ -16,7 +15,6 @@ export type DayState =
   | 'solved';
 
 export interface CalendarProps {
-  locale: Locale;
   at: YearMonth;
   today: CalendarDate;
   /** Frühester Monat, den es gibt — davor ist der Zurück-Knopf gesperrt. */
@@ -36,7 +34,7 @@ export interface CalendarProps {
  * Gerechnet wird in UTC, damit die Formatierung nicht am Zeitzonenrand auf den
  * Vortag rutscht.
  */
-function useLabels(locale: Locale, at: YearMonth) {
+function useLabels(locale: string, at: YearMonth) {
   return useMemo(() => {
     const month = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(
       new Date(Date.UTC(at.year, at.month - 1, 1)),
@@ -59,22 +57,23 @@ function useLabels(locale: Locale, at: YearMonth) {
 }
 
 export function Calendar(props: CalendarProps): ReactElement {
-  const { locale, at, today, first, stateOf, difficultyOf, onPick, onShift, onToday } = props;
-  const labels = useLabels(locale, at);
+  const { t, i18n } = useTranslation();
+  const { at, today, first, stateOf, difficultyOf, onPick, onShift, onToday } = props;
+  const labels = useLabels(i18n.language, at);
   const cells = useMemo(() => monthGrid(at), [at]);
 
   const atFirst = compareMonth(at, first) <= 0;
   const atCurrent = compareMonth(at, { year: today.year, month: today.month }) >= 0;
 
   return (
-    <section className="calendar" aria-label={t(locale, 'calendar')}>
+    <section className="calendar" aria-label={t('calendar')}>
       <header className="calendar-head">
         <button
           type="button"
           className="ghost calendar-step"
           onClick={() => onShift(-1)}
           disabled={atFirst}
-          aria-label={t(locale, 'prevMonth')}
+          aria-label={t('prevMonth')}
         >
           &larr;
         </button>
@@ -84,7 +83,7 @@ export function Calendar(props: CalendarProps): ReactElement {
         <div className="calendar-head-right">
           {!atCurrent && (
             <button type="button" className="ghost calendar-today" onClick={onToday}>
-              {t(locale, 'thisMonth')}
+              {t('thisMonth')}
             </button>
           )}
           <button
@@ -92,7 +91,7 @@ export function Calendar(props: CalendarProps): ReactElement {
             className="ghost calendar-step"
             onClick={() => onShift(1)}
             disabled={atCurrent}
-            aria-label={t(locale, 'nextMonth')}
+            aria-label={t('nextMonth')}
           >
             &rarr;
           </button>
@@ -120,8 +119,8 @@ export function Calendar(props: CalendarProps): ReactElement {
           // Eine Farbe und ein Häkchen allein sagen nichts, wer nicht hinsieht.
           const spoken = [
             labels.dayName.format(new Date(Date.UTC(date.year, date.month - 1, date.day))),
-            state === 'before' ? '' : t(locale, difficulty),
-            state === 'solved' ? t(locale, 'solvedLabel') : state === 'started' ? t(locale, 'started') : '',
+            state === 'before' ? '' : t(difficulty),
+            state === 'solved' ? t('solvedLabel') : state === 'started' ? t('started') : '',
           ]
             .filter(Boolean)
             .join(', ');
