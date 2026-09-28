@@ -13,10 +13,10 @@ import { cx } from '../../../shared/ui/cx.js';
 import text from '../../../shared/ui/text.module.css';
 import styles from './board.module.css';
 
-/** Ruhe auf einem Feld, bis die Sprechblase kommt. */
+/** How long the pointer rests on a cell before the tip appears. */
 const TIP_DELAY = 250;
 
-/** Was die Blase gerade zeigt, und wer sie aufgerufen hat. */
+/** What the tip shows, and who asked for it. */
 type TipSource = 'mouse' | 'touch' | 'keys';
 interface Tip {
   cell: Cell;
@@ -28,34 +28,34 @@ export interface GridProps {
   state: GameState;
   cellPx: number;
   holdMs: number;
-  /** Kurzes Ruetteln beim Platzieren - abschaltbar in den Einstellungen. */
+  /** A short buzz when placing — can be switched off in the settings. */
   vibrate: boolean;
   roomLabels: Record<number, string>;
-  /** Bloßer Name je Requisite, nach Objekt-Id — „Regal", nicht „an einem Regal". */
+  /** Bare name per prop, by object id — "shelf", not "next to a shelf". */
   objectLabels: Record<number, string>;
-  /** Name je Verdächtigem, nach Id. */
+  /** Name per suspect, by id. */
   suspectNames: readonly string[];
-  /** Namen beim Verweilen zeigen - abschaltbar in den Einstellungen. */
+  /** Show names when resting on a cell — can be switched off in the settings. */
   names: boolean;
-  /** Wort für ein gesperrtes Feld, in der Sprache der Oberfläche. */
+  /** Word for a blocked cell, in the language of the UI. */
   occupiedLabel: string;
-  /** Raum-Id je Zelle. Räume sind beliebig geformt, deshalb zellweise. */
+  /** Room id per cell. Rooms may be any shape, hence per cell. */
   roomOfCell: Int32Array;
-  /** 1 = gesperrt, dort darf niemand stehen (PLAN.md 3.2 Regel 3). */
+  /** 1 = blocked, nobody may stand there (PLAN.md §3.2, rule 3). */
   blocked: Uint8Array;
   onPlace: (cell: Cell) => void;
   onTap: (cell: Cell) => void;
   onPaint: (cell: Cell) => void;
   onMark: (cell: Cell) => void;
-  /** Notiz setzen oder entfernen - fuer die Tastatur, die kein Werkzeug kennt. */
+  /** Add or remove a note — for the keyboard, which knows no tools. */
   onNote: (cell: Cell) => void;
-  /** Feld leeren. */
+  /** Clear a cell. */
   onClear: (cell: Cell) => void;
-  /** Eine Person weiter oder zurueck in der Liste. */
+  /** One person on or back in the list. */
   onCycle: (delta: number) => void;
-  /** Tastenbelegung als Text, fuer Vorleseprogramme. */
+  /** The key bindings as text, for screen readers. */
   keyboardLabel: string;
-  /** Buchstabe je Verdaechtigem, nach Id abgelegt (siehe app/suspects.ts). */
+  /** Letter per suspect, by id (see ../suspects.ts). */
   letters: readonly string[];
 }
 
@@ -96,27 +96,26 @@ export function Grid(props: GridProps): ReactElement {
   const [denied, setDenied] = useState<Cell | null>(null);
   const [hoverRoom, setHoverRoom] = useState<number | null>(null);
   /**
-   * Feld unter dem Tastaturrahmen, und ob das Brett gerade den Fokus hat.
+   * The cell under the keyboard frame, and whether the board has focus.
    *
-   * Zwei Zustaende und nicht einer: die Position **ueberlebt** den Fokusverlust.
-   * Wer zur Werkzeugleiste wechselt und zurueckkommt, findet den Rahmen dort,
-   * wo er ihn gelassen hat. Beim Verwerfen genuegte ein Flackern des Fokus, und
-   * er stand wieder in der Ecke.
+   * Two states, not one: the position *survives* losing focus. Whoever moves
+   * to the toolbar and comes back finds the frame where they left it. When it
+   * was reset, a flicker of focus was enough to send it back to the corner.
    */
   const [cursor, setCursor] = useState<Cell | null>(null);
   const [focused, setFocused] = useState(false);
 
   /**
-   * Feld, dessen Namen gerade zu lesen sind.
+   * The cell whose names are shown.
    *
-   * Drei Zugänge, ein Zustand: die Maus verweilt, der Finger drückt, die
-   * Tastatur wandert. `source` steht dabei, weil die Darstellung davon abhängt
-   * — Blase am Feld für Maus und Tastatur, Leiste am Brettrand für den Finger,
-   * der sein eigenes Feld verdeckt.
+   * Three ways in, one state: the mouse rests, the finger presses, the
+   * keyboard moves. `source` comes along because the display depends on it —
+   * a tip at the cell for mouse and keyboard, a bar along the board's edge
+   * for the finger, which covers its own cell.
    */
   const [tip, setTip] = useState<Tip | null>(null);
   const tipTimer = useRef<number | null>(null);
-  /** Feld, für das eine Blase kommt oder schon steht - gegen dauerndes Neustarten. */
+  /** The cell a tip is coming for or already shown for — so it does not keep restarting. */
   const pendingTip = useRef<Cell | null>(null);
 
   const isBlocked = (cell: Cell): boolean => blocked[cell] === 1;
@@ -130,7 +129,7 @@ export function Grid(props: GridProps): ReactElement {
     setTip(null);
   }, []);
 
-  /** Sofort zeigen: Finger und Tastatur warten nicht. */
+  /** Show at once: finger and keyboard do not wait. */
   const showTip = (cell: Cell, source: TipSource) => {
     if (!names) return;
     if (tipTimer.current !== null) {
@@ -142,12 +141,12 @@ export function Grid(props: GridProps): ReactElement {
   };
 
   /**
-   * Verzögert zeigen, für die Maus.
+   * Show after a pause, for the mouse.
    *
-   * Ohne Verzögerung blinkte beim Überfahren des Bretts auf jedem Feld eine
-   * Blase auf; gemeint ist aber das Feld, auf dem der Zeiger stehen bleibt.
-   * Bleibt er auf demselben Feld, läuft die Uhr weiter statt neu anzufangen —
-   * sonst genügte ein Zittern der Hand, und die Blase käme nie.
+   * Without the pause a tip flashed up on every cell the pointer crossed; what
+   * is meant is the cell it stops on. Staying on the same cell keeps the clock
+   * running instead of restarting it — otherwise a trembling hand would keep
+   * the tip from ever appearing.
    */
   const showTipSoon = (cell: Cell | null) => {
     if (!names) return;
@@ -164,7 +163,7 @@ export function Grid(props: GridProps): ReactElement {
     }, TIP_DELAY);
   };
 
-  /** Kurze Rückmeldung, dass auf diesem Feld niemand stehen kann. */
+  /** Brief feedback that nobody can stand on this cell. */
   const refuse = useCallback((cell: Cell) => {
     setDenied(cell);
     if (deniedTimer.current !== null) window.clearTimeout(deniedTimer.current);
@@ -172,11 +171,11 @@ export function Grid(props: GridProps): ReactElement {
   }, []);
 
   /**
-   * Zelle unter dem Zeiger, über die Bildschirmkoordinaten bestimmt.
+   * The cell under the pointer, found from screen coordinates.
    *
-   * Bewusst nicht über event.target: sobald der Zeiger eingefangen ist
-   * (setPointerCapture), liefern alle Folgeereignisse den Container als Ziel,
-   * nicht die Zelle darunter.
+   * Deliberately not event.target: once the pointer is captured
+   * (setPointerCapture), every following event targets the container, not the
+   * cell beneath.
    */
   const cellFromPoint = (x: number, y: number): Cell | null => {
     const element = document.elementFromPoint(x, y)?.closest('[data-cell]');
@@ -212,9 +211,9 @@ export function Grid(props: GridProps): ReactElement {
     const cell = cellFromPoint(event.clientX, event.clientY);
     if (cell === null) return;
 
-    // Vor dem Ausstieg für gesperrte Felder: genau dort erklärt der Name des
-    // Gegenstands, warum das Brett die Person abweist. Der Finger bekommt die
-    // Leiste sofort, die Maus lässt die Blase los, solange sie gedrückt ist.
+    // Before bailing out for blocked cells: that is exactly where the prop's
+    // name explains why the board refuses the person. The finger gets the bar
+    // at once; the mouse drops the tip while its button is down.
     if (event.pointerType !== 'mouse') showTip(cell, 'touch');
     else if (!isBlocked(cell)) hideTip();
 
@@ -241,13 +240,13 @@ export function Grid(props: GridProps): ReactElement {
   const handleMove = (event: React.PointerEvent) => {
     const cell = cellFromPoint(event.clientX, event.clientY);
 
-    // Raumhervorhebung folgt der Maus, auch ohne gedrückte Taste.
+    // The room highlight follows the mouse, button pressed or not.
     if (event.pointerType === 'mouse') {
       setHoverRoom(cell === null ? null : roomOfCell[cell]!);
       if (pointerDown.current) hideTip();
       else showTipSoon(cell);
     } else if (pointerDown.current && cell !== null) {
-      // Beim Ziehen liest man mit, über welchen Raum der Strich läuft.
+      // While dragging, you read along which room the stroke crosses.
       showTip(cell, 'touch');
     }
 
@@ -258,7 +257,7 @@ export function Grid(props: GridProps): ReactElement {
     if (!dragStarted.current) {
       dragStarted.current = true;
       const start = downCell.current;
-      // Das Startfeld gehört zum Strich dazu.
+      // The starting cell belongs to the stroke.
       if (start !== null && !held.current && !isBlocked(start)) onPaint(start);
     }
     painting.current.add(cell);
@@ -277,8 +276,8 @@ export function Grid(props: GridProps): ReactElement {
     if (!wasHeld && !dragged && cell !== null && !isBlocked(cell)) onTap(cell);
     resetPointer();
 
-    // Nach dem Loslassen darf die Blase zurückkommen; beim Finger bleibt die
-    // Leiste ohnehin stehen, damit man lesen kann, was der Finger verdeckte.
+    // After release the tip may come back; for a finger the bar stays anyway,
+    // so you can read what the finger was covering.
     if (event.pointerType === 'mouse') {
       pendingTip.current = null;
       showTipSoon(cell);
@@ -286,16 +285,14 @@ export function Grid(props: GridProps): ReactElement {
   };
 
   /**
-   * Bedienung mit der Tastatur.
+   * Playing by keyboard.
    *
-   * Platzieren ging bisher nur mit einem Zeiger: halten, doppelklicken oder
-   * rechtsklicken. Wer keine Maus benutzen kann, konnte das Spiel damit nicht
-   * spielen — nicht schwer, sondern gar nicht.
+   * Placing used to need a pointer: hold, double-click or right-click. Whoever
+   * cannot use a mouse could not play at all — not with difficulty, not at all.
    *
-   * Der Rahmen wandert mit den Pfeiltasten, und jede Taste tut **eine** Sache:
-   * kein Werkzeug, das man umschalten und im Kopf behalten muss. Das Brett ist
-   * ein einziger Tabstopp; hundert Felder einzeln anzuspringen wäre auf einem
-   * 10×10 schlimmer als gar keine Tastaturbedienung.
+   * The frame moves with the arrow keys, and every key does *one* thing: no
+   * tool to switch and keep in mind. The board is a single tab stop; tabbing
+   * through a hundred cells on a 10×10 would be worse than no keyboard at all.
    */
   const firstFreeCell = (): Cell => {
     const own = state.selected === null ? null : (state.placements[state.selected] ?? null);
@@ -307,7 +304,7 @@ export function Grid(props: GridProps): ReactElement {
   const handleKey = (event: React.KeyboardEvent) => {
     const at = cursor ?? firstFreeCell();
 
-    // Bewegung zuerst: `moveCursor` weiss als Einziges, wo die Raender sind.
+    // Movement first: only `moveCursor` knows where the edges are.
     const moved = moveCursor(at, event.key, size);
     let handled = moved !== null;
 
@@ -346,27 +343,26 @@ export function Grid(props: GridProps): ReactElement {
         break;
     }
 
-    // Nur fuer erkannte Tasten: sonst schluckte das Brett Tab, F5 und alles
-    // andere, was dem Browser gehoert. Auch eine Handlung setzt den Rahmen:
-    // wer blind auf einem Feld etwas tut, soll danach sehen, auf welchem.
+    // Only for keys we know: otherwise the board would swallow Tab, F5 and
+    // everything else that belongs to the browser. An action moves the frame
+    // too: whoever acts on a cell blindly should see afterwards which one.
     if (handled) {
       event.preventDefault();
       setCursor(moved ?? at);
-      // Ohne Verzögerung: ein Tastendruck ist eine Absicht, da gibt es kein
-      // versehentliches Überfahren. Für wen die Maus nicht in Frage kommt, ist
-      // das der einzige Weg zu den Namen.
+      // No pause: a key press is intent, there is no accidental crossing. For
+      // whoever cannot use a mouse, this is the only way to the names.
       showTip(moved ?? at, 'keys');
-      // Nicht erst beim Fokusereignis: der Rahmen gehoert dem, der Tasten
-      // drueckt. Wer mit der Maus aufs Brett klickt, braucht ihn nicht - und
-      // in manchen Umgebungen kommt das Fokusereignis ueberhaupt nicht an.
+      // Not only on the focus event: the frame belongs to whoever presses
+      // keys. Clicking the board with a mouse needs none — and in some
+      // environments the focus event never arrives.
       setFocused(true);
     }
   };
 
   /**
-   * Belag je Raum, aus dem Raumnamen abgeleitet, dazu die Bilddatei aus dem
-   * Grafikset des Themes. Eine winzige Helligkeitsstufe je Raum haelt zwei
-   * benachbarte Raeume mit demselben Belag auseinander.
+   * Floor per room, from the theme, with its picture from the theme's
+   * drawings. A tiny brightness step per room keeps two neighbouring rooms
+   * with the same floor apart.
    */
   const floors = useMemo(() => {
     const material = new Map<number, ReturnType<typeof floorFor>>();
@@ -385,8 +381,8 @@ export function Grid(props: GridProps): ReactElement {
   }, [core.rooms, core.themeKey]);
 
   /**
-   * Beschriftung sitzt auf der obersten, linkesten Zelle des Raumes und darf
-   * nur so breit werden, wie der Raum in dieser Zeile reicht.
+   * The label sits on the room's top-left cell and may only be as wide as
+   * the room reaches in that row.
    */
   const labelSpots = useMemo(
     () =>
@@ -400,11 +396,11 @@ export function Grid(props: GridProps): ReactElement {
   const inset = wallInset(cellPx);
 
   /**
-   * Requisite je Zelle, als Zuordnung Zelle → Objekt-Id.
+   * Prop per cell, as a map cell → object id.
    *
-   * Requisiten liegen über mehrere Felder (ein Tisch über drei), die Namen
-   * werden aber feldweise nachgesehen. Einmal umdrehen ist billiger, als für
-   * jedes Feld alle Objekte durchzusehen.
+   * Props span several cells (a table over three), but names are looked up
+   * per cell. Inverting once is cheaper than searching every object for every
+   * cell.
    */
   const objectOfCell = useMemo(() => {
     const map = new Map<number, number>();
@@ -414,8 +410,8 @@ export function Grid(props: GridProps): ReactElement {
 
   const noteSize = Math.max(8, Math.round(cellPx * 0.24));
 
-  // Namen des Feldes unter Zeiger, Finger oder Rahmen. Ohne Hook: eine
-  // Zeichenkette und ein Ort, beides zu billig für einen Zwischenspeicher.
+  // Names of the cell under pointer, finger or frame. No hook: a string and
+  // a position, both too cheap to be worth caching.
   const tipCell = names ? (tip?.cell ?? null) : null;
   const tipObject = tipCell === null ? undefined : objectOfCell.get(tipCell);
   const tipPerson = tipCell === null ? -1 : state.placements.findIndex((c) => c === tipCell);
@@ -439,14 +435,14 @@ export function Grid(props: GridProps): ReactElement {
       className={styles.board}
       style={{ width: boardPx, height: boardPx, ['--wall-inset' as string]: String(inset) + 'px' }}
     >
-      {/* Boden: eine Kachel je Zelle, damit jede Raumform trägt. */}
+      {/* Floor: one tile per cell, so any room shape works. */}
       <div className={styles.floor} style={{ gridTemplateColumns: 'repeat(' + size + ', ' + cellPx + 'px)' }}>
         {Array.from({ length: size * size }, (_, cell) => {
           const room = roomOfCell[cell]!;
           const material = floors.material.get(room) ?? DEFAULT_FLOOR;
           const image = floors.image.get(room);
-          // Gespiegelt, wo es die Kachel verträgt: eine einzige Datei sieht
-          // sonst über ein ganzes Gitter hinweg nach Tapete aus.
+          // Mirrored where the tile allows it: a single file repeated over a
+          // whole grid looks like wallpaper.
           const flip = floorFlip(material, cell);
           return (
             <div
@@ -467,7 +463,7 @@ export function Grid(props: GridProps): ReactElement {
         })}
       </div>
 
-      {/* Feldraster und Raumgrenzen, über dem Boden und unter den Figuren. */}
+      {/* Cell grid and room borders, above the floor and below the people. */}
       <BoardLines size={size} cellPx={cellPx} roomOfCell={roomOfCell} hoverRoom={hoverRoom} />
 
       {labelSpots.map(({ room, cell, run }) => (
@@ -500,9 +496,9 @@ export function Grid(props: GridProps): ReactElement {
             className={cx(styles.object, obj.walkable ? styles.walkable : styles.blocking)}
             style={{ left: c0 * cellPx, top: r0 * cellPx, width: w * cellPx, height: h * cellPx }}
           >
-            {/* Die Grafik fuellt ihre Grundflaeche: ein Tisch ueber drei
-                Felder ist dreimal so breit wie hoch, nicht ein Quadrat in
-                der Mitte. Die Datei dazu heisst `table_3x1`. */}
+            {/* The drawing fills its footprint: a table over three cells is
+                three times as wide as high, not a square in the middle. Its
+                file is `table_3x1`. */}
             <Sprite
               name={obj.key}
               theme={core.themeKey}
@@ -536,13 +532,13 @@ export function Grid(props: GridProps): ReactElement {
         onPointerCancel={handleUp}
         onPointerLeave={(event) => {
           setHoverRoom(null);
-          // Nur die Maus verlässt das Brett wirklich. Beim Finger meldet der
-          // Browser dasselbe Ereignis, wenn er abgehoben wird - dann soll die
-          // Leiste stehen bleiben, damit man lesen kann, was er verdeckte.
+          // Only a mouse really leaves the board. For a finger the browser
+          // reports the same event on lifting it — then the bar should stay,
+          // so you can read what it was covering.
           if (event.pointerType === 'mouse') hideTip();
         }}
         onDoubleClick={(event) => {
-          // Desktop-Kurzweg: Doppelklick platziert, ohne halten zu müssen.
+          // Desktop shortcut: double-click places without holding.
           const cell = cellFromPoint(event.clientX, event.clientY);
           if (cell === null) return;
           if (isBlocked(cell)) {
@@ -584,8 +580,8 @@ export function Grid(props: GridProps): ReactElement {
                     name={core.suspects[placedId]!.portraitKey}
                     size={Math.round(cellPx * 0.86)}
                   />
-                  {/* Der Buchstabe der gewaehlten Person leuchtet auf - so
-                      findet man sie auf dem Brett, ohne zu suchen. */}
+                  {/* The selected person's letter lights up — so you find
+                      them on the board without searching. */}
                   <span className={cx(styles.placedLetter, placedId === state.selected && styles.chosen)}>
                     {letters[placedId] ?? '?'}
                   </span>
@@ -594,8 +590,8 @@ export function Grid(props: GridProps): ReactElement {
               {placedId < 0 && marked && (
                 <Sprite kind="icons" name="ui-x" size={Math.round(cellPx * 0.5)} className={styles.mark} />
               )}
-              {/* Bleistiftnotizen sitzen links oben und stehen auch neben einem X.
-                  Wo der Raumname steht, beginnen sie unter seinem Schild. */}
+              {/* Pencil notes sit top left, next to an X too. Where the room
+                  name is, they start below its sign. */}
               {placedId < 0 && notes.length > 0 && (
                 <span
                   className={cx(styles.notes, labelCells.has(cell) && styles.belowLabel)}
@@ -613,13 +609,13 @@ export function Grid(props: GridProps): ReactElement {
         })}
       </div>
 
-      {/* Die Namen des Feldes. Beides liegt **im** Brett: sein Zuschnitt haelt
-          Boden und Raumgrenzen in Form, und eine Leiste unter dem Brett haette
-          Hoehe gekostet, die das Brett selbst braucht. */}
+      {/* The cell's names. Both live *inside* the board: its clipping keeps
+          floor and borders in shape, and a bar below the board would have cost
+          height the board itself needs. */}
       {tipAt !== null && tip !== null && tip.source === 'touch' && (
-        // Am oberen Rand, wenn der Finger in der untersten Reihe liegt: auf
-        // einem 10x10 ist ein Feld keine 34 Bildpunkte hoch, die Leiste
-        // verdeckte sonst genau das Feld, von dem sie erzaehlt.
+        // At the top edge when the finger is in the bottom row: on a 10×10 a
+        // cell is under 34 pixels high, and the bar would cover exactly the
+        // cell it talks about.
         <div className={cx(styles.bar, rowOf(tip.cell, size) === size - 1 && styles.top)}>{tipText}</div>
       )}
       {tipAt !== null && tip !== null && tip.source !== 'touch' && (
@@ -631,10 +627,9 @@ export function Grid(props: GridProps): ReactElement {
         </div>
       )}
 
-      {/* Vorgelesen wird nur die Tastaturbedienung. Bei der Maus redete ein
-          Vorleseprogramm sonst durchgehend mit, waehrend der Blick schon
-          woanders ist. Die Region steht immer da, damit sie bereit ist, wenn
-          der erste Text kommt. */}
+      {/* Only keyboard use is read aloud. With a mouse a screen reader would
+          talk constantly while the eye is already elsewhere. The region is
+          always there, so it is ready when the first text arrives. */}
       <span className={text.srOnly} role="status">
         {tip?.source === 'keys' ? tipText : ''}
       </span>

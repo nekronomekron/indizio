@@ -5,20 +5,19 @@ import styles from './board.module.css';
 export interface BoardLinesProps {
   size: number;
   cellPx: number;
-  /** Raum-Id je Zelle. Räume sind beliebig geformt, deshalb zellweise. */
+  /** Room id per cell. Rooms may be any shape, hence per cell. */
   roomOfCell: Int32Array;
-  /** Raum unter der Maus, oder `null`. Auf Touch-Geräten immer `null`. */
+  /** Room under the mouse, or `null`. Always `null` on touch devices. */
   hoverRoom: number | null;
 }
 
 /**
- * Dicke der Linien, gemessen am Feld statt fest in Pixeln.
+ * Line widths, measured against the cell rather than fixed in pixels.
  *
- * Eine feste Stärke wäre auf dem Handy zu zart und auf dem Schreibtisch zu
- * grob. Die Untergrenzen sorgen dafür, dass beide Linien auch auf dem kleinsten
- * Gitter (10×10 auf 360 px, Feld ≈ 32 px) noch als zwei verschiedene Stärken
- * lesbar sind — genau darauf kommt es an: die Raumgrenze muss sich vom
- * Feldraster **unterscheiden**, nicht nur vorhanden sein.
+ * A fixed width would be too thin on a phone and too coarse on a desktop. The
+ * minimums keep both lines readable as two different weights even on the
+ * smallest grid (10×10 at 360 px, a cell ≈ 32 px) — which is what matters: a
+ * room border has to *differ* from the cell grid, not merely exist.
  */
 export function wallWidth(cellPx: number): number {
   return Math.max(4, Math.round(cellPx * 0.1));
@@ -29,48 +28,47 @@ export function gridWidth(cellPx: number): number {
 }
 
 /**
- * Abstand von der Zellkante, den Beschriftungen halten: Raumname, Buchstabe,
- * Notizen.
+ * Distance from the cell edge that labels keep: room name, letter, notes.
  *
- * Die Wand liegt mittig auf der Zellkante und ragt damit um ihre halbe Dicke
- * in die Zelle. Alles, was näher an der Kante sitzt, schneidet sie an. Der
- * Abstand gilt immer, nicht nur an Kanten mit Wand — sonst sprängen die
- * Buchstaben je nach Lage verschieden weit ein.
+ * The wall sits centred on the cell edge and so reaches half its width into
+ * the cell. Anything closer to the edge gets cut by it. The distance applies
+ * always, not only at edges with a wall — otherwise letters would jump in by
+ * different amounts depending on where they are.
  */
 export function wallInset(cellPx: number): number {
   return wallWidth(cellPx) / 2 + 2;
 }
 
 /**
- * Wie viele Zellen desselben Raumes ab `cell` nach rechts in dieser Zeile
- * liegen, `cell` eingeschlossen. So breit darf der Raumname werden, ohne über
- * eine Wand in den Nachbarraum zu laufen.
+ * How many cells of the same room lie from `cell` to the right in its row,
+ * `cell` included. That is how wide the room name may get without running
+ * over a wall into the next room.
  */
 export function labelRun(cell: number, roomOfCell: Int32Array, size: number): number {
   const room = roomOfCell[cell];
   let run = 1;
-  // Spalte 0 heißt: die nächste Zelle liegt schon in der nächsten Zeile.
+  // Column 0 means the next cell is already in the next row.
   while (cell + run < size * size && columnOf(cell + run, size) !== 0 && roomOfCell[cell + run] === room)
     run++;
   return run;
 }
 
 /**
- * Die Linien des Brettes: dünn zwischen Feldern, **dick um jeden Raum**.
+ * The board's lines: thin between cells, *thick around every room*.
  *
- * Raumgrenzen sind Spielinformation, keine Verzierung — fast jeder Hinweis
- * nimmt auf Räume Bezug („allein im Raum", „im selben Raum wie"). Wer die
- * Grenze nicht sieht, kann den Hinweis nicht anwenden.
+ * Room borders are game information, not decoration — almost every clue
+ * refers to rooms ("alone in the room", "in the same room as"). Whoever cannot
+ * see the border cannot apply the clue.
  *
- * Deshalb sind die Grenzen **immer** sichtbar und nicht erst beim Darüberfahren:
- * auf dem Handy gibt es kein Schweben, und eine Information, die nur der Maus
- * zugänglich ist, fehlt der Hälfte der Spieler. Die farbige Hervorhebung beim
- * Schweben kommt am Schreibtisch obendrauf, sie ersetzt nichts.
+ * So the borders are *always* visible, not only on hover: phones have no
+ * hover, and information only a mouse can reach is missing for half the
+ * players. The coloured highlight on hover comes on top at a desk; it replaces
+ * nothing.
  *
- * Alles in **einem** SVG statt als Schatten je Zelle: eine geteilte Kante wird
- * damit einmal gezeichnet und nicht zweimal halb, und die Strichstärke ist
- * genau die angegebene — bei Kachelschatten wäre sie an Raumgrenzen doppelt so
- * dick wie am Brettrand.
+ * Everything in *one* SVG rather than a shadow per cell: a shared edge is drawn
+ * once instead of twice by halves, and the stroke is exactly the given width —
+ * with tile shadows it would be twice as thick at room borders as at the
+ * board's edge.
  */
 export function BoardLines({ size, cellPx, roomOfCell, hoverRoom }: BoardLinesProps): ReactElement {
   const boardPx = size * cellPx;
@@ -81,8 +79,8 @@ export function BoardLines({ size, cellPx, roomOfCell, hoverRoom }: BoardLinesPr
     const walls: string[] = [];
     const grid: string[] = [];
 
-    // Je Zelle nur die obere und die linke Kante: so wird jede innere Kante
-    // genau einmal gezeichnet. Der Brettrand ist unten ein eigenes Rechteck.
+    // Only the top and left edge per cell: so every inner edge is drawn
+    // exactly once. The board's edge is a rectangle of its own below.
     for (let cell = 0; cell < size * size; cell++) {
       const room = roomOfCell[cell];
       const r = rowOf(cell, size);
@@ -104,11 +102,11 @@ export function BoardLines({ size, cellPx, roomOfCell, hoverRoom }: BoardLinesPr
   }, [roomOfCell, size, cellPx]);
 
   /**
-   * Grenze des Raumes unter der Maus, als eigener Zug über der schwarzen Linie.
+   * Border of the room under the mouse, as its own stroke above the black line.
    *
-   * Am Brettrand um die halbe Strichstärke nach innen versetzt, genau wie der
-   * schwarze Rand darunter — mittig auf der Kante läge die äußere Hälfte
-   * außerhalb des Brettes und würde abgeschnitten.
+   * At the board's edge it moves in by half the stroke width, like the black
+   * border beneath — centred on the edge, its outer half would lie outside the
+   * board and be cut off.
    */
   const hovered = useMemo(() => {
     if (hoverRoom === null) return '';
@@ -147,7 +145,7 @@ export function BoardLines({ size, cellPx, roomOfCell, hoverRoom }: BoardLinesPr
     >
       <path className={styles.lineGrid} d={paths.grid} strokeWidth={thin} shapeRendering="crispEdges" />
       <path className={styles.lineWall} d={paths.walls} strokeWidth={thick} />
-      {/* Der Brettrand liegt halb innen, sonst schneidet ihn die Kante ab. */}
+      {/* The board's edge lies half inside, or the edge would cut it off. */}
       <rect
         className={styles.lineWall}
         x={thick / 2}

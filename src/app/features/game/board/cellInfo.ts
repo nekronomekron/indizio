@@ -2,37 +2,37 @@ import { columnOf, rowOf } from '@engine';
 import type { Cell } from '@engine';
 
 /**
- * Was auf einem Feld zu sehen ist, als Text — und wo die Sprechblase dazu hängt.
+ * What a cell shows, as text — and where its tip goes.
  *
- * Beides steht hier und nicht im Gitter, weil beides ohne DOM prüfbar ist: die
- * Textform hat eine Reihenfolge und Lücken, die Blase hat Ränder. Am Rand wohnt
- * der Fehler um eins, und die Reihenfolge merkt man erst, wenn sie falsch ist.
+ * Both live here rather than in the grid because both can be tested without
+ * a DOM: the text has an order and gaps, the tip has edges. Off-by-one errors
+ * live at edges, and an order only gets noticed once it is wrong.
  */
 
-/** Mittelpunkt statt Komma: die Teile sind gleichrangig, keine Aufzählung. */
+/** A middle dot rather than a comma: the parts are equals, not a list. */
 const SEPARATOR = ' · ';
 
 export interface CellFacts {
-  /** Raumname ohne Artikel, wie die Beschriftung auf dem Brett. */
+  /** Room name without article, like the label on the board. */
   room: string;
-  /** Requisite auf diesem Feld, falls eine darauf steht. */
+  /** The prop on this cell, if there is one. */
   object: string | null;
-  /** Person, die der Spieler hier platziert hat. */
+  /** The person the player placed here. */
   person: string | null;
-  /** Gesperrt: hier kann niemand stehen (PLAN.md 3.2 Regel 3). */
+  /** Blocked: nobody can stand here (PLAN.md §3.2, rule 3). */
   blocked: boolean;
-  /** Wort für „gesperrt", aus der Sprache der Oberfläche. */
+  /** The word for "blocked", in the language of the UI. */
   occupied: string;
 }
 
 /**
- * Eine Zeile: Raum, dann Gegenstand, dann Person.
+ * One line: room, then prop, then person.
  *
- * Vom Groben zum Feinen, damit der Blick nicht springt, und fehlende Teile
- * fallen einfach weg — ein leeres Feld nennt nur seinen Raum. Gesperrte Felder
- * enden auf das Wort für „gesperrt": genau dort erklärt der Name des
- * Gegenstands, warum das Brett die Person abweist. Person und Sperre schließen
- * sich aus, auf einem gesperrten Feld steht nie jemand.
+ * From coarse to fine so the eye does not jump, and missing parts simply drop
+ * out — an empty cell names only its room. Blocked cells end with the word
+ * for "blocked": exactly there the prop's name explains why the board refuses
+ * the person. Person and block exclude each other; nobody ever stands on a
+ * blocked cell.
  */
 export function describeCell(facts: CellFacts): string {
   const last = facts.person ?? (facts.blocked ? facts.occupied : null);
@@ -41,21 +41,20 @@ export function describeCell(facts: CellFacts): string {
     .join(SEPARATOR);
 }
 
-/** Höhe einer einzeiligen Blase samt Innenabstand, und ihr Abstand zum Feld. */
+/** Height of a one-line tip including padding, and its distance from the cell. */
 const TIP_HEIGHT = 22;
 const TIP_GAP = 4;
-/** Breite je Zeichen und Innenabstand, für die Schätzung unten. */
+/** Width per character and padding, for the estimate below. */
 const TIP_CHAR = 7;
 const TIP_PAD = 14;
 
 /**
- * Breite der Blase, geschätzt aus der Zeichenzahl.
+ * Width of the tip, estimated from its character count.
  *
- * Geschätzt und nicht gemessen: eine Messung nach dem Rendern macht die
- * Platzierung vom Renderzeitpunkt abhängig, und das Brett rechnet auch seine
- * Zellgröße vorher aus statt sie hinterher abzulesen. Für einen Tooltip reicht
- * es, dass er nicht aus dem Brett fällt; ein paar Pixel Versatz zur Mitte
- * bemerkt niemand.
+ * Estimated, not measured: measuring after rendering makes the position depend
+ * on when rendering happens, and the board computes its cell size up front as
+ * well instead of reading it back. For a tooltip it is enough not to fall off
+ * the board; nobody notices a few pixels off centre.
  */
 export function estimateTipWidth(text: string): number {
   return text.length * TIP_CHAR + TIP_PAD;
@@ -64,18 +63,17 @@ export function estimateTipWidth(text: string): number {
 export interface TipSpot {
   left: number;
   top: number;
-  /** Blase hängt unter dem Feld statt darüber. */
+  /** The tip hangs below the cell rather than above. */
   below: boolean;
 }
 
 /**
- * Ort der Blase im Brett, in Bildpunkten vom linken oberen Brettrand.
+ * Position of the tip on the board, in pixels from its top-left corner.
  *
- * Über dem Feld und mittig, denn der Zeiger oder der Finger liegt auf dem Feld
- * selbst. In der obersten Reihe kippt sie darunter, und an den Seiten schiebt
- * sie sich nach innen — das Brett schneidet ab (`overflow: hidden`), eine Blase
- * am Rand wäre sonst halb weg. Breiter als das Brett kann sie nicht werden;
- * dann steht sie eben links an.
+ * Above the cell and centred, because pointer or finger sit on the cell
+ * itself. In the top row it flips below, and at the sides it moves inward —
+ * the board clips (`overflow: hidden`), and a tip at the edge would be half
+ * gone. It cannot get wider than the board; then it simply starts at the left.
  */
 export function tipSpot(cell: Cell, size: number, cellPx: number, width: number): TipSpot {
   const boardPx = size * cellPx;

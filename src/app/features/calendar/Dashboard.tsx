@@ -47,12 +47,11 @@ const TIER_CLASS: Record<DifficultyKey, string> = {
 const SEED_EXAMPLE = `v${String(GENERATOR_VERSION)}-garage-6-vl-k3f9tq`;
 
 /**
- * Die Startseite: der Kalender **ist** die Hauptsache.
+ * The start page: the calendar *is* the main thing.
  *
- * Vorher standen hier eine Tagesfall-Karte, eine kuratierte Fallliste und ein
- * Seed-Feld nebeneinander und stritten um dieselbe Aufmerksamkeit. Jetzt gibt es
- * einen Knopf für heute, darunter den Monat zum Nachholen, und alles Weitere
- * tritt einen Schritt zurück.
+ * It used to show a daily-case card, a curated case list and a seed field side
+ * by side, all competing for the same attention. Now there is one button for
+ * today, below it the month to catch up on, and everything else steps back.
  */
 export function Dashboard({
   onOpen,
@@ -60,15 +59,15 @@ export function Dashboard({
   onSettings,
 }: {
   onOpen: (seed: string) => void;
-  /** Losen gehoert in die App: nur sie weiss spaeter, dass sie neu wuerfeln darf. */
+  /** Drawing belongs to the app: only it knows later that it may redraw. */
   onDraw: (difficulty: DifficultyKey) => void;
   onSettings: () => void;
 }): ReactElement {
   const { t } = useTranslation();
   const translator = useClueTranslator();
-  // Einmal beim Öffnen bestimmt: wechselt der Tag, während jemand die Seite
-  // offen hat, ist das beim nächsten Laden richtig — ein Kalender, der unter
-  // den Händen umspringt, wäre die unangenehmere Überraschung.
+  // Decided once on opening: if the day changes while the page is open, it is
+  // right on the next load — a calendar flipping under your hands would be
+  // the nastier surprise.
   const now = useMemo(() => today(), []);
   const progress = useMemo(() => loadProgress(), []);
   const [at, setAt] = useState<YearMonth>(() => monthOf(now));
@@ -80,10 +79,9 @@ export function Dashboard({
   const solvedCount = Object.values(progress).filter((entry) => entry.solved).length;
 
   const stateOf = (date: CalendarDate): DayState => {
-    // 'before' erscheint nur, wenn der Starttag **nicht** der Monatserste ist —
-    // heute ist er es, also greift dieser Zweig derzeit nie. Er steht trotzdem
-    // hier, weil sonst ein verschobener Starttag stillschweigend Tage anböte,
-    // die es nie gab.
+    // 'before' only shows when the start day is *not* the first of a month —
+    // today it is, so this branch never runs at the moment. It stays anyway:
+    // otherwise a moved start day would quietly offer days that never existed.
     if (compareDate(date, DAILY_START) < 0) return 'before';
     if (!isPlayable(date, now)) return 'future';
     const seed = seedOf(date);
@@ -159,8 +157,8 @@ export function Dashboard({
           <p className={text.hintLine}>{t('randomIntro')}</p>
           <div className={styles.tierRow}>
             {DIFFICULTY_ORDER.map((difficulty) => {
-              // „5×5–6×6" statt „5–6×5–6": die Stufe „sehr leicht" hat zwei
-              // Größen, und ein Bereich über beide Achsen liest sich nicht.
+              // "5×5–6×6" rather than "5–6×5–6": "very easy" has two sizes, and
+              // a range over both axes does not read well.
               const sizes = SIZES_BY_DIFFICULTY[difficulty];
               const square = (size: number | undefined): string => `${String(size)}×${String(size)}`;
               const span =

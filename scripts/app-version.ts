@@ -2,16 +2,15 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 /**
- * Die Versionsnummer des Spiels: `<Jahr>.<Nummer>`, zum Beispiel `2026.4`.
+ * The game's version: `<year>.<number>`, for example `2026.4`.
  *
- * Sie steht in der `package.json` und nirgendwo sonst. Eine zweite Stelle
- * hiesse, dass beide auseinanderlaufen koennen — und eine Versionsnummer, der
- * man nicht glauben kann, ist schlimmer als keine.
+ * It lives in `package.json` and nowhere else. A second place would mean the
+ * two can drift apart — and a version you cannot believe is worse than none.
  *
- * Das Format ist bewusst **nicht** semantisch. Semantische Versionen sagen
- * etwas ueber Vertraege zwischen Programmen zu; das Spiel hat keine Nutzer im
- * Code, sondern Menschen vor dem Bildschirm. Fuer die ist „die vierte Fassung
- * aus diesem Jahr" die nuetzlichere Auskunft.
+ * The format is deliberately *not* semantic. Semantic versions promise
+ * something about contracts between programs; the game has no users in code,
+ * only people in front of a screen. For them "the fourth version this year" is
+ * the more useful information.
  */
 
 const PATTERN = /^(\d{4})\.(\d+)$/;
@@ -28,23 +27,22 @@ function packageFile(root: string): string {
 
 export function parseAppVersion(text: string): AppVersion {
   const match = PATTERN.exec(text);
-  if (!match) throw new Error(`Versionsnummer "${text}" passt nicht auf <Jahr>.<Nummer>`);
+  if (!match) throw new Error(`Version "${text}" does not match <year>.<number>`);
   return { year: Number(match[1]), number: Number(match[2]), text };
 }
 
-/** Aktuelle Version, gelesen aus der `package.json` des Projektstamms. */
+/** The current version, read from the project root's `package.json`. */
 export function readAppVersion(root: string = process.cwd()): AppVersion {
   const raw = JSON.parse(readFileSync(packageFile(root), 'utf8')) as { version?: unknown };
-  if (typeof raw.version !== 'string') throw new Error('package.json hat kein Feld "version"');
+  if (typeof raw.version !== 'string') throw new Error('package.json has no "version" field');
   return parseAppVersion(raw.version);
 }
 
 /**
- * Naechste Version: im selben Jahr eins weiter, im neuen Jahr wieder bei eins.
+ * The next version: one up within the year, back to one in a new year.
  *
- * Der Jahreswechsel setzt zurueck, weil die Nummer sonst nichts mehr aussagt —
- * „2027.58" liesse offen, ob 58 Aenderungen in einem Jahr oder in fuenf
- * passiert sind.
+ * The new year resets, or the number would say nothing any more — "2027.58"
+ * would leave open whether 58 changes happened in one year or in five.
  */
 export function nextAppVersion(current: AppVersion, today: Date = new Date()): AppVersion {
   const year = today.getFullYear();
@@ -52,11 +50,11 @@ export function nextAppVersion(current: AppVersion, today: Date = new Date()): A
   return { year, number, text: `${String(year)}.${String(number)}` };
 }
 
-/** Schreibt die Version zurueck, ohne den Rest der Datei anzufassen. */
+/** Writes the version back without touching the rest of the file. */
 export function writeAppVersion(version: AppVersion, root: string = process.cwd()): void {
   const file = packageFile(root);
   const text = readFileSync(file, 'utf8');
   const replaced = text.replace(/("version":\s*")[^"]*(")/, `$1${version.text}$2`);
-  if (replaced === text) throw new Error('Feld "version" in package.json nicht gefunden');
+  if (replaced === text) throw new Error('No "version" field found in package.json');
   writeFileSync(file, replaced);
 }

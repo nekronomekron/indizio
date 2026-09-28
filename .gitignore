@@ -1,38 +1,37 @@
-# Abhängigkeiten
+# Dependencies
 node_modules/
 
-# Baustände
+# Build output
 dist/
 *.tsbuildinfo
 
-# Zwischenspeicher der Werkzeuge
+# Tool caches
 .vite/
 .eslintcache
 coverage/
 *.log
 
-# Erzeugte Übersichtsblätter — entstehen mit `npm run art:sheet`
-# und gehören deshalb nicht ins Repo.
+# Generated overview sheets — made by `npm run art:sheet`, so not in the repo.
 art-sheet.svg
-*-uebersicht.svg
+*-overview.svg
 
-# Örtliche Einstellungen, nicht für alle
+# Local settings, not for everyone
 *.local
 .claude/settings.local.json
 .env
 .env.*
 !.env.example
 
-# Betriebssystem und Editoren
+# Operating systems and editors
 .DS_Store
 Thumbs.db
 .idea/
 *.swp
 
-# Was hier ausdrücklich **mitkommt**, obwohl es erzeugt wird:
-#   art/**/*.svg                       die Grafiken des Spiels (art/README.md)
-#   tests/engine/reference/          eingefrorene Prüfsummen und Beispiele
-#   package-lock.json                  reproduzierbare Installation
-# Alle vier werden von einem Skript geschrieben und trotzdem versioniert:
-# ohne sie läuft das Spiel nicht beziehungsweise verliert die Testsuite ihren
-# Bezugspunkt.
+# Deliberately *committed* although generated:
+#   art/**/*.svg                   the game's drawings (art/README.md)
+#   src/**/*.module.d.css.ts       typed CSS module class names
+#   tests/engine/reference/        frozen checksums and samples
+#   package-lock.json              reproducible installs
+# All are written by a script and still versioned: without them the game does
+# not run, the types do not check, or the test suite loses its reference point.

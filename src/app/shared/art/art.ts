@@ -1,48 +1,46 @@
 /**
- * Zugriff auf die Grafikdateien in `art/`.
+ * Access to the drawings in `art/`.
  *
- * Im Spiel wird **nichts mehr gezeichnet**. Jede Form ist eine eigene
- * SVG-Datei; `npm run art` erzeugt die Platzhalter, spaeter liegen dort die
- * endgueltigen Grafiken. Ein Austausch ist damit ein Dateitausch und keine
- * Codeaenderung.
+ * The game draws *nothing itself*. Every shape is an SVG file of its own;
+ * `npm run art` writes the placeholders, and the final drawings will replace
+ * them. Replacing a drawing is replacing a file, not changing code.
  *
- * Gesucht wird **erst im Theme, dann gemeinsam**:
+ * Lookup goes *theme first, then common*:
  *
  * ```
- * art/themes/<theme>/objects/<name>.svg    zuerst
- * art/common/objects/<name>.svg            als Rueckfall
+ * art/themes/<theme>/objects/<name>.svg    first
+ * art/common/objects/<name>.svg            as fallback
  * ```
  *
- * Damit bekommt jedes Theme sein eigenes Grafikset, ohne dass Figuren und
- * Bediensymbole dreimal danebenliegen muessen.
+ * So every theme gets its own set of drawings without characters and icons
+ * lying there three times.
  *
- * Die Art der Grafik gehoert zum Schluessel und ist nicht bloss Ordnung im
- * Ordner: In der Wohnung gibt es `carpet` **zweimal** — den Teppich, auf dem
- * jemand steht, und den Teppichboden des Schlafzimmers. Wer nur nach dem
- * Dateinamen sucht, legt dem halben Zimmer eine Requisite als Boden aus.
+ * The kind of drawing is part of the key, not just tidy folders: the flat has
+ * `carpet` *twice* — the carpet someone stands on, and the bedroom's fitted
+ * carpet. Looking up by file name alone would lay a prop as floor across half
+ * the room.
  *
- * Die Dateien werden beim Bauen eingebettet, nicht zur Laufzeit geladen. Das
- * haelt das Spiel offline lauffaehig (PLAN.md §11, G11) und erspart je Form
- * eine Anfrage.
+ * The files are embedded at build time, not loaded at runtime. That keeps the
+ * game playable offline (PLAN.md §11, G11) and saves a request per shape.
  */
 
 /**
- * Ordner unter `art/`, zugleich die Art einer Grafik. `tiles` sind die Blätter
- * verlegter Requisiten (PLAN.md §13.4) — ein eigener Ordner, weil
- * `objects/carpet.svg` schon „eine Datei fuer alle Grundflaechen" heisst.
+ * Folder under `art/`, and so the kind of a drawing. `tiles` are the sheets of
+ * laid props (PLAN.md §13.4) — a folder of their own because
+ * `objects/carpet.svg` already means "one file for all footprints".
  */
 export type ArtKind = 'objects' | 'tiles' | 'floors' | 'characters' | 'icons';
 
-// Angeschrieben statt behauptet: `import.meta.glob` liefert mit diesen Optionen
-// bereits `Record<string, string>`, ein `as` waere eine Zusicherung, die nichts
-// zusichert. Die Annotation dokumentiert dasselbe und wird geprueft.
+// Annotated rather than asserted: with these options `import.meta.glob`
+// already returns `Record<string, string>`; an `as` would be a promise that
+// promises nothing. The annotation says the same and is checked.
 const FILES: Record<string, string> = import.meta.glob('../../../../art/**/*.svg', {
   query: '?raw',
   import: 'default',
   eager: true,
 });
 
-/** Dateiinhalt als Datenadresse, direkt als `src` eines Bildes verwendbar. */
+/** File content as a data URL, usable directly as an image's `src`. */
 function toDataUrl(svg: string): string {
   const clean = svg.replace(/<!--[\s\S]*?-->/g, '').trim();
   return 'data:image/svg+xml,' + encodeURIComponent(clean);
@@ -71,7 +69,7 @@ for (const [path, svg] of Object.entries(FILES)) {
   }
 }
 
-/** Grafik zu Art und Name, im Theme bevorzugt. `undefined`, wenn es keine gibt. */
+/** Drawing by kind and name, the theme's own preferred. `undefined` if there is none. */
 export function artUrl(kind: ArtKind, name: string, theme?: string): string | undefined {
   const key = kind + '/' + name;
   if (theme !== undefined) {
@@ -81,12 +79,12 @@ export function artUrl(kind: ArtKind, name: string, theme?: string): string | un
   return common.get(key);
 }
 
-/** Ob es eine Grafik gibt. Fuer Tests und Uebersichten. */
+/** Whether a drawing exists. For tests and overviews. */
 export function hasArt(kind: ArtKind, name: string, theme?: string): boolean {
   return artUrl(kind, name, theme) !== undefined;
 }
 
-/** Alle Namen einer Art, die ein Theme kennt — eigene und gemeinsame. */
+/** Every name of a kind a theme knows — its own and the common ones. */
 export function artNames(kind: ArtKind, theme?: string): string[] {
   const prefix = kind + '/';
   const names = new Set<string>();
@@ -99,7 +97,7 @@ export function artNames(kind: ArtKind, theme?: string): string[] {
   return [...names].sort();
 }
 
-/** Alle Themes, fuer die eigene Grafiken vorliegen. */
+/** Every theme with drawings of its own. */
 export function artThemes(): string[] {
   return [...byTheme.keys()].sort();
 }

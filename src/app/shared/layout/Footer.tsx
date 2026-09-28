@@ -4,21 +4,21 @@ import { APP_VERSION } from '../version.js';
 import styles from './Footer.module.css';
 
 /**
- * Hoehe des Footers in Pixeln.
+ * Height of the footer in pixels.
  *
- * Der Spielbildschirm rechnet die Gittergroesse aus dem Viewport statt aus einer
- * Messung (vorhersagbar, unabhaengig vom Renderzeitpunkt). Damit muss er wissen,
- * wieviel Platz unter ihm belegt ist — sonst schoebe der Footer das Brett aus
- * dem Bild.
+ * The game screen sizes the grid from the viewport rather than a measurement
+ * (predictable, independent of when rendering happens). So it has to know how
+ * much space below it is taken — otherwise the footer would push the board out
+ * of view.
  */
-export const FOOTER_PX = 30; // Zwilling von --footer-h in styles/base.css
+export const FOOTER_PX = 30; // Twin of --footer-h in shared/styles/tokens.css
 
 /**
- * Die Fusszeile mit Name und Versionsnummer.
+ * The footer with name and version.
  *
- * Steht auf jedem Bildschirm, weil ihr Zweck genau dann eintritt, wenn etwas
- * nicht stimmt: Wer einen Fehler meldet, soll ohne Nachfrage sagen koennen,
- * welchen Stand er vor sich hat.
+ * On every screen, because it is needed exactly when something is wrong:
+ * whoever reports a bug should be able to say, without being asked, which
+ * build they are looking at.
  */
 export function Footer(): ReactElement {
   const { t } = useTranslation();

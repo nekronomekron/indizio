@@ -2,8 +2,8 @@ import type { ReactNode } from 'react';
 import { C } from './palette.js';
 
 /**
- * Bediensymbole im selben flachen Vektorstil wie die Requisiten:
- * kräftige Grundform, ein Akzent, keine Konturen.
+ * UI icons in the same flat vector style as the props: a strong base shape,
+ * one accent, no outlines.
  */
 export const ICON_SHAPES: Record<string, ReactNode> = {
   'ui-x': (
@@ -57,14 +57,13 @@ export const ICON_SHAPES: Record<string, ReactNode> = {
       <circle cx="12" cy="12" r="3.6" fill={C.red} />
     </>
   ),
-  // Um die Mitte der Zeichenflaeche gedreht. Frueher um (11, 18): der Stift
-  // sass zu tief und ragte unten ueber die Flaeche hinaus.
+  // Rotated about the centre of the drawing area. It used to turn about
+  // (11, 18): the pencil sat too low and stuck out at the bottom.
   //
-  // Die Spitze steht ungedreht da und ist deshalb aus dem gedrehten Stiftende
-  // gerechnet: dessen Ecken (4 | 10.6) und (4 | 15.2) landen bei (5.35 | 16.67)
-  // und (8.61 | 19.92); die Spitze liegt 3.5 weiter in Stiftrichtung, also
-  // nach links unten. Das Ganze um (-0.8 | -0.5) verschoben, damit der Stift
-  // mittig in der Flaeche sitzt.
+  // The tip is not rotated, so it is computed from the rotated pencil end: its
+  // corners (4 | 10.6) and (4 | 15.2) land at (5.35 | 16.67) and (8.61 | 19.92);
+  // the tip lies 3.5 further along the pencil, i.e. down and to the left. The
+  // whole is shifted by (-0.8 | -0.5) so the pencil sits centred.
   'ui-note': (
     <g transform="translate(-0.8 -0.5)">
       <rect

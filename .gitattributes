@@ -1,16 +1,16 @@
-# Zeilenenden: im Repo immer LF, in der Arbeitskopie was das System mag.
+# Line endings: always LF in the repo, whatever the system likes in the work tree.
 #
-# Ohne diese Datei hängt es an der Einstellung `core.autocrlf` jedes einzelnen
-# Rechners, was im Repo landet. Auf Windows geschriebene Dateien kamen hier mit
-# CRLF an; wer sie auf macOS oder Linux auscheckt, bekommt sie so zurück, und
-# die nächste Änderung sieht dann aus, als sei die ganze Datei neu geschrieben.
+# Without this file, what lands in the repo depends on every machine's
+# `core.autocrlf`. Files written on Windows arrived with CRLF; checked out on
+# macOS or Linux they came back that way, and the next change looked as if the
+# whole file had been rewritten.
 * text=auto eol=lf
 
-# Windows-Skripte brauchen CRLF, sonst führt sie die Eingabeaufforderung nicht aus.
+# Windows scripts need CRLF, or the command prompt will not run them.
 *.bat text eol=crlf
 *.cmd text eol=crlf
 
-# Binär: nicht anfassen, nicht zusammenführen, nicht als Text vergleichen.
+# Binary: do not touch, merge or diff as text.
 *.png binary
 *.jpg binary
 *.jpeg binary
@@ -21,14 +21,14 @@
 *.ttf binary
 *.pdf binary
 
-# SVG ist Text und soll im Diff lesbar bleiben — die Grafiken des Spiels sind
-# Quelltext, kein Bildmaterial.
+# SVG is text and should stay readable in a diff — the game's drawings are
+# source, not image material.
 *.svg text
 
-# Vom Werkzeug geschrieben: im Diff einklappen, damit eine Änderung daran nicht
-# den Blick auf die eigentliche Arbeit verstellt.
+# Written by tools: collapsed in diffs so changes there do not hide the real work.
 package-lock.json linguist-generated=true -diff
 tests/engine/reference/* linguist-generated=true
+src/**/*.module.d.css.ts linguist-generated=true
 
-# GitHub soll das Projekt nach dem Spielcode einordnen, nicht nach den Grafiken.
+# GitHub should classify the project by its game code, not its drawings.
 art/** linguist-vendored=true

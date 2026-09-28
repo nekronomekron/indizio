@@ -1,4 +1,4 @@
-/* Indizio Service Worker - macht das Spiel nach dem ersten Laden offline spielbar. */
+/* Indizio service worker — makes the game playable offline after the first load. */
 const CACHE = 'indizio-v1';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
@@ -22,7 +22,7 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Navigation: erst Netz, sonst die zwischengespeicherte Huelle.
+  // Navigation: network first, otherwise the cached shell.
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
@@ -36,7 +36,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Alles andere: erst Cache, dann Netz - Vite-Dateinamen sind gehasht.
+  // Everything else: cache first, then network — Vite's file names are hashed.
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached;

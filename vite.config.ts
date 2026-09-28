@@ -2,14 +2,13 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath, URL } from 'node:url';
 import { parseAppVersion } from './scripts/app-version.js';
-// Als Import und nicht ueber fs gelesen: nur so zaehlt die package.json fuer
-// Vite als Abhaengigkeit der Konfiguration, und der Entwicklungsserver startet
-// nach `npm run bump` von selbst neu. Mit fs zeigte der Footer bis zum
-// naechsten Handgriff die alte Nummer.
+// Imported rather than read with fs: only then does Vite count package.json as
+// a dependency of the config, and the dev server restarts by itself after
+// `npm run bump`. With fs the footer kept the old number until the next edit.
 import packageJson from './package.json';
 
-// Die Versionsnummer wird beim Bauen eingesetzt, nicht zur Laufzeit gelesen:
-// ein falsches Format faellt damit hier auf und nicht erst im Footer.
+// The version is filled in at build time, not read at runtime: a wrong format
+// fails here rather than in the footer.
 const version = parseAppVersion(packageJson.version);
 
 export default defineConfig({
@@ -18,8 +17,8 @@ export default defineConfig({
   define: { __APP_VERSION__: JSON.stringify(version.text) },
   resolve: {
     alias: {
-      // Reihenfolge zaehlt: der laengere Schluessel zuerst, sonst schluckt
-      // '@engine' die Anfrage nach '@engine/i18n'.
+      // Order matters: the longer key first, or '@engine' swallows the
+      // request for '@engine/i18n'.
       '@engine/i18n': fileURLToPath(new URL('./src/engine/i18n/index.ts', import.meta.url)),
       '@engine': fileURLToPath(new URL('./src/engine/index.ts', import.meta.url)),
       '@app': fileURLToPath(new URL('./src/app', import.meta.url)),

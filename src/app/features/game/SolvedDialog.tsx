@@ -30,7 +30,7 @@ export function SolvedDialog({
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      /* Zwischenablage nicht verfuegbar */
+      // No clipboard available: nothing to share with.
     }
   };
 
@@ -66,9 +66,9 @@ export function SolvedDialog({
           <button type="button" className={button.primary} onClick={onBack}>
             {t('again')}
           </button>
-          {/* Absichtlich abgeschickt und nicht abgewartet: `share` fängt selbst
-              ab, wenn die Zwischenablage fehlt. Ohne das `void` übergäbe man
-              dem Klick ein Versprechen, das niemand einlöst. */}
+          {/* Fired and deliberately not awaited: `share` handles a missing
+              clipboard itself. Without the `void` the click would be handed a
+              promise nobody keeps. */}
           <button
             type="button"
             onClick={() => {

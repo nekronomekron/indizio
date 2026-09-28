@@ -4,22 +4,22 @@ import { describe, expect, it } from 'vitest';
 import { BoardLines, labelRun, wallInset, wallWidth } from '../src/app/features/game/board/BoardLines.js';
 
 /**
- * Beschriftungen auf dem Brett — Raumname, Buchstabe, Notizen — dürfen die
- * Raumwand nicht anschneiden, und der Raumname nicht über sie hinweglaufen.
+ * Labels on the board — room name, letter, notes — must not be cut by the
+ * room wall, and the room name must not run over it.
  */
 
-describe('Wandabstand', () => {
-  it('liegt bei jeder Zellgröße jenseits der halben Wand', () => {
+describe('wall inset', () => {
+  it('lies beyond half the wall at every cell size', () => {
     for (let cellPx = 24; cellPx <= 72; cellPx += 8) {
       expect(wallInset(cellPx), String(cellPx)).toBeGreaterThanOrEqual(wallWidth(cellPx) / 2 + 2);
     }
   });
 });
 
-describe('Hervorhebung beim Darüberfahren', () => {
-  it('liegt am Brettrand ganz innerhalb des Brettes', () => {
-    // Mittig auf der Brettkante lag die äußere Hälfte des Strichs außerhalb
-    // und wurde abgeschnitten.
+describe('hover highlight', () => {
+  it('stays fully inside the board at its edge', () => {
+    // Centred on the board's edge, the outer half of the stroke lay outside
+    // and was cut off.
     const size = 4;
     const cellPx = 48;
     const half = wallWidth(cellPx) / 2;
@@ -37,33 +37,33 @@ describe('Hervorhebung beim Darüberfahren', () => {
       expect(x).toBeLessThanOrEqual(size * cellPx - half);
       expect(y).toBeLessThanOrEqual(size * cellPx - half);
     }
-    // Die obere Kante liegt um die halbe Strichstärke tiefer, nicht auf 0.
+    // The top edge sits half a stroke lower, not at 0.
     expect(d).toContain('M0 ' + String(half) + 'h');
     expect(d).toContain('M' + String(half) + ' 0v');
   });
 });
 
-describe('Breite des Raumnamens', () => {
-  // 4×4, zwei Räume: 0 links (Spalten 0–1), 1 rechts (Spalten 2–3), dazu ein
-  // Gang aus Raum 2 in der letzten Zeile über die ganze Breite.
+describe('room name width', () => {
+  // 4×4, two rooms: 0 on the left (columns 0–1), 1 on the right (columns 2–3),
+  // plus a corridor, room 2, across the whole last row.
   const size = 4;
   const roomOfCell = Int32Array.from([0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 2, 2, 2, 2]);
 
-  it('reicht bis zur nächsten Wand in der Zeile', () => {
+  it('reaches to the next wall in the row', () => {
     expect(labelRun(0, roomOfCell, size)).toBe(2);
     expect(labelRun(2, roomOfCell, size)).toBe(2);
     expect(labelRun(12, roomOfCell, size)).toBe(4);
   });
 
-  it('bricht am Brettrand nicht in die nächste Zeile um', () => {
-    // Zelle 3 und 4 gehören nicht zum selben Raum, aber selbst wenn: 4 liegt
-    // in der nächsten Zeile.
+  it('does not wrap into the next row at the board edge', () => {
+    // Cells 3 and 4 are not in the same room, but even if they were: 4 is in
+    // the next row.
     const sameRoom = new Int32Array(16);
     expect(labelRun(2, sameRoom, size)).toBe(2);
     expect(labelRun(15, sameRoom, size)).toBe(1);
   });
 
-  it('ist in einem Gang ein einziges Feld breit', () => {
+  it('is a single cell wide in a corridor', () => {
     const corridor = Int32Array.from([0, 1, 2, 2, 0, 1, 2, 2, 0, 1, 2, 2, 0, 1, 2, 2]);
     expect(labelRun(1, corridor, size)).toBe(1);
   });

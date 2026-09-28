@@ -7,11 +7,11 @@ import { cx } from '../../shared/ui/cx.js';
 import button from '../../shared/ui/button.module.css';
 import styles from './Calendar.module.css';
 
-/** Was ein Tag im Kalender über sich zu sagen hat. */
+/** What a day in the calendar has to say about itself. */
 export type DayState =
-  /** Vor dem Starttag — da gab es das Spiel noch nicht. */
+  /** Before the start day — the game did not exist yet. */
   | 'before'
-  /** Noch nicht dran. Die Stufe steht schon fest und darf sichtbar sein. */
+  /** Not yet due. Its tier is already fixed and may show. */
   | 'future'
   | 'open'
   | 'started'
@@ -37,7 +37,7 @@ const TIER_CLASS: Record<DifficultyKey, string> = {
 export interface CalendarProps {
   at: YearMonth;
   today: CalendarDate;
-  /** Frühester Monat, den es gibt — davor ist der Zurück-Knopf gesperrt. */
+  /** The earliest month there is — the back button is locked before it. */
   first: YearMonth;
   stateOf: (date: CalendarDate) => DayState;
   difficultyOf: (date: CalendarDate) => DifficultyKey;
@@ -47,20 +47,19 @@ export interface CalendarProps {
 }
 
 /**
- * Monatsnamen und Wochentage kommen von `Intl`, nicht aus der Textdatei.
+ * Month and weekday names come from `Intl`, not from the resources.
  *
- * Zwölf Monate mal zwei Sprachen wären vierundzwanzig Einträge, die der Browser
- * ohnehin kennt — und bei einer dritten Sprache wären es sechsunddreißig.
- * Gerechnet wird in UTC, damit die Formatierung nicht am Zeitzonenrand auf den
- * Vortag rutscht.
+ * Twelve months in two languages would be twenty-four entries the browser
+ * knows anyway — and thirty-six with a third language. Dates are formatted in
+ * UTC so they do not slip to the previous day at a time-zone boundary.
  */
 function useLabels(locale: string, at: YearMonth) {
   return useMemo(() => {
     const month = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(
       new Date(Date.UTC(at.year, at.month - 1, 1)),
     );
-    // Der 1.1.2024 war ein Montag — von dort aus sieben Tage, und die Woche
-    // steht in der Reihenfolge, in der sie hier auch angezeigt wird.
+    // 1 January 2024 was a Monday — seven days from there give the week in the
+    // order it is shown here.
     const weekdays = Array.from({ length: 7 }, (_, index) =>
       new Intl.DateTimeFormat(locale, { weekday: 'short', timeZone: 'UTC' }).format(
         new Date(Date.UTC(2024, 0, 1 + index)),
@@ -135,8 +134,8 @@ export function Calendar(props: CalendarProps): ReactElement {
           const isToday = sameDate(date, today);
           const className = cx(styles.day, STATE_CLASS[state], isToday && styles.today);
 
-          // Der Vorlesetext trägt, was die Zelle zeigt: Datum, Stufe, Zustand.
-          // Eine Farbe und ein Häkchen allein sagen nichts, wer nicht hinsieht.
+          // The spoken label carries what the cell shows: date, tier, state. A
+          // colour and a tick alone say nothing to someone who cannot look.
           const spoken = [
             labels.dayName.format(new Date(Date.UTC(date.year, date.month - 1, date.day))),
             state === 'before' ? '' : t(difficulty),
@@ -159,8 +158,8 @@ export function Calendar(props: CalendarProps): ReactElement {
               {state !== 'before' && (
                 <span className={cx(styles.tier, TIER_CLASS[difficulty])} aria-hidden="true" />
               )}
-              {/* Zustand doppelt: als Füllfarbe der Zelle und als großes Symbol,
-                  damit er auch ohne Farbwahrnehmung auf einen Blick lesbar ist. */}
+              {/* The state twice: as the cell's fill and as a large symbol, so it
+                  reads at a glance without colour vision too. */}
               {state === 'solved' && (
                 <span className={styles.mark} aria-hidden="true">
                   <Sprite kind="icons" name="ui-check" size={24} />

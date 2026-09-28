@@ -29,23 +29,22 @@ export interface GameScreenProps {
   core: PuzzleCore;
   holdMs: number;
   vibrate: boolean;
-  /** Namen der Felder beim Verweilen zeigen - abschaltbar in den Einstellungen. */
+  /** Show the names of a cell when resting on it — can be switched off in the settings. */
   names: boolean;
   onBack: () => void;
   onSettings: () => void;
 }
 
 /**
- * Der gespeicherte Stand **ist** der Anfangszustand — er wird nicht kurz nach
- * dem Anfang nachgereicht.
+ * The saved game *is* the initial state — it is not handed in shortly after.
  *
- * Vorher lud ein Effekt den Stand und ein zweiter schrieb ihn zurück, getrennt
- * durch einen Merker „schon geladen". Das ist ein Wettlauf: der schreibende
- * Effekt sieht den Zustand des Renders, der gerade fertig wurde, und das ist
- * beim ersten Durchlauf noch das leere Brett. Gemessen im Browser hat er damit
- * den gerade geladenen Spielstand überschrieben, bevor er sichtbar wurde.
+ * Before, one effect loaded the save and a second wrote it back, separated by
+ * an "already loaded" flag. That is a race: the writing effect sees the state
+ * of the render that just finished, which on the first pass is still the empty
+ * board. Measured in the browser, it overwrote the freshly loaded game before
+ * it ever showed.
  *
- * Als Anfangszustand gibt es den Wettlauf nicht mehr, und den Merker auch nicht.
+ * As the initial state there is no race any more, and no flag either.
  */
 function openSession(core: PuzzleCore): GameSession {
   const saved = loadSave(core);
@@ -76,8 +75,8 @@ export function GameScreen({
     const onResize = () => setViewport({ w: window.innerWidth, h: window.innerHeight });
     window.addEventListener('resize', onResize);
     window.addEventListener('orientationchange', onResize);
-    // Auf Mobilgeraeten aendert sich die sichtbare Flaeche auch ohne resize,
-    // etwa wenn die Adressleiste ein- oder ausfaehrt.
+    // On mobile the visible area also changes without a resize, e.g. when the
+    // address bar slides in or out.
     window.visualViewport?.addEventListener('resize', onResize);
     return () => {
       window.removeEventListener('resize', onResize);
@@ -86,8 +85,8 @@ export function GameScreen({
     };
   }, []);
 
-  // Speichern ist jetzt bedingungslos: der erste Schreibvorgang legt genau das
-  // zurück, was `openSession` gerade gelesen hat.
+  // Saving is unconditional: the first write stores exactly what
+  // `openSession` just read.
   useEffect(() => {
     saveGame(core.seed, state);
   }, [core.seed, state]);
@@ -97,18 +96,17 @@ export function GameScreen({
     return () => window.clearInterval(id);
   }, []);
 
-  // Gitter auf den verfuegbaren Platz rechnen, in Achterschritten fuer scharfe
-  // Pixel. Direkt aus dem Viewport statt ueber eine Messung - vorhersagbar und
-  // ohne Abhaengigkeit vom Renderzeitpunkt. Was unter dem Brett Platz belegt,
-  // muss deshalb hier abgezogen werden: die Fusszeile weiss selbst, wie hoch
-  // sie ist.
+  // Fit the grid into the available space, in steps of eight for sharp
+  // pixels. Straight from the viewport rather than a measurement — predictable
+  // and independent of when rendering happens. Whatever takes space below the
+  // board has to be subtracted here: the footer knows its own height.
   const wide = viewport.w >= 900;
   const availableW = wide ? viewport.w - 300 - 72 : viewport.w - 28;
   const availableH = viewport.h - (wide ? 210 : 340) - FOOTER_PX;
   const cellPx = boardCellPx(availableW, availableH, core.size);
 
-  // Darstellung der Verdaechtigen: Buchstabe aus dem Namen, Opfer zuletzt.
-  // Beides haengt nur an den Personen, nicht am Spielstand.
+  // How suspects are shown: letter from the name, victim last. Both depend on
+  // the people only, not on the game state.
   const letters = useMemo(() => suspectLetters(core.suspects), [core.suspects]);
   const cards = useMemo(() => cardOrder(core.suspects), [core.suspects]);
 
@@ -127,7 +125,7 @@ export function GameScreen({
     const labels: Record<number, string> = {};
     for (const room of core.rooms) {
       const full = translator.roomName(core.themeKey, room.nameKey);
-      // Artikel weglassen: "die Werkstatt" -> "Werkstatt", "the workshop" -> "workshop".
+      // Drop the article, in either language: "the workshop" -> "workshop".
       const parts = full.split(' ');
       labels[room.id] = parts.length > 1 ? parts.slice(1).join(' ') : full;
     }
@@ -135,11 +133,11 @@ export function GameScreen({
   }, [core.rooms, core.themeKey, translator]);
 
   /**
-   * Bloßer Name je Requisite — „Regal", nicht „an einem Regal".
+   * Bare name per prop — "shelf", not "next to a shelf".
    *
-   * Die Hinweise nennen die Requisiten, das Brett zeigte davon nur ein Bild.
-   * Wer die Grafik nicht deutet, kann den Hinweis nicht prüfen; das war
-   * Bilderraten und nicht Schließen.
+   * Clues name the props; the board used to show only a picture. Whoever could
+   * not read the drawing could not check the clue — that was guessing pictures,
+   * not deduction.
    */
   const objectLabels = useMemo(() => {
     const labels: Record<number, string> = {};
@@ -147,7 +145,7 @@ export function GameScreen({
     return labels;
   }, [core.objects, core.themeKey, translator]);
 
-  /** Eine Person weiter oder zurueck - in der Reihenfolge der Kartenliste. */
+  /** One person on or back — in the order of the card list. */
   const cycleSuspect = (delta: number) => {
     const index = cards.findIndex((suspect) => suspect.id === state.selected);
     const next = cards[(index + delta + cards.length) % cards.length];
@@ -188,8 +186,8 @@ export function GameScreen({
   return (
     <div className={styles.game}>
       <header className={styles.head}>
-        {/* Auf schmalen Geraeten bleibt nur der Pfeil: mit drei beschrifteten
-            Knoepfen brach die Kopfzeile um und schob das Brett aus dem Bild. */}
+        {/* On narrow devices only the arrow remains: with three labelled
+            buttons the header wrapped and pushed the board out of view. */}
         <button
           type="button"
           className={cx(button.ghost, styles.headButton)}
@@ -269,8 +267,8 @@ export function GameScreen({
             onCycle={cycleSuspect}
             keyboardLabel={t('keyboardHelp')}
           />
-          {/* Angesagt statt nur gezeigt: Urteil und Tipp sind die beiden
-              Stellen, an denen das Spiel antwortet. */}
+          {/* Announced, not only shown: verdict and hint are the two places
+              where the game answers. */}
           <div role="status" aria-live="polite">
             {hintText !== null && <p className={styles.hintBox}>{hintText}</p>}
             {state.verdict === 'wrong' && (

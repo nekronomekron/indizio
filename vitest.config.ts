@@ -3,21 +3,21 @@ import { fileURLToPath, URL } from 'node:url';
 import { readAppVersion } from './scripts/app-version.js';
 
 /**
- * Drei Testläufe.
+ * Three test runs.
  *
- * `engine` und `app` bleiben zusammen unter einer Minute, damit sie beim
- * Arbeiten wirklich laufen. `deep` nimmt hunderte Seeds über alle Größen,
- * vergleicht mit dem Referenzlöser und prüft Zeitbudgets — der Lauf, der den
- * Generator beweist, aber zu langsam für die Schleife beim Schreiben.
+ * `engine` and `app` together stay under a minute, so they actually get run
+ * while working. `deep` takes hundreds of seeds over every size, compares with
+ * the reference solver and checks time budgets — the run that proves the
+ * generator, but too slow for the loop while writing.
  *
- * `extends: true` in jedem Projekt ist nicht Zierde: ohne diese Zeile erbt ein
- * Projekt **nichts** von hier oben, auch nicht `define`. Der Footer-Test lief
- * dann in ein „__APP_VERSION__ is not defined", obwohl die Ersetzung an dieser
- * Datei sichtbar stand.
+ * `extends: true` in every project is not decoration: without it a project
+ * inherits *nothing* from up here, not even `define`. The footer test then ran
+ * into "__APP_VERSION__ is not defined" although the replacement was right
+ * there in this file.
  */
 const alias = {
-  // Reihenfolge zählt: der längere Schlüssel zuerst, sonst schluckt '@engine'
-  // die Anfrage nach '@engine/i18n'.
+  // Order matters: the longer key first, or '@engine' swallows the request for
+  // '@engine/i18n'.
   '@engine/i18n': fileURLToPath(new URL('./src/engine/i18n/index.ts', import.meta.url)),
   '@engine': fileURLToPath(new URL('./src/engine/index.ts', import.meta.url)),
   '@app': fileURLToPath(new URL('./src/app', import.meta.url)),
@@ -25,7 +25,7 @@ const alias = {
 
 export default defineConfig({
   resolve: { alias },
-  // Wie beim Bauen, sonst läuft der Footer im Test ins Leere.
+  // As in the build, or the footer finds nothing in tests.
   define: { __APP_VERSION__: JSON.stringify(readAppVersion().text) },
   css: { modules: { localsConvention: 'camelCaseOnly' } },
   test: {

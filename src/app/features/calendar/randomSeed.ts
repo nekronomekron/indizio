@@ -2,11 +2,11 @@ import { SIZES_BY_DIFFICULTY, THEME_KEYS, makeSeed, parseSeed } from '@engine';
 import type { DifficultyKey } from '@engine';
 
 /**
- * Ein Zufallsfall: die Stufe wählt der Spieler, alles andere wird ausgelost.
+ * A random case: the player picks the tier, everything else is drawn.
  *
- * Der Zufall kommt aus `crypto.getRandomValues` und nicht aus `Math.random`.
- * In der Engine ist `Math.random` per Test verboten, weil jede Wahl durch den
- * Seed laufen muss; hier draußen gäbe es keinen Grund, schlechter zu würfeln.
+ * Randomness comes from `crypto.getRandomValues`, not `Math.random`. In the
+ * engine `Math.random` is forbidden because every choice must go through the
+ * seed; out here there is no reason to roll worse dice.
  */
 
 function randomWord(): number {
@@ -16,33 +16,33 @@ function randomWord(): number {
 }
 
 /**
- * Ein Element, gleichverteilt genug.
+ * One element, uniform enough.
  *
- * Der Rest einer Division ist bei drei Themes minimal ungleich verteilt — bei
- * 2^32 Werten und drei Fächern trifft das eines um etwa ein Zweimilliardstel
- * häufiger. Das ist nicht die Art Ungleichheit, die man bei der Wahl eines
- * Tatorts bemerkt.
+ * The remainder of a division is very slightly uneven over three themes — with
+ * 2^32 values and three buckets, one is hit about one in two billion more
+ * often. Not the kind of unevenness anyone notices when a crime scene is
+ * picked.
  */
 function pick<T>(items: readonly T[]): T {
   return items[randomWord() % items.length]!;
 }
 
 /**
- * Seed für einen frischen Fall der gewünschten Stufe.
+ * Seed for a fresh case of the wanted tier.
  *
- * Die Gittergröße folgt aus der Stufe, deshalb wird sie nicht gewählt sondern
- * hergeleitet — bei „sehr leicht" gibt es zwei, dann entscheidet das Los.
+ * The grid size follows from the tier, so it is derived rather than chosen —
+ * "very easy" has two, and then the draw decides.
  */
 export function randomSeed(difficulty: DifficultyKey): string {
   return makeSeed(pick(THEME_KEYS), pick(SIZES_BY_DIFFICULTY[difficulty]), randomWord());
 }
 
 /**
- * Noch einmal würfeln, gleiche Stufe.
+ * Roll again, same tier.
  *
- * Gebraucht, wenn sich zu einem ausgelosten Seed kein Rätsel erzeugen lässt:
- * dann bekommt der Spieler einen anderen Fall derselben Schwere, statt einer
- * Fehlermeldung für etwas, das er gar nicht ausgesucht hat.
+ * Needed when no puzzle can be generated for a drawn seed: the player then
+ * gets another case of the same difficulty instead of an error about something
+ * they never chose.
  */
 export function redrawSeed(seed: string): string | null {
   try {
@@ -53,14 +53,14 @@ export function redrawSeed(seed: string): string | null {
 }
 
 /**
- * Darf dieser fehlgeschlagene Seed ersetzt werden — und wodurch?
+ * May this failed seed be replaced — and by what?
  *
- * Die Regel steht hier und nicht in der Komponente, weil ihr Bruch teuer wäre
- * und sich sonst nicht prüfen ließe: **ein eingetippter Seed wird niemals
- * ersetzt.** Wer einen bestimmten Fall aufruft, will genau den; ihm
- * stillschweigend einen anderen unterzuschieben wäre schlimmer als die
- * Fehlermeldung. Ersetzt wird nur, was das Spiel selbst ausgelost hat, und auch
- * das nur begrenzt oft — sonst würfelt es im Fehlerfall ewig weiter.
+ * The rule lives here rather than in the component because breaking it would
+ * be costly and could not be tested otherwise: *a typed-in seed is never
+ * replaced.* Whoever opens a particular case wants exactly that one; quietly
+ * slipping them another would be worse than the error. Only what the game drew
+ * itself is replaced, and only a limited number of times — otherwise it would
+ * keep rolling forever on a failure.
  */
 export function redrawFor(
   failedSeed: string,

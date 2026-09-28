@@ -3,7 +3,7 @@
   "private": true,
   "version": "2026.5",
   "type": "module",
-  "description": "Indizio — Logikrätsel am Tatort",
+  "description": "Indizio — logic puzzles at the crime scene",
   "license": "MIT",
   "repository": {
     "type": "git",

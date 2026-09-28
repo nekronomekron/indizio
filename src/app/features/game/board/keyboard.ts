@@ -2,17 +2,16 @@ import { columnOf, rowOf } from '@engine';
 import type { Cell } from '@engine';
 
 /**
- * Wohin der Tastaturrahmen von hier aus wandert.
+ * Where the keyboard frame moves from here.
  *
- * Steht als eigene Funktion da, weil das Anstoßen an den Rändern genau die
- * Stelle ist, an der ein Fehler um eins wohnt — und weil die Bedienung im Test
- * sonst gar nicht vorkäme: ein Tastendruck im Gitter lässt sich ohne DOM nicht
- * nachstellen, diese Rechnung schon.
+ * A function of its own because bumping into the edges is exactly where an
+ * off-by-one error lives — and because otherwise keyboard use would not be
+ * tested at all: a key press in the grid cannot be replayed without a DOM,
+ * this arithmetic can.
  *
- * Gibt `null` zurück, wenn die Taste keine Bewegung ist. Am Rand bleibt der
- * Rahmen stehen, statt in die nächste Zeile zu springen: ein Gitter ist keine
- * Textzeile, und wer nach rechts hält, will nicht plötzlich eine Zeile tiefer
- * ganz links stehen.
+ * Returns `null` when the key is not a movement. At the edge the frame stays
+ * put instead of jumping to the next row: a grid is not a line of text, and
+ * whoever holds right does not want to end up one row down on the far left.
  */
 export function moveCursor(at: Cell, key: string, size: number): Cell | null {
   const row = rowOf(at, size);

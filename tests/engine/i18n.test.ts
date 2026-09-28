@@ -121,8 +121,7 @@ describe('clue rendering', () => {
         const name = translator.objectName('test', 'shelf');
         expect(name.length).toBeGreaterThan(2);
         expect(name).not.toBe('themes.test.objects.shelf.bare');
-        // Der Satzteil aus einem Hinweis traegt die Praeposition mit; der Name
-        // allein darf sie nicht haben.
+        // The phrase inside a clue carries the preposition; the name alone must not.
         const inClue = translator.render(scene, {
           ownerId: 0,
           clue: { type: 'ON_OBJECT', objectKey: 'shelf' },

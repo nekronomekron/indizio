@@ -2,11 +2,10 @@ import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 
 /**
- * Alle Grafiken aus `art/` auf einem Blatt — zum Draufschauen, nicht fuer den Build.
+ * Every drawing in `art/` on one sheet — to look at, not for the build.
  *
- * Liest die **Dateien**, nicht die Platzhalterquellen. Das Blatt zeigt damit
- * genau das, was im Spiel erscheint, auch wenn jemand eine Datei ausgetauscht
- * hat.
+ * Reads the *files*, not the placeholder sources. So the sheet shows exactly
+ * what appears in the game, even after someone replaced a file.
  *
  * ```bash
  * npm run art:sheet -- art-sheet.svg
@@ -14,7 +13,7 @@ import { join, relative, sep } from 'node:path';
  */
 
 const ART = join(process.cwd(), 'art');
-const BOX = 72; // Kantenlaenge der Bildkachel; CELL laesst Platz fuer den Namen
+const BOX = 72; // Side of the picture tile; CELL leaves room for the name
 const CELL = 92;
 const COLUMNS = 10;
 
@@ -35,11 +34,10 @@ interface Art {
 }
 
 /**
- * Inhalt und Zeichenflaeche einer Datei.
+ * Content and drawing area of a file.
  *
- * Die Flaeche wird mitgelesen, weil Requisiten je Grundflaeche verschieden
- * breit sind: ein `3x1` misst 72 mal 24. Mit fester Vergroesserung liefe es
- * ueber seine Kachel im Blatt hinaus.
+ * The area is read along because props differ in width by footprint: a `3x1`
+ * measures 72 by 24. At a fixed scale it would run over its tile on the sheet.
  */
 function read(path: string): Art {
   const text = readFileSync(join(ART, path), 'utf8');
@@ -78,9 +76,9 @@ for (const [folder, list] of [...groups].sort(([a], [b]) => a.localeCompare(b)))
     const name = file.slice(file.lastIndexOf('/') + 1, -4);
     const art = read(file);
 
-    // So gross wie moeglich, ohne aus der Kachel zu laufen, und darin zentriert.
-    // Ein breites Objekt wird dadurch flacher abgebildet als ein quadratisches
-    // - genau richtig, denn so belegt es auch im Spiel seinen Platz.
+    // As large as possible without leaving the tile, and centred in it. A wide
+    // object comes out flatter than a square one — rightly so, since that is
+    // how it takes its place in the game.
     const scale = Math.min(BOX / art.width, BOX / art.height);
     const left = x + 6 + (BOX - art.width * scale) / 2;
     const topInset = top + 6 + (BOX - art.height * scale) / 2;

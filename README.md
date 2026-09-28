@@ -1,235 +1,258 @@
-# Indizio — Logikrätsel am Tatort
+# Indizio — logic puzzles at the crime scene
 
-Ein Krimi-Deduktionsspiel nach dem Vorbild von [Murdoku](https://murdoku.com):
-Auf einem N×N-Gitter steht in **jeder Zeile und jeder Spalte genau eine Person**.
-Jede Verdächtigenkarte trägt genau einen wahren Hinweis. Wer alle richtig
-platziert, hat den Mörder überführt — das Opfer war mit ihm allein in einem Raum.
+A detective deduction game in the style of [Murdoku](https://murdoku.com): on
+an N×N grid, **every row and every column holds exactly one person**. Every
+suspect card carries exactly one true clue. Place everyone correctly and you
+have caught the murderer — the victim was alone with them in one room.
 
-Alles läuft im Browser: keine Anmeldung, kein Backend, nach dem ersten Laden
-auch offline. Jedes Rätsel entsteht aus seinem **Seed** — derselbe Link ergibt
-überall dasselbe Rätsel.
+Everything runs in the browser: no sign-up, no backend, and offline after the
+first load. Every puzzle comes from its **seed** — the same link gives the same
+puzzle everywhere.
 
-**Jeder Tag hat seinen eigenen Fall.** Ein Kalender zeigt den Monat; der
-Wochentag bestimmt die Schwere, von kurz am Montag bis lang am Sonntag.
-Verpasste Tage lassen sich nachholen. Wer zwischendurch etwas anderes will,
-wählt eine Stufe und bekommt einen ausgelosten Fall.
+**Every day has its own case.** A calendar shows the month; the weekday sets
+the difficulty, from short on Monday to long on Sunday. Missed days can be
+caught up on. Whoever wants something else in between picks a tier and gets a
+drawn case.
 
-Spielen geht mit Maus, Finger **und Tastatur**: Pfeiltasten bewegen einen
-Rahmen über das Brett, Eingabe platziert, N notiert, X markiert.
+It plays with mouse, finger **and keyboard**: arrow keys move a frame over the
+board, Enter places, N notes, X marks.
 
-Die Fußzeile zeigt die **Versionsnummer** im Format `<Jahr>.<Nummer>`, etwa
-`2026.5`: die fünfte Fassung aus diesem Jahr. Sie steht in der `package.json`
-und nirgendwo sonst; `npm run bump` zählt sie hoch, im neuen Jahr wieder ab
-eins. Bewusst kein Semver — das sagt etwas über Verträge zwischen Programmen
-zu, und die gibt es hier nicht. Wer einen Fehler meldet, soll ohne Nachfrage
-sagen können, welchen Stand er vor sich hatte.
+The game speaks German and English; on a first visit it follows the browser's
+language.
+
+The footer shows the **version** as `<year>.<number>`, e.g. `2026.5`: the fifth
+version this year. It lives in `package.json` and nowhere else; `npm run bump`
+counts it up, restarting at one in a new year. Deliberately not semver — that
+promises something about contracts between programs, and there are none here.
+Whoever reports a bug should be able to say, unasked, which build they had.
 
 ```bash
 npm install
 npm run dev
 ```
 
-Öffnet <http://localhost:5173>. Für den Produktionsstand `npm run build`, das
-Ergebnis in `dist/` läuft auf jedem statischen Webspace.
+Opens <http://localhost:5173>. For a production build run `npm run build`; the
+result in `dist/` runs on any static web host.
 
-## Was das Spiel garantiert
+## What the game guarantees
 
-| Zusage | Wie sie eingehalten wird |
+| Promise | How it is kept |
 |---|---|
-| Genau eine Lösung | Der Logiklöser führt jedes Rätsel ohne Fallunterscheidung zu Ende; ein unabhängiger Referenzlöser bestätigt die Eindeutigkeit stichprobenartig |
-| Nie raten müssen | Nur Rätsel, die der regelbasierte Löser vollständig ableitet, werden ausgeliefert |
-| Alle Hinweise wahr | Jeder Hinweis wird vor der Ausgabe erneut gegen die Lösung geprüft |
-| Reproduzierbar | Gleicher Seed ⇒ byte-identischer Rätselkern, auch über Prozessgrenzen |
-| Steigende Schwierigkeit | Gittergröße als primärer Schlüssel, dazu gemessene Streuung und Anteil indirekter Hinweise |
+| Exactly one solution | The logic solver finishes every puzzle without case analysis; an independent reference solver confirms uniqueness on samples |
+| Never guess | Only puzzles the rule-based solver deduces completely are shipped |
+| All clues true | Every clue is checked against the solution again before output |
+| Reproducible | Same seed ⇒ byte-identical puzzle core, across processes too |
+| Rising difficulty | Grid size as the primary key, plus measured spread and share of indirect clues |
 
-Nachgewiesen durch `npm run verify` (Typprüfung, Lint, alle Tests) und
-`npm run test:deep` (der gründliche Lauf über alle Gittergrößen). Die
-Kriterien stehen in [PLAN.md](PLAN.md) §11.
+Proven by `npm run verify` (type check, lint, formatting, all tests) and
+`npm run test:deep` (the thorough run over every grid size). The criteria are
+in [PLAN.md](PLAN.md) §11.
 
-## Befehle
+## Commands
 
-| Befehl | Zweck |
+| Command | Purpose |
 |---|---|
-| `npm run dev` | Entwicklungsserver |
-| `npm run build` | Produktionsbündel nach `dist/` |
-| `npm test` | Tests von Engine und App, unter einer Minute |
-| `npm run test:deep` | gründlicher Lauf: alle Gittergrößen, hunderte Seeds, Zeitbudgets |
-| `npm run lint` | Lint, mit strengeren Regeln für die Engine als für die Oberfläche |
-| `npm run typecheck` | Typprüfung beider Projekte (`tsconfig.engine.json`, `tsconfig.json`) |
-| `npm run verify` | Typprüfung, Lint und alle Tests — der Lauf vor jedem Commit |
-| `npm run reference` | eingefrorene Referenzdaten der Engine neu schreiben |
-| `npm run art` | fehlende Platzhaltergrafiken nach `art/` schreiben |
-| `npm run art:sheet` | alle Grafiken auf ein Blatt, zum Draufschauen |
-| `npm run bump` | Versionsnummer eine Stelle hochzählen |
+| `npm run dev` | development server |
+| `npm run build` | production bundle into `dist/` |
+| `npm test` | engine and app tests, under a minute |
+| `npm run test:deep` | thorough run: every grid size, hundreds of seeds, time budgets |
+| `npm run lint` | ESLint, one strictness for all code |
+| `npm run format` | format with Prettier |
+| `npm run typecheck` | type check of both projects (`tsconfig.engine.json`, `tsconfig.json`) |
+| `npm run css:types` | write the typed class names of the CSS modules |
+| `npm run verify` | type check, lint, formatting and all tests — the run before every commit |
+| `npm run reference` | rewrite the engine's frozen reference data |
+| `npm run art` | write missing placeholder drawings into `art/` |
+| `npm run art:sheet` | every drawing on one sheet, to look at |
+| `npm run bump` | count the version up by one |
 
-## Aufbau
+How code is written here is in [CODING_GUIDELINES.md](CODING_GUIDELINES.md).
 
-Die Spiellogik liegt im Projekt, aber **hinter genau zwei Türen**. Die
-Oberfläche kennt `@engine` und `@engine/i18n` — und nichts darunter.
+## Structure
+
+The game logic lives in the project, but **behind exactly two doors**. The UI
+knows `@engine` and `@engine/i18n` — and nothing beneath.
 
 ```
-src/engine/        Generator und Löser, ohne Abhängigkeiten
-  index.ts         die Tür: alles, was die App benutzen darf
-  api.ts           solvePuzzle, verifyPuzzle, hintFor, boardLayout
-  core/            Typen, Gitterrechnung, Seeds, Stufen, Zufallsgenerator
-  clues/           was ein Hinweis bedeutet
-  solving/         Kandidaten, Propagation, Regeln, Tipp, Referenzlöser
-  generation/      Grundriss, Möblierung, Rollen, Hinweissuche
-  io/              JSON-Austauschformat mit vollständiger Prüfung
-  content/         Themes und Namen — Daten, austauschbar
-  i18n/            zweite Tür: i18next-Ressourcen und Hinweisübersetzer
-art/               jede Grafik als eigene SVG-Datei (siehe art/README.md)
-src/worker/        Generator im Web Worker
-src/app/           Oberfläche (React), Zustand, Speicherung
-scripts/           Hilfsskripte (Grafiken, Referenzdaten, Version)
-scripts/art/       Zeichenvorschriften der Platzhalter — nur für die Entwicklung
-tests/             App-Tests und die Grenze
-tests/engine/      Tests der Engine, inklusive erzwungener Entkopplung
+src/engine/          generator and solver, no DOM, no React
+  index.ts           the door: everything the app may use
+  api.ts             solvePuzzle, verifyPuzzle, hintFor, boardLayout
+  core/              types, grid arithmetic, seeds, tiers, random numbers, locales
+  clues/             what a clue means
+  solving/           candidates, propagation, rules, hint, reference solver
+  generation/        floor plan, furnishing, roles, clue search
+  io/                JSON interchange format with complete validation
+  content/themes/    one folder per theme: rooms and floors, objects, texts
+  i18n/              second door: i18next resources and clue translator
+src/app/             the React UI
+  features/          game, calendar, settings — one folder each
+  shared/            what several features use: i18n, art, storage, errors, UI parts
+src/worker/          the generator in a web worker
+art/                 every drawing as its own SVG file (see art/README.md)
+scripts/             helper scripts (drawings, reference data, CSS types, version)
+scripts/art/         placeholder drawing instructions — development only
+tests/               app tests and the boundaries
+tests/engine/        engine tests, including the enforced decoupling
 ```
 
-Die Ordner der Engine sind **Schichten mit einer Richtung**: `generation` →
-`solving` → `clues` → `core`, und niemand greift zurück.
+The engine's folders are **layers with one direction**: `generation` →
+`solving` → `clues` → `core`, and nothing reaches back. The app's features use
+`shared/` but never each other.
 
-Bis vor Kurzem war die Engine ein eigenes Paket, und die Paketgrenze hielt ihre
-Schnittstelle zusammen. Im selben Projekt gibt es diesen Schutz nicht mehr,
-deshalb steht die Grenze jetzt zweimal ausdrücklich da: als Lint-Regel in
-`eslint.config.js`, die beim Schreiben greift, und als
-[tests/boundary.test.ts](tests/boundary.test.ts), die auch dann greift, wenn
-jemand den Linter überspringt. Dazu zwei `tsconfig`-Dateien — die Engine läuft
-unter strengeren Schaltern als die Oberfläche, weil dichte Zahlenarbeit davon
-profitiert und JSX vor allem Lärm davon hat.
+Both boundaries are enforced, not just described: the engine door by an ESLint
+rule and by [tests/boundary.test.ts](tests/boundary.test.ts), the feature
+boundaries by the same test. The engine compiles without DOM types, so a stray
+`window` fails to compile rather than failing in the worker.
 
-Was die Engine über sich selbst verspricht, steht — auf Englisch, wie ihr
-gesamter Quelltext — in [src/engine/README.md](src/engine/README.md).
+What the engine promises about itself is in
+[src/engine/README.md](src/engine/README.md).
 
-### Die Engine benutzen
+### Using the engine
 
 ```ts
 import { generatePuzzle, makeSeed, stringifyPuzzle } from '@engine';
 import { createClueTranslator } from '@engine/i18n';
 
 const { core } = generatePuzzle(makeSeed('garage', 6, 12345));
-const translator = createClueTranslator({ locale: 'de' });
+const translator = createClueTranslator({ locale: 'en' });
 console.log(core.clues.map((entry) => translator.render(core, entry)));
-const json = stringifyPuzzle(core);   // überall wieder einlesbar
+const json = stringifyPuzzle(core); // readable back anywhere
 ```
 
-Die Sätze entstehen mit **i18next**, das nur hinter der Tür `@engine/i18n`
-geladen wird — wer nur erzeugt und löst, bekommt einen Kern ohne jede
-Laufzeitabhängigkeit, und der Worker bezahlt keine Übersetzungsbibliothek für
-Arbeit, die er nicht tut. Eigene Themes lassen sich übergeben, ohne am Generator
-etwas zu ändern; ihre Wörter kommen über `additionalResources` mit.
+Sentences come from **i18next**, loaded only behind the `@engine/i18n` door —
+whoever only generates and solves gets a core without any runtime dependency,
+and the worker pays for no translation library it does not use. The app hands
+the translator its own i18next instance, so UI and clues switch language
+together.
 
-Ein Zugriff **an den Türen vorbei** ist kein Abkürzungsweg, sondern ein Fehler:
+Custom themes can be passed in without touching the generator. A theme brings
+its own texts, so a custom theme is complete in itself.
+
+Reaching **past the doors** is not a shortcut but an error:
 
 ```ts
-import { solve } from '../engine/solving/solve.js';   // Lint und Test schlagen an
+import { solve } from '../engine/solving/solve.js'; // lint and test both object
 ```
 
-Wer etwas von innen braucht, exportiert es in `src/engine/index.ts` — mit einem
-Namen, der auch jemandem etwas sagt, der das Innenleben nicht kennt. Genau dafür
-gibt es `api.ts`.
+Whoever needs something from inside exports it from `src/engine/index.ts` —
+under a name that means something to someone who does not know the internals.
+That is what `api.ts` is for.
 
-## Wie ein Rätsel entsteht
+### Adding a theme
 
-1. **Räume** — Guillotine-Teilung, dann ein ausgeschnittener Gang und
-   rechteckige Bisse zwischen Nachbarräumen. Ergebnis sind **zusammenhängende
-   Zellmengen statt Rechtecke**: L-Formen, Nischen und schmale Flure wie in
-   echten Gebäuden. Über 80 % der Räume sind nicht rechteckig.
-2. **Lösung zuerst** — eine zufällige Permutation legt fest, wer wo steht;
-   sie wird neu gewürfelt, bis ein Raum genau zwei Personen enthält.
-3. **Möblierung danach** — jede Lösungszelle bekommt einen Anker: ein begehbares
-   Objekt darauf oder ein sperrendes daneben. Jeder Objekttyp dient höchstens
-   einmal als Anker, sonst würden zwei Karten denselben Hinweis tragen und das
-   Rätsel wäre mehrdeutig.
-4. **Hinweissuche** — stärkster wahrer Hinweis je Karte, Reparatur der unsicheren
-   Karten, greedy abschwächen bis zum schwersten noch lösbaren Satz, dann
-   direkte gegen indirekte Hinweise tauschen, bis die Stufe passt.
-5. **Prüfung** — alle Hinweise wahr, Löser kommt ohne Fallunterscheidung durch,
-   Schranken der Stufe eingehalten, Einschränkungen aus §4.2.1 verletzt nichts.
+1. A folder `src/engine/content/themes/<key>/` with `theme.ts` (rooms with their
+   floor, objects) and `locales/de.ts`, `locales/en.ts` (name, room words,
+   object word forms).
+2. One line in `src/engine/content/themes/index.ts`.
+3. Placeholder shapes in `scripts/art/themes/<key>.tsx`, registered in
+   `scripts/art/themes/index.ts`; then `npm run art`.
 
-Die Reihenfolge in Schritt 2 und 3 ist der Kern: zufällig möblieren und danach
-eine Lösung suchen liefert ab 8×8 messbar **kein einziges** lösbares Rätsel.
-Die Herleitung steht in [VALIDATION.md](VALIDATION.md), Runde 5.
+The tests say what is still missing: texts in every language, a floor drawing
+per room, a drawing per object.
 
-## Grafik
+## How a puzzle is made
 
-**Alles Vektor, alles selbst gemacht.** Keine Rasterbilder, kein Sprite-Atlas,
-keine fremden Grafikpakete — jede Form ist SVG im 24×24-Raster und bleibt bei
-jeder Größe scharf. Der Stil ist flach und klar: keine Konturen, keine
-Verläufe, je Material ein Grundton und ein dunklerer Ton für Tiefe.
+1. **Rooms** — guillotine split, then a carved-out corridor and rectangular
+   bites between neighbouring rooms. The result is **connected sets of cells
+   rather than rectangles**: L-shapes, alcoves and narrow halls as in real
+   buildings. Over 80 % of rooms are not rectangular.
+2. **Solution first** — a random permutation decides who stands where; it is
+   rerolled until one room holds exactly two people.
+3. **Furniture second** — every solution cell gets an anchor: a walkable object
+   on it or a blocking one next to it. Every object type serves as an anchor at
+   most once; otherwise two cards would carry the same clue and the puzzle would
+   be ambiguous. Carpets and mats are laid in free shapes that may turn corners
+   and cross.
+4. **Clue search** — the strongest true clue per card, repair of the uncertain
+   cards, greedy weakening down to the hardest still solvable set, then swapping
+   direct for indirect clues until the tier fits.
+5. **Checks** — all clues true, the solver gets through without case analysis,
+   the tier's bounds are kept, the restrictions of PLAN.md §4.2.1 hold.
 
-**Jede Grafik ist eine eigene Datei** in [art/](art/README.md). Die App zeichnet
-nichts mehr selbst, sie lädt die Dateien — eine Grafik austauschen heißt also,
-die Datei zu ersetzen. Was dort heute liegt, sind Platzhalter; `npm run art`
-erzeugt sie, überschreibt aber nie eine Datei, die jemand ausgetauscht hat.
+The order of steps 2 and 3 is the core of it: furnishing at random and then
+searching for a solution yields measurably **not one** solvable puzzle from
+8×8 up. The derivation is in [VALIDATION.md](VALIDATION.md), round 5.
 
-Jedes Theme hat sein **eigenes Grafikset** unter `art/themes/<theme>/`. Gesucht
-wird erst dort, dann in `art/common/`. So darf der Stuhl in der Werkstatt anders
-aussehen als der in der Küche, während Figuren und Bediensymbole nur einmal
-vorliegen.
+## Drawings
 
-Die Verdächtigen sind **Silhouetten ohne Gesicht**. Das folgt aus der Zusage,
-dass Porträts nie lösungsrelevant sind: ein Gesicht lädt dazu ein, etwas
-hineinzulesen. Unterschieden werden die vierzehn Figuren über Kleidungsfarbe,
-Kopfform und Hautton.
+**All vector, all home-made.** No raster images, no sprite atlas, no foreign
+art packs — every shape is SVG on a 24×24 grid and stays sharp at any size. The
+style is flat and clear: no outlines, no gradients, per material a base colour
+and a darker one for depth.
 
-Jeder Raum hat außerdem einen **Bodenbelag, der zu seinem Namen passt** — im Bad
-Fliesen, auf dem Rasen Gras, in der Werkstatt Estrich. Das ist kein Schmuck:
-fast jeder Hinweis nimmt auf Räume Bezug, und ein wiedererkennbarer Boden macht
-die Raumgrenzen ohne Nachlesen klar.
+**Every drawing is a file of its own** in [art/](art/README.md). The app draws
+nothing itself, it loads the files — replacing a drawing means replacing the
+file. What is there today are placeholders; `npm run art` makes them, but never
+overwrites a file someone replaced.
 
-Aus demselben Grund ist **jeder Raum von einer dicken schwarzen Linie umgeben**,
-immer und auf jedem Gerät. Auf dem Handy gibt es kein Schweben, und eine
-Raumgrenze, die man nur mit der Maus findet, ist für die Hälfte der Spieler
-keine.
+Every theme has its **own set of drawings** under `art/themes/<theme>/`. Lookup
+goes there first, then to `art/common/`. So the workshop chair may look
+different from the kitchen chair, while characters and icons exist only once.
 
-88 Dateien: 48 Requisiten, 2 Blätter verlegter Requisiten, 16 Bodenbeläge,
-14 Figuren, 8 Bediensymbole.
+The suspects are **silhouettes without faces**. That follows from the promise
+that portraits never matter for the solution: a face invites reading something
+into it. The fourteen characters differ in clothing colour, head shape and
+skin tone.
 
-Requisiten haben **je Grundfläche eine eigene Datei** — `bed_2x1.svg` neben
-`bed_1x2.svg`, `table_3x1.svg` —, und das Spiel legt sie über genau diese
-Felder. Ein Bett quer ist damit kein gedrehtes Bett längs.
+Every room also has a **floor that fits its name** — tiles in the bathroom,
+grass on the lawn, concrete in the workshop. Not decoration: almost every clue
+refers to rooms, and a floor you recognise makes room borders clear without
+reading.
 
-**Teppiche und Matten** liegen dagegen in beliebiger Form im Raum, um Ecken und
-mit Kreuzungen. Für sie gibt es je Art ein Blatt (`tiles/carpet.svg`), aus dem
-das Spiel jede Form in Vierteln zusammensetzt — siehe
-[art/README.md](art/README.md) und PLAN.md §13.
+For the same reason **every room is surrounded by a thick black line**,
+always and on every device. Phones have no hover, and a room border only a
+mouse can find is no border for half the players.
 
-## Steuerung
+88 files: 48 props, 2 sheets of laid props, 16 floors, 14 characters, 8 icons.
 
-| Eingabe | Wirkung |
+Props have **a file of their own per footprint** — `bed_2x1.svg` next to
+`bed_1x2.svg`, `table_3x1.svg` — and the game lays them over exactly those
+cells. A bed across is not a rotated bed lengthways.
+
+**Carpets and mats**, by contrast, lie in any shape in the room, around corners
+and with crossings. For them there is one sheet per kind (`tiles/carpet.svg`),
+from which the game assembles any shape in quarters — see
+[art/README.md](art/README.md) and PLAN.md §13.
+
+## Controls
+
+| Input | Effect |
 |---|---|
-| Karte antippen | Person auswählen |
-| Feld antippen | Bleistiftnotiz setzen oder entfernen (Buchstabe links oben, mehrere je Feld möglich) |
-| Feld halten | Ausgewählte Person platzieren |
-| Ziehen | Notizen über mehrere Felder malen |
-| Doppelklick | Platzieren (Desktop) |
-| Rechtsklick | Feld als unmöglich markieren |
-| Radierer halten | Gesamtes Gitter leeren |
+| Tap a card | select that person |
+| Tap a cell | add or remove a pencil note (letter top left, several per cell) |
+| Hold a cell | place the selected person |
+| Drag | paint notes across several cells |
+| Double-click | place (desktop) |
+| Right-click | mark a cell as impossible |
+| Hold the eraser | clear the whole grid |
+| Mouse over a room | the room is highlighted (desktop only) |
+| Arrow keys, Home, End | move the keyboard frame |
+| Enter / Space | place |
+| N, X, Delete | note, mark, clear |
+| Comma, full stop | previous / next person |
 
-Beim Platzieren markiert das Spiel Zeile und Spalte automatisch mit X und räumt
-die damit hinfälligen Notizen weg — genau die Buchführung, die sonst von Hand
-anfiele.
+When placing, the game marks row and column with X automatically and clears
+the notes that no longer apply — exactly the bookkeeping that would otherwise
+be done by hand.
 
-Auf dem Brett steht der **Anfangsbuchstabe des Namens**: ein „N" erinnert an
-Nadja und nicht daran, dass sie die vierte Karte ist. Wer eine Karte wählt,
-sieht alle Marken dieser Person farbig aufleuchten — Platzierung wie Notiz. Das **Opfer steht in der
-Liste zuletzt** — es ist die einzige Karte, die nichts zu ermitteln gibt.
+The board shows the **first letter of the name**: an "N" reminds you of Nadja,
+not of her being the fourth card. Selecting a card lights up all of that
+person's marks — placement and notes alike. The **victim is last in the list**
+— it is the one card with nothing to investigate.
 
-| Maus über einem Raum | Raum wird farblich hervorgehoben (nur am Schreibtisch) |
+Nobody can stand on blocking objects — table, cupboard, lamp, tree; the grid
+takes no input there. Walkable are only things you could sensibly stand or sit
+on: bed, carpet, chair, sofa, bench, mat, pallet, car, stepping stone and the
+like.
 
-Auf gesperrten Objekten — Tisch, Schrank, Lampe, Baum — kann niemand stehen; das
-Gitter nimmt dort gar keine Eingabe an. Begehbar sind nur Dinge, auf denen man
-sinnvollerweise steht oder sitzt: Bett, Teppich, Stuhl, Sofa, Bank, Matte,
-Palette, Auto, Trittstein und Ähnliches.
+**Confirm** only says right or wrong — never which person is misplaced. The
+**hint**, in turn, always starts from an empty board and names the next forced
+step; it never comments on the board and so cannot be abused as an error
+finder.
 
-**Bestätigen** sagt nur richtig oder falsch — nie, welche Person danebensteht.
-Der **Tipp** geht dafür immer vom leeren Brett aus und nennt den nächsten
-zwingenden Schritt; er kommentiert nie den Spielstand und lässt sich damit nicht
-als Fehlersucher missbrauchen.
+## Documents
 
-## Dokumente
-
-- [PLAN.md](PLAN.md) — Entwicklungsplan mit Spielkonzept, Solver, Generator und Abnahmekriterien
-- [VALIDATION.md](VALIDATION.md) — Prüfprotokoll: 48 gefundene und behobene Fehler in zwanzig Runden
+- [PLAN.md](PLAN.md) — development plan with game concept, solver, generator and acceptance criteria
+- [VALIDATION.md](VALIDATION.md) — review log: errors found and fixed, round by round
+- [CODING_GUIDELINES.md](CODING_GUIDELINES.md) — how code is written here
+- [art/README.md](art/README.md) — rules for the drawings

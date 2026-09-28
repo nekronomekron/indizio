@@ -9,15 +9,14 @@ import text from '../../shared/ui/text.module.css';
 import styles from './SettingsDialog.module.css';
 
 /**
- * Einstellungen.
+ * Settings.
  *
- * `holdMs` und `vibrate` lagen seit Langem im Speicher und hatten **keine
- * Oberfläche** — man konnte sie nur ändern, indem man den Browserspeicher von
- * Hand bearbeitete. Wer eine schwere Hand hat oder ein träges Gerät, braucht
- * eine längere Haltedauer; wer in der Bahn spielt, will vielleicht kein Rütteln.
+ * `holdMs` and `vibrate` sat in storage for a long time with *no UI* — the
+ * only way to change them was editing browser storage by hand. A heavy hand or
+ * a slow device needs a longer hold; someone playing on the train may not want
+ * the buzz.
  *
- * Derselbe Dialogaufbau wie die Spielanleitung, damit es ein Muster bleibt und
- * kein zweites.
+ * The same dialog layout as the rules, so it stays one pattern, not two.
  */
 export function SettingsDialog({
   settings,

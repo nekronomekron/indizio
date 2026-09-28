@@ -1,16 +1,16 @@
 import type { ReactNode } from 'react';
 
 /**
- * Figuren als Silhouetten — **ohne Gesichter**.
+ * Characters as silhouettes — *without faces*.
  *
- * Das ist keine Sparmaßnahme, sondern Regel: die Porträts dürfen nie
- * lösungsrelevant sein (PLAN.md §7). Ein Gesicht lädt dazu ein, etwas
- * hineinzulesen; eine reine Silhouette nicht.
+ * Not a saving but a rule: portraits must never matter for the solution
+ * (PLAN.md §7). A face invites reading something into it; a plain silhouette
+ * does not.
  *
- * Unterschieden werden die Figuren über drei Merkmale, die zusammen 14
- * eindeutige Kombinationen ergeben: Kleidungsfarbe, Kopfform (Frisur oder
- * Kopfbedeckung) und Hautton. Jede Figur ist damit auf einen Blick von jeder
- * anderen zu trennen, auch klein im Gitter.
+ * The characters differ in three features that together give 14 distinct
+ * combinations: clothing colour, head shape (hairstyle or headwear) and skin
+ * tone. So every character can be told from every other at a glance, even
+ * small on the grid.
  */
 
 const KLEIDUNG = [
@@ -26,13 +26,13 @@ const KLEIDUNG_DUNKEL = [
 const HAUT = ['#f0cfae', '#dcae83', '#b9835a', '#8d5f3c'];
 const HAAR = ['#3a3450', '#6d492a', '#c99a4e', '#8b8898', '#a8503a'];
 
-/** Kopfformen: reine Silhouette, nie ein Gesicht. */
+/** Head shapes: silhouette only, never a face. */
 const KOPFFORMEN: ((haar: string) => ReactNode)[] = [
-  // kurz und rund
+  // short and round
   (h) => <path d="M6.4 9.6a5.6 5.6 0 0 1 11.2 0Z" fill={h} />,
-  // flacher Schnitt
+  // flat cut
   (h) => <path d="M6.2 9.4h11.6V7.6a5.8 5.8 0 0 0-11.6 0Z" fill={h} />,
-  // lange Seiten
+  // long sides
   (h) => (
     <>
       <path d="M6.4 9.6a5.6 5.6 0 0 1 11.2 0Z" fill={h} />
@@ -40,14 +40,14 @@ const KOPFFORMEN: ((haar: string) => ReactNode)[] = [
       <rect x="16.2" y="8.4" width="2.2" height="6.4" rx="1.1" fill={h} />
     </>
   ),
-  // Dutt
+  // bun
   (h) => (
     <>
       <path d="M6.4 9.6a5.6 5.6 0 0 1 11.2 0Z" fill={h} />
       <circle cx="12" cy="3.4" r="2.4" fill={h} />
     </>
   ),
-  // Mütze mit Bommel
+  // bobble hat
   (h) => (
     <>
       <path d="M6.2 9.4h11.6V8.2a5.8 5.8 0 0 0-11.6 0Z" fill={h} />
@@ -55,14 +55,14 @@ const KOPFFORMEN: ((haar: string) => ReactNode)[] = [
       <circle cx="12" cy="2.6" r="1.7" fill={h} />
     </>
   ),
-  // breite Krempe
+  // wide brim
   (h) => (
     <>
       <path d="M7.4 8.6a4.6 4.6 0 0 1 9.2 0Z" fill={h} />
       <rect x="3.6" y="8.2" width="16.8" height="2" rx="1" fill={h} />
     </>
   ),
-  // kahl: nur ein angedeuteter Kranz
+  // bald: only a hint of a fringe
   (h) => (
     <>
       <rect x="5.8" y="9.2" width="2" height="3.4" rx="1" fill={h} />
@@ -71,7 +71,7 @@ const KOPFFORMEN: ((haar: string) => ReactNode)[] = [
   ),
 ];
 
-/** Eine Figur als Silhouette. Der Index bestimmt die Kombination. */
+/** One character as a silhouette. The index picks the combination. */
 export function characterShape(index: number): ReactNode {
   const kleidung = KLEIDUNG[index % KLEIDUNG.length]!;
   const dunkel = KLEIDUNG_DUNKEL[index % KLEIDUNG_DUNKEL.length]!;
@@ -81,18 +81,18 @@ export function characterShape(index: number): ReactNode {
 
   return (
     <>
-      {/* Schultern */}
+      {/* Shoulders */}
       <path d="M3.2 22v-3.4A6.4 6.4 0 0 1 9.6 12.2h4.8a6.4 6.4 0 0 1 6.4 6.4V22Z" fill={kleidung} />
       <path d="M10.6 12.2h2.8v2.2a1.4 1.4 0 0 1-2.8 0Z" fill={dunkel} />
       <rect x="10.9" y="10.4" width="2.2" height="2.6" fill={haut} />
-      {/* Kopf */}
+      {/* Head */}
       <circle cx="12" cy="8.4" r="5.1" fill={haut} />
       {kopf(haar)}
     </>
   );
 }
 
-/** Alle Porträtschlüssel, die die Bibliothek vergibt: p01 bis p14. */
+/** Every portrait key the engine hands out: p01 to p14. */
 export const CHARACTER_SHAPES: Record<string, ReactNode> = Object.fromEntries(
   Array.from({ length: 14 }, (_, i) => ['p' + String(i + 1).padStart(2, '0'), characterShape(i)]),
 );

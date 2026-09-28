@@ -10,20 +10,20 @@ export type Tool = 'place' | 'mark' | 'erase';
 export type ShownHint = { cell: Cell; suspectId: number; step: number; totalSteps: number } | { cell: null };
 
 export interface GameState {
-  /** Kantenlaenge des Gitters - fuer Zeilen- und Spaltenlogik. */
+  /** Side of the grid — for row and column logic. */
   size: number;
-  /** Zelle je Verdaechtigem, null wenn nicht platziert. */
+  /** Cell per suspect, null when not placed. */
   placements: (Cell | null)[];
-  /** Bleistiftnotizen: Verdaechtigen-Ids je Zelle. */
+  /** Pencil notes: suspect ids per cell. */
   notes: Record<number, number[]>;
-  /** Als unmoeglich markierte Zellen. */
+  /** Cells marked impossible. */
   marks: number[];
   selected: number | null;
   tool: Tool;
   hintsUsed: number;
   /** The last hint asked for, until the board changes. */
   hint: ShownHint | null;
-  /** Ergebnis der letzten Pruefung. */
+  /** Result of the last check. */
   verdict: 'none' | 'wrong' | 'solved';
   elapsedMs: number;
   running: boolean;
@@ -49,10 +49,10 @@ export function initialGame(core: PuzzleCore): GameState {
     placements: core.suspects.map(() => null),
     notes: {},
     marks: [],
-    // Auch das Opfer wird platziert - es ist eine Karte wie jede andere.
-    // Vorausgewaehlt ist trotzdem jemand anderes: das Opfer steht in der
-    // Liste zuletzt, und eine Auswahl am unteren Ende, waehrend der Blick
-    // oben anfaengt, sieht nach Versehen aus.
+    // The victim gets placed too — it is a card like any other. Still,
+    // someone else is preselected: the victim is last in the list, and a
+    // selection at the bottom while the eye starts at the top looks like a
+    // mistake.
     selected: (core.suspects.find((suspect) => !suspect.isVictim) ?? core.suspects[0])?.id ?? null,
     tool: 'place',
     hintsUsed: 0,
@@ -63,7 +63,7 @@ export function initialGame(core: PuzzleCore): GameState {
   };
 }
 
-/** Zustaende, die per Rueckgaengig wiederherstellbar sind. */
+/** State that undo can restore. */
 type Snapshot = Pick<GameState, 'placements' | 'notes' | 'marks'>;
 
 export interface GameSession {
@@ -88,7 +88,7 @@ function omitKey<V>(record: Readonly<Record<number, V>>, key: number): Record<nu
   return Object.fromEntries(Object.entries(record).filter(([entry]) => Number(entry) !== key));
 }
 
-/** Alles von dieser Zelle entfernen: Platzierung, Notizen, X. */
+/** Remove everything from this cell: placement, notes, X. */
 function clearCell(state: GameState, cell: Cell): GameState {
   const notes = omitKey(state.notes, cell);
   return {
@@ -101,18 +101,17 @@ function clearCell(state: GameState, cell: Cell): GameState {
 }
 
 /**
- * Eine Person setzen und alles nachziehen, was daraus folgt (PLAN.md 8.3).
+ * Place a person and carry out everything that follows (PLAN.md §8.3).
  *
- * In jeder Zeile und jeder Spalte steht genau eine Person. Sobald jemand
- * feststeht, ist damit der Rest seiner Zeile und Spalte ausgeschlossen - das
- * traegt die Oberflaeche selbst nach, statt es dem Spieler als Fleissarbeit zu
- * ueberlassen:
+ * Every row and every column holds exactly one person. Once someone is fixed,
+ * the rest of their row and column is ruled out — the UI records that itself
+ * rather than leaving it to the player as busywork:
  *
- *  - alle uebrigen Felder der Zeile und Spalte bekommen ein X,
- *  - deren Notizen fallen weg, denn dort kann niemand mehr stehen,
- *  - saemtliche Notizen der gesetzten Person verschwinden, sie ist ja fix,
- *  - eine andere Person, die in derselben Zeile oder Spalte stand, wird
- *    heruntergenommen - sonst entstuende ein Brett, das die Grundregel bricht.
+ *  - every other cell of the row and column gets an X,
+ *  - their notes go, since nobody can stand there any more,
+ *  - all notes of the placed person go, since they are fixed now,
+ *  - another person standing in the same row or column is taken off —
+ *    otherwise the board would break the basic rule.
  */
 export function placeSuspect(state: GameState, suspectId: number, cell: Cell): GameState {
   const size = state.size;
@@ -233,9 +232,9 @@ export function gameReducer(session: GameSession, action: GameAction): GameSessi
     case 'pause':
       return { ...session, state: { ...state, running: action.running } };
 
-    // Ein 'restore' gab es hier einmal. Es ist weggefallen, weil der
-    // gespeicherte Stand jetzt der Anfangszustand der Sitzung ist und nicht
-    // nachträglich hineingereicht wird — siehe `openSession` in GameScreen.
+    // There used to be a 'restore' here. It went because the saved game is now
+    // the session's initial state rather than handed in later — see
+    // `openSession` in GameScreen.
     default:
       return session;
   }

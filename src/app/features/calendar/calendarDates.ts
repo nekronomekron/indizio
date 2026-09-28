@@ -1,32 +1,31 @@
 import { DAILY_START, daysInMonth, weekdayOf, type CalendarDate } from '@engine';
 
 /**
- * Der Kalender rechnet in **Ortszeit**.
+ * The calendar works in *local time*.
  *
- * Die Engine kennt keine Zeitzone — `dailySeed` bekommt drei Zahlen und hat
- * keine Meinung dazu, welcher Tag das ist. Diese Datei ist die Stelle, die sich
- * festlegt: für den Spieler ist heute der Tag, den sein Gerät anzeigt. Für
- * jemanden in Neuseeland ist der Tagesfall damit ein paar Stunden früher da als
- * hier, und das ist richtiger als ein Kalender, der um Mitternacht noch gestern
- * zeigt.
+ * The engine knows no time zone — `dailySeed` takes three numbers and has no
+ * opinion on which day that is. This file is where that gets decided: for the
+ * player, today is the day their device shows. For someone in New Zealand the
+ * daily case arrives a few hours earlier than here, which is more right than a
+ * calendar still showing yesterday at midnight.
  *
- * Die Woche beginnt am **Montag**, wie in Europa üblich. `weekdayOf` zählt ab
- * Sonntag, deshalb die Drehung in {@link columnOfDate}.
+ * The week starts on *Monday*, as usual in Europe. `weekdayOf` counts from
+ * Sunday, hence the rotation in {@link columnOfDate}.
  */
 
 export interface YearMonth {
   year: number;
-  /** 1 = Januar. */
+  /** 1 = January. */
   month: number;
 }
 
-/** Heute, aus der Uhr des Geräts, in seiner Zeitzone. */
+/** Today, from the device's clock, in its time zone. */
 export function today(): CalendarDate {
   const now = new Date();
   return { year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() };
 }
 
-/** Negativ, wenn `a` früher liegt. Vergleicht drei Zahlen, nicht Millisekunden. */
+/** Negative when `a` is earlier. Compares three numbers, not milliseconds. */
 export function compareDate(a: CalendarDate, b: CalendarDate): number {
   return a.year - b.year || a.month - b.month || a.day - b.day;
 }
@@ -35,7 +34,7 @@ export function sameDate(a: CalendarDate, b: CalendarDate): boolean {
   return compareDate(a, b) === 0;
 }
 
-/** Spalte im Gitter, 0 = Montag. */
+/** Column in the grid, 0 = Monday. */
 export function columnOfDate(date: CalendarDate): number {
   return (weekdayOf(date) + 6) % 7;
 }
@@ -54,12 +53,11 @@ export function compareMonth(a: YearMonth, b: YearMonth): number {
 }
 
 /**
- * Die Zellen eines Monats, aufgefüllt auf ganze Wochen.
+ * The cells of a month, padded to whole weeks.
  *
- * `null` steht für einen Platz, der zu einem Nachbarmonat gehört — er bleibt
- * leer, statt dort fremde Tage anzuzeigen. Die Zeilenzahl richtet sich nach dem
- * Monat: ein Februar, der auf einen Montag fällt, braucht vier Zeilen, ein
- * langer Monat mit spätem Beginn sechs.
+ * `null` stands for a place belonging to a neighbouring month — it stays empty
+ * instead of showing foreign days. The number of rows follows the month: a
+ * February starting on a Monday needs four, a long month starting late six.
  */
 export function monthGrid(at: YearMonth): (CalendarDate | null)[] {
   const length = daysInMonth(at.year, at.month);
@@ -71,15 +69,15 @@ export function monthGrid(at: YearMonth): (CalendarDate | null)[] {
 }
 
 /**
- * Hat dieser Tag ein Rätsel?
+ * Does this day have a puzzle?
  *
- * Vor dem Starttag gab es das Spiel nicht, nach heute ist der Tag noch nicht
- * gekommen. Beides sieht im Gitter gleich aus — gesperrt —, weil es für den
- * Spieler dasselbe bedeutet: hier ist nichts zu holen.
+ * Before the start day the game did not exist; after today the day has not
+ * come yet. Both look the same in the grid — locked — because to the player
+ * they mean the same: nothing to get here.
  */
 export function isPlayable(date: CalendarDate, now: CalendarDate = today()): boolean {
   return compareDate(date, DAILY_START) >= 0 && compareDate(date, now) <= 0;
 }
 
-/** Der früheste Monat, den der Kalender zeigt. */
+/** The earliest month the calendar shows. */
 export const FIRST_MONTH: YearMonth = monthOf(DAILY_START);

@@ -1,386 +1,378 @@
-# Indizio — Entwicklungsplan
+# Indizio — development plan
 
-> Logikrätsel am Tatort. Ein Krimi-Deduktionsspiel nach dem Vorbild von
-> [Murdoku](https://murdoku.com), mit prozedural generierten Tatorten,
-> seed-reproduzierbaren Rätseln und Pixel-Art im 16×16-Raster.
+> Logic puzzles at the crime scene. A detective deduction game in the style of
+> [Murdoku](https://murdoku.com), with procedurally generated crime scenes,
+> seed-reproducible puzzles and flat vector art.
 
-**Stand:** Plan v15 — Umbau von Struktur, i18n, Qualität und Sprache (§14, in
-Arbeit). Davor v14: verlegte Objekte in freier Form mit festem
-Viertelkachel-Schema (§13). Davor v13: Engine im Projekt statt in einem
-Paket, Kalender statt kuratiertem Katalog, Zufallsfall nach Stufe, Spiel ohne
-Maus bedienbar.
-Prüfprotokoll: [VALIDATION.md](VALIDATION.md)
-**Projektordner:** `C:\Projects\murdoku` (Paketname `indizio`)
+**Status:** plan v15 — rework of structure, i18n, quality and language (§14).
+Before that v14: laid objects in free shapes with a fixed quarter-tile scheme
+(§13). Before that v13: engine inside the project instead of a package, a
+calendar instead of a curated catalogue, random case by tier, playable without
+a mouse.
+Review log: [VALIDATION.md](VALIDATION.md)
 
 ---
 
-## 1. Vorbedingungen des Auftrags
+## 1. Requirements of the brief
 
-Diese acht Punkte sind die Messlatte. Jeder Abschnitt verweist auf die Nummer,
-die er erfüllt.
+These points are the yardstick. Every section refers to the number it
+satisfies.
 
-| # | Vorbedingung | Erfüllt in |
+| # | Requirement | Satisfied in |
 |---|---|---|
-| V1 | Sudoku-ähnlich: pro Spalte und Reihe nur ein Verdächtiger | §3.2, §5 |
-| V2 | Verdächtige links, steigender Schwierigkeitsgrad mit mehr Verdächtigen | §3.1, §5.4, §8.2 |
-| V3 | Zufallsgenerierte Puzzle mit verschiedenen Räumen | §6.2, §6.3 |
-| V4 | Passende Beschreibung je Verdächtigem wird mitgeneriert | §4, §6.6 |
-| V5 | Alle Grafiken selbst erstellt, als frei skalierbares SVG in austauschbaren Dateien | §7, §7.0 |
-| V6 | Seed-basierte Reproduzierbarkeit | §6.1, §6.8 |
-| V7 | Läuft im Browser auf Desktop und Handy | §6.7, §8.5, §9 |
-| V8 | Murdoku-Doku und Tutorial vollständig gelesen | §2 |
-| V9 | Generator und Löser als entkoppelte Bibliothek, Austausch per JSON | §8.1, §6.8 |
-| V10 | Nicht-rechteckige Räume: Gänge und L-Formen | §6.2 |
-| V11 | Objekte wie Teppiche oder Gänge in freier Form innerhalb eines Raums — um Ecken, mit Kreuzungen —, als Verlegeart im Theme konfigurierbar statt an einzelne Objekte gebunden, mit einem festen Grafikschema, das jede Form abbildet | §13 |
+| V1 | Sudoku-like: only one suspect per column and row | §3.2, §5 |
+| V2 | Suspects on the left; difficulty rising with more suspects | §3.1, §5.4, §8.2 |
+| V3 | Randomly generated puzzles with different rooms | §6.2, §6.3 |
+| V4 | A fitting description is generated for every suspect | §4, §6.6 |
+| V5 | All drawings home-made, as freely scalable SVG in replaceable files | §7, §7.0 |
+| V6 | Seed-based reproducibility | §6.1, §6.8 |
+| V7 | Runs in the browser on desktop and phone | §6.7, §8.5, §9 |
+| V8 | Murdoku's documentation and tutorial read in full | §2 |
+| V9 | Generator and solver as a decoupled library, exchange via JSON | §8.1, §6.8 |
+| V10 | Non-rectangular rooms: corridors and L-shapes | §6.2 |
+| V11 | Objects such as carpets or corridors in free shapes inside a room — around corners, with crossings — configurable per theme as a way of laying rather than tied to single objects, with a fixed drawing scheme that covers every shape | §13 |
 
 ---
 
-## 2. Was Murdoku tatsächlich macht (Quelle für §3–§5)
+## 2. What Murdoku actually does (source for §3–§5)
 
-Aus Spielanleitung, Schlüsselwortliste, Fortgeschrittenen-Tipps, FAQ und dem
-sechsstufigen Tutorial, gelesen am 27.08.2026.
+From the rules, the keyword list, the advanced tips, the FAQ and the six-step
+tutorial, read on 27 August 2026.
 
-**Regeln**
+**Rules**
 
-- Eine Person pro Zeile und pro Spalte.
-- Verdächtige nur auf begehbaren Feldern (nicht auf Tischen, Bäumen …).
-- Das Opfer ist selbst eine Karte auf dem Gitter und trägt den Hinweis
-  „Das Opfer. Er war allein mit dem Mörder."
-- Wer alle korrekt platziert, hat den Mörder implizit überführt.
+- One person per row and per column.
+- Suspects only on walkable cells (not on tables, trees …).
+- The victim is a card on the grid too and carries the clue "The victim. He was
+  alone with the murderer."
+- Whoever places everyone correctly has implicitly convicted the murderer.
 
-**Schlüsselwörter mit exakter Bedeutung**
+**Keywords with an exact meaning**
 
-- `neben` — links, rechts, oben oder unten **und im selben Raum**.
-- `allein` — niemand sonst war im Raum, **nicht einmal das Opfer**.
-- `allein mit` — nur diese Personen waren im Raum.
-- `leerer Bereich` — ein Bereich in dem niemand war, nicht einmal das Opfer.
-- `Ecke` — wo zwei Wände eines Raumes zusammentreffen.
-- `Diagonale` — auf derselben Diagonale wie (a).
-- `Reihe` / `Spalte` — waagerechte bzw. senkrechte Linie von Feldern.
-- `westlich von (a)` / `östlich von (a)` — jedes Feld links bzw. rechts von (a).
-- Das Tutorial nennt zusätzlich `nördlich von` und `im selben Bereich`.
+- *next to* — left, right, above or below *and in the same room*.
+- *alone* — nobody else was in the room, *not even the victim*.
+- *alone with* — only these people were in the room.
+- *empty area* — an area where nobody was, not even the victim.
+- *corner* — where two walls of a room meet.
+- *diagonal* — on the same diagonal as (a).
+- *row* / *column* — a horizontal or vertical line of cells.
+- *west of (a)* / *east of (a)* — any cell left or right of (a).
+- The tutorial also names *north of* and *in the same area*.
 
-**Zusicherungen aus der FAQ**
+**Promises from the FAQ**
 
-- „jemand" und „Person" schließen das Opfer immer mit ein.
-- Hinweise sind immer wahr, es gibt keine Tricks.
-- „neben einem Regal" erlaubt mehrere Regale; ist die Zahl wichtig, steht
-  ausdrücklich „genau ein Regal".
-- Genau eine gültige Lösung, aber mehrere Lösungswege.
-- Man muss **nie raten**, jedes Rätsel ist rein deduktiv lösbar.
-- Porträts sind rein dekorativ und nie lösungsrelevant.
-- Große Objekte bedecken mehrere Felder, eine Person besetzt nur eines davon.
-- Wer „auf einem Stuhl" sitzt, ist auch „neben einem Stuhl".
+- "someone" and "person" always include the victim.
+- Clues are always true; there are no tricks.
+- "next to a shelf" allows several shelves; if the number matters, it says
+  "exactly one shelf".
+- Exactly one valid solution, but several ways to it.
+- You *never have to guess*; every puzzle is solvable by pure deduction.
+- Portraits are purely decorative and never matter for the solution.
+- Large objects cover several cells; a person occupies only one of them.
+- Whoever sits "on a chair" is also "next to a chair".
 
-**Fortgeschrittene Techniken, die das Rätseldesign tragen muss**
+**Advanced techniques the puzzle design must support**
 
-1. Zeile oder Spalte mit genau einem freien Feld ⇒ dort steht jemand.
-2. Sind k Personen auf k Zeilen (oder Spalten) beschränkt, steht dort sonst niemand.
-3. Kann eine Person nur zwei Felder belegen, ist jedes Feld blockiert, das mit
-   beiden fluchtet.
+1. A row or column with exactly one free cell ⇒ someone stands there.
+2. If k people are confined to k rows (or columns), nobody else stands there.
+3. If a person can occupy only two cells, every cell lining up with both is
+   blocked.
 
-**Katalogstruktur**
+**Catalogue structure**
 
-Fünf Stufen (Sehr leicht → Experte), Gittergröße gleich Verdächtigenzahl,
-5×5 bis 10×10.
-
----
-
-## 3. Spielkonzept Indizio
-
-### 3.1 Aufbau des Bildschirms
-
-Links (Desktop) beziehungsweise in einem waagerecht scrollbaren Band (Handy) die
-Verdächtigenkarten mit Porträt, Name und **genau einem** Hinweis. Daneben das
-quadratische Gitter mit Räumen und Objekten, darunter die Werkzeuge. → **V2**
-
-**Der Buchstabe auf dem Brett ist der Anfangsbuchstabe des Namens**, nicht A, B,
-C nach Kartenreihenfolge. Ein „N" soll an Nadja erinnern und nicht daran, dass
-sie die vierte Karte ist; beim Nachsehen, wer wo steht, spart das den Umweg über
-die Liste. Der mitgelieferte Namensvorrat hat durchweg verschiedene
-Anfangsbuchstaben — ein Test der Bibliothek hält das fest, weil zwei gleiche
-Marken ein lösbares Rätsel unlösbar aussehen ließen. Ein fremder Vorrat muss das
-nicht, deshalb verlängert die Oberfläche kollidierende Marken so weit, wie zur
-Unterscheidung nötig ist.
-
-**Das Opfer steht in der Liste zuletzt.** Es ist die einzige Karte, die nichts
-zu ermitteln gibt — ihr Hinweis steht von Anfang an fest. Mitten in der Reihe
-unterbricht sie die Liste, am Ende schließt sie sie ab. Platziert wird es
-trotzdem wie jede andere Person (§3.2); nur vorausgewählt ist es nie, denn eine
-Markierung am unteren Ende sähe nach Versehen aus.
-
-Beides ist **reine Darstellung**: die Id bleibt unangetastet, sie ist der Index
-in Lösung, Platzierungen und Notizen.
-
-**Ein Rahmen zeigt, wo die Tastatur steht.** Das Brett ist ein einziger
-Tabstopp; darin wandert ein Rahmen mit den Pfeiltasten (§8.3). Er erscheint beim
-ersten Tastendruck, nicht schon beim Fokus — wer mit der Maus aufs Brett klickt,
-braucht ihn nicht. Seine Position überlebt einen Fokuswechsel: wer zur
-Werkzeugleiste geht und zurückkommt, findet ihn, wo er ihn gelassen hat.
-
-**Die gewählte Person leuchtet auf dem Brett auf.** Sobald eine Karte gewählt
-ist, hebt das Gitter jede ihrer Marken farbig hervor — die Platzierung wie jede
-Bleistiftnotiz. Auf einem vollen 10×10-Gitter stehen sonst ein Dutzend gleich
-aussehender Buchstaben, und man sucht seinen eigenen; die Auskunft „hier habe
-ich sie schon vermutet" steckte bis dahin nur in der Erinnerung.
-
-### 3.2 Kernregeln
-
-1. Auf einem N×N-Gitter stehen genau N Verdächtige, einer davon ist das Opfer.
-2. **In jeder Zeile und in jeder Spalte steht genau eine Person.** Die Lösung ist
-   damit eine Permutationsmatrix. → **V1**
-3. Verdächtige stehen nie auf blockierenden Objektfeldern.
-4. Der Raum des Opfers enthält genau zwei Personen: das Opfer und den Mörder.
-5. Jede Karte trägt genau einen wahren Hinweis; zusätzlich gibt es einige
-   kartenlose Tatorthinweise (bis zu ⌈N/2⌉, mindestens 3 möglich).
-6. Jedes Rätsel hat genau eine Lösung und ist ohne Fallunterscheidung lösbar.
-
-### 3.3 Ablauf
-
-Verdächtigen antippen wählt ihn aus. Feld antippen setzt eine Bleistiftnotiz,
-Feld halten platziert. Sind alle N platziert, wird „Bestätigen" aktiv. Die
-Rückmeldung ist binär — richtig, oder „nicht ganz" ohne zu verraten welche Figur
-falsch steht. Bei Erfolg folgt die Auflösung mit Nennung des Mörders.
+Five tiers (very easy → expert), grid size equal to the number of suspects,
+5×5 to 10×10.
 
 ---
 
-## 4. Hinweis-System
+## 3. Game concept
 
-Hinweise sind **Strukturdaten**, kein Text. Erst die i18n-Schicht rendert sie.
-Das ist die Voraussetzung dafür, dass Deutsch und Englisch aus derselben
-Generierung entstehen. → **V4**
+### 3.1 Screen layout
 
-### 4.1 Gemeinsame Semantikregeln
+On the left (desktop) or in a horizontally scrolling strip (phone): the suspect
+cards with portrait, name and *exactly one* clue. Next to them the square grid
+with rooms and objects, below it the tools. → **V2**
 
-- **Person** schließt das Opfer ein.
-- **Angrenzend** heißt orthogonal (N/O/S/W), keine Diagonalen, und die
-  angrenzende Zelle muss **im selben Raum** liegen wie das Subjekt.
-- **Berührungsmenge** eines Subjekts: die eigene Zelle plus ihre orthogonalen
-  Nachbarn im selben Raum. Ein Objekt gilt als „neben" dem Subjekt, wenn es
-  mindestens eine Zelle in der Berührungsmenge hat. Dadurch gilt: wer auf einem
-  Stuhl sitzt, ist auch neben einem Stuhl — exakt wie in Murdokus FAQ.
-- **Objektanzahl** zählt Objekt-**Instanzen**, nicht Zellen. Ein zweifeldriges
-  Regal, das an zwei Stellen berührt wird, zählt als eines.
-- Alle Hinweise sind wahr. Es gibt keine negierten oder irreführenden Hinweise.
-- Himmelsrichtungen: Zeile 0 ist Norden, Spalte 0 ist Westen.
+**The letter on the board is the first letter of the name**, not A, B, C by
+card order. An "N" should remind you of Nadja, not of her being the fourth
+card; checking who stands where then needs no detour through the list. The
+shipped name pool has different initials throughout — an engine test holds
+that, because two identical marks would make a solvable puzzle look unsolvable.
+A foreign pool need not, so the UI lengthens colliding marks as far as needed
+to tell them apart.
 
-### 4.2 Kartenhinweise (genau einer je Karte)
+**The victim is last in the list.** It is the one card with nothing to
+investigate — its clue is fixed from the start. In the middle it interrupts the
+list; at the end it closes it. It is still placed like any other person (§3.2);
+it is just never preselected, since a highlight at the bottom would look like a
+mistake.
 
-| Typ | Parameter | Bedeutung | Ab Stufe |
+Both are *presentation only*: the id stays untouched; it is the index into
+solution, placements and notes.
+
+**A frame shows where the keyboard is.** The board is a single tab stop; inside
+it a frame moves with the arrow keys (§8.3). It appears on the first key press,
+not on focus — whoever clicks the board with a mouse does not need it. Its
+position survives a change of focus: going to the toolbar and back finds it
+where it was left.
+
+**The selected person lights up on the board.** Once a card is selected, the
+grid highlights every one of its marks — the placement and every pencil note.
+On a full 10×10 grid there would otherwise be a dozen identical letters and you
+would search for your own; "this is where I suspected them" lived only in your
+memory until then.
+
+### 3.2 Core rules
+
+1. On an N×N grid stand exactly N suspects, one of them the victim.
+2. **Every row and every column holds exactly one person.** The solution is a
+   permutation matrix. → **V1**
+3. Suspects never stand on blocking object cells.
+4. The victim's room holds exactly two people: the victim and the murderer.
+5. Every card carries exactly one true clue; in addition there are a few
+   card-less scene clues (up to ⌈N/2⌉, at least 3 possible).
+6. Every puzzle has exactly one solution and is solvable without case
+   analysis.
+
+### 3.3 Flow
+
+Tapping a suspect selects them. Tapping a cell sets a pencil note, holding it
+places. Once all N are placed, "Confirm" becomes active. The feedback is binary
+— right, or "not quite" without revealing which figure is wrong. On success the
+resolution follows, naming the murderer.
+
+---
+
+## 4. Clue system
+
+Clues are *structured data*, not text. Only the i18n layer renders them. That
+is what lets German and English come from the same generation. → **V4**
+
+### 4.1 Shared semantics
+
+- **Person** includes the victim.
+- **Adjacent** means orthogonal (N/E/S/W), no diagonals, and the adjacent cell
+  must be *in the same room* as the subject.
+- **Touch set** of a subject: its own cell plus its orthogonal neighbours in the
+  same room. An object counts as "next to" the subject if it has at least one
+  cell in the touch set. So whoever sits on a chair is also next to a chair —
+  exactly as in Murdoku's FAQ.
+- **Object counts** count object *instances*, not cells. A two-cell shelf
+  touched in two places counts once.
+- All clues are true. There are no negated or misleading clues.
+- Compass: row 0 is north, column 0 is west.
+
+### 4.2 Card clues (exactly one per card)
+
+| Type | Parameters | Meaning | From tier |
 |---|---|---|---|
-| `ON_OBJECT` | objectKey | Subjektzelle liegt auf einer begehbaren Instanz dieses Typs | Sehr leicht |
-| `IN_ROOM` | roomId | Subjekt ist in diesem Raum | Sehr leicht |
-| `ADJACENT_OBJECT` | objectKey, count? | mindestens eine bzw. genau `count` Instanzen in der Berührungsmenge | Sehr leicht |
-| `ALONE` | roomId? | keine weitere Person im Raum des Subjekts | Sehr leicht |
-| `SAME_ROOM_AS` | otherId | Subjekt und die genannte Person teilen einen Raum | Leicht |
-| `DIR_OF_SUSPECT` | dir, otherId | west/ost/nord/süd von dieser Person | Leicht |
-| `DIR_OF_OBJECT` | dir, objectKey | west/ost/nord/süd von **jeder** Zelle der Instanz dieses Typs; nur zulässig, wenn im gesamten Gitter **genau eine** Instanz dieses Typs steht | Mittel |
-| `CORNER` | — | Subjekt steht auf einer Raumecke | Mittel |
-| `ALIGNED_WITH_OBJECT` | axis, objectKey | teilt Zeile bzw. Spalte mit einer Zelle dieses Typs | Mittel |
-| `DIAGONAL_OF` | otherId | \|Δr\| = \|Δc\| zur genannten Person, Δ ≠ 0 | Schwer |
-| `ALONE_WITH` | otherIds[] | im Raum stehen genau das Subjekt und die genannten Personen | Schwer |
+| `ON_OBJECT` | objectKey | the subject's cell lies on a walkable instance of this type | very easy |
+| `IN_ROOM` | roomId | the subject is in this room | very easy |
+| `ADJACENT_OBJECT` | objectKey, count? | at least one, or exactly `count`, instances in the touch set | very easy |
+| `ALONE` | roomId? | no other person in the subject's room | very easy |
+| `SAME_ROOM_AS` | otherId | subject and the named person share a room | easy |
+| `DIRECTION_OF_SUSPECT` | dir, otherId | west/east/north/south of that person | easy |
+| `DIRECTION_OF_OBJECT` | dir, objectKey | west/east/north/south of *every* cell of that type's instance; only allowed when the whole grid holds *exactly one* instance of the type | medium |
+| `CORNER` | — | the subject stands on a room corner | medium |
+| `ALIGNED_WITH_OBJECT` | axis, objectKey | shares a row or column with a cell of this type | medium |
+| `DIAGONAL_OF` | otherId | \|Δr\| = \|Δc\| to the named person, Δ ≠ 0 | hard |
+| `ALONE_WITH` | otherIds[] | exactly the subject and the named people are in the room | hard |
 
-**Bewusst nicht umgesetzt:** `SAME_ROW_AS` und `SAME_COL_AS` **zwischen
-Personen**. Bei einer Person pro Zeile und Spalte wäre ein solcher Hinweis
-niemals wahr. Murdokus Glossareinträge „Reihe" und „Spalte" definieren lediglich
-die Wörter; als Hinweis treten sie nur in Bezug auf Objekte auf, und das deckt
-`ALIGNED_WITH_OBJECT` ab.
+**Deliberately not implemented:** same row or same column *between people*.
+With one person per row and column such a clue could never be true. Murdoku's
+glossary entries "row" and "column" only define the words; as clues they occur
+only in relation to objects, which `ALIGNED_WITH_OBJECT` covers.
 
-### 4.2.1 Einschränkungen, damit Hinweise eindeutig und nicht trivial sind
+### 4.2.1 Restrictions that keep clues unambiguous and non-trivial
 
-- **Eindeutige Bezugsobjekte.** Hinweise, die sich auf *eine bestimmte* Instanz
-  beziehen (`DIR_OF_OBJECT`), sind nur zulässig, wenn genau eine Instanz dieses
-  Typs im Gitter steht — sonst wäre der Satz „westlich vom Regal" mehrdeutig.
-  Existenzielle Hinweise (`ON_OBJECT`, `ADJACENT_OBJECT`, `ALIGNED_WITH_OBJECT`)
-  brauchen diese Einschränkung nicht, weil sie ausdrücklich über alle Instanzen
-  quantifizieren.
-- **Kein Kartenhinweis nennt das Opfer namentlich** in `SAME_ROOM_AS` oder
-  `ALONE_WITH`. Andernfalls wäre der Mörder direkt benannt und die eigentliche
-  Deduktion entfiele. `DIR_OF_SUSPECT` und `DIAGONAL_OF` dürfen sich auf das
-  Opfer beziehen, weil sie nichts über Raumbelegung aussagen.
-- **Keine Selbstbezüge und keine Zyklen der Länge 2** bei relationalen
-  Hinweisen: A darf nicht auf B verweisen, wenn B auf A verweist — solche Paare
-  tragen zusammen weniger Information, als ihre Kartenzahl vermuten lässt.
-- **„Neben" nennt nie, worauf das Subjekt steht.** Die Berührungsmenge schließt
-  die eigene Zelle ein (§4.1), also ist „neben einem Stuhl" wahr, während man
-  darauf sitzt — Murdokus Regel, wörtlich. Wahr ist aber nicht dasselbe wie
-  redlich: der Satz liest sich als Verneinung der schlichteren Wahrheit, und wer
-  herausbekommt, dass sie auf dem Stuhl saß, fühlt sich zu Recht getäuscht.
-  `ADJACENT_OBJECT` wird deshalb für einen Objekttyp gar nicht erst angeboten,
-  auf dem das Subjekt steht. `ALIGNED_WITH_OBJECT` überspringt die Instanz unter
-  den Füßen seit jeher — die Einschränkung zieht nur nach, was dort schon galt
-  (VALIDATION.md, Runde 18).
+- **Unique reference objects.** Clues about *one particular* instance
+  (`DIRECTION_OF_OBJECT`) are only allowed when exactly one instance of the
+  type stands on the grid — otherwise "west of the shelf" would be ambiguous.
+  Existential clues (`ON_OBJECT`, `ADJACENT_OBJECT`, `ALIGNED_WITH_OBJECT`)
+  need no such restriction, because they quantify over all instances
+  explicitly.
+- **No card clue names the victim** in `SAME_ROOM_AS` or `ALONE_WITH`.
+  Otherwise the murderer would be named outright and the actual deduction
+  would vanish. `DIRECTION_OF_SUSPECT` and `DIAGONAL_OF` may refer to the
+  victim, since they say nothing about who is in which room.
+- **No self-references and no cycles of length 2** in relational clues: A may
+  not point to B while B points to A — such pairs carry less information
+  together than their number of cards suggests.
+- **"Next to" never names what the subject stands on.** The touch set includes
+  the own cell (§4.1), so "next to a chair" is true while sitting on it —
+  Murdoku's rule, literally. But true is not the same as fair: the sentence
+  reads as a denial of the plainer truth, and whoever works out that she sat on
+  the chair rightly feels misled. `ADJACENT_OBJECT` is therefore not offered at
+  all for an object type the subject stands on. `ALIGNED_WITH_OBJECT` has
+  always skipped the instance underfoot — the restriction brings the two into
+  line (VALIDATION.md, round 18).
 
-  Die **Regel selbst bleibt unverändert**: „neben" schließt die eigene Zelle
-  weiterhin ein, und der Löser rechnet genauso. Geändert hat sich allein, welche
-  Sätze die Hinweissuche überhaupt in die Hand nimmt.
+  The *rule itself is unchanged*: "next to" still includes the own cell, and
+  the solver computes it that way. What changed is only which sentences the
+  clue search picks up at all.
 
-### 4.3 Opferhinweis (fest)
+### 4.3 The victim's clue (fixed)
 
-`VICTIM` — „Das Opfer. War allein mit dem Mörder." Semantik: im Raum des Opfers
-stehen genau zwei Personen. Wer die zweite ist, sagt der Hinweis nicht; genau
-daraus entsteht die Deduktion.
+`VICTIM` — "The victim. Was alone with the murderer." Semantics: the victim's
+room holds exactly two people. The clue does not say who the second one is; the
+deduction comes from exactly that.
 
-### 4.4 Globale Tatorthinweise (kartenlos)
+### 4.4 Global scene clues (card-less)
 
-| Typ | Parameter | Bedeutung | Ab Stufe |
+| Type | Parameters | Meaning | From tier |
 |---|---|---|---|
-| `EMPTY_ROOM` | roomId | in diesem Raum war niemand, auch nicht das Opfer | Sehr leicht |
-| `ROOM_COUNT` | roomId, n ≥ 1 | in diesem Raum standen genau n Personen | Mittel |
+| `EMPTY_ROOM` | roomId | nobody was in this room, not even the victim | very easy |
+| `ROOM_COUNT` | roomId, n ≥ 1 | exactly n people stood in this room | medium |
 
-Ihre Zahl ist auf ⌈N/2⌉ begrenzt, mindestens jedoch 3 — bei großen Gittern
-tragen sie einen erheblichen Teil der Information. Der Redundanzabbau in §6.6
-entfernt anschließend alles, was nicht gebraucht wird.
+Their number is capped at ⌈N/2⌉, but at least 3 — on large grids they carry a
+good part of the information. The redundancy pass of §6.6 then removes
+whatever is not needed.
 
-`EMPTY_ROOM` ist der Sonderfall n = 0 und hat deshalb eine eigene, schon früh
-verfügbare Formulierung. `ROOM_COUNT` ist auf n ≥ 1 beschränkt, damit für
-denselben Sachverhalt nie zwei Hinweistypen in Frage kommen. Je Raum wird
-höchstens ein globaler Hinweis ausgegeben.
+`EMPTY_ROOM` is the special case n = 0 and so has its own phrasing, available
+early. `ROOM_COUNT` is restricted to n ≥ 1 so that two clue types never compete
+for the same fact. At most one global clue is given per room.
 
-### 4.5 Sprachliche Wiedergabe
+### 4.5 Rendering as language
 
-Jeder Hinweistyp hat je Sprache eine Vorlage. Objekte und Räume liegen in den
-Sprachdateien mit Genus und den benötigten Kasusformen sowie der passenden
-Präposition (`in einem Auto`, `auf einem Stuhl`, `an einer Werkbank`). Personen
-tragen ein grammatisches Geschlecht, damit „Er war …" und „Sie war …" korrekt
-gebildet werden. Englisch nutzt dieselbe Struktur mit eigenen Vorlagen.
+Every clue type has a template per language. Objects and rooms carry their
+word forms with gender and the needed cases, plus the fitting preposition
+("in a car", "on a chair", "at a workbench"). People carry a grammatical gender
+so "He was …" and "She was …" come out right. English uses the same structure
+with its own templates.
 
-**Umgesetzt mit i18next**, nicht mit einer eigenen Vorlagensprache. Das bringt
-Plural, Kontextvarianten und Interpolation fertig mit — genau die drei Dinge,
-die eine Eigenbau-Lösung nach und nach ohnehin nachbauen müsste. Zwei
-Entscheidungen halten das verträglich:
+**Implemented with i18next**, not a home-made template language. That brings
+plurals, context variants and interpolation ready-made — exactly the three
+things a home-made solution would have to rebuild bit by bit anyway. Two
+decisions keep it compatible:
 
-- Die Bibliothek erzeugt über `createInstance()` eine **eigene i18next-Instanz**
-  und rührt eine im Projekt bereits vorhandene Einrichtung nicht an. Wer seine
-  eigene benutzen will, reicht sie als `instance` herein.
-- i18next ist **optionale Peer-Abhängigkeit** und wird ausschließlich vom
-  Einstiegspunkt `@engine/i18n` geladen. Wer nur erzeugt und löst,
-  bekommt weiterhin einen Kern **ohne jede Laufzeitabhängigkeit** (§8.1).
+- The library creates its **own i18next instance** with `createInstance()` and
+  leaves any existing setup alone. The app hands in its own instance, so UI and
+  clues share one language (§14, U3).
+- i18next is loaded only from the `@engine/i18n` entry point. Whoever only
+  generates and solves still gets a core **without any runtime dependency**
+  (§8.1).
 
-Eigene Themes bringen ihre Wörter über `additionalResources` mit.
+Each theme brings its own word forms in `content/themes/<key>/locales/`; the
+translator reads them under `themes.<key>` (§14, U2).
 
 ---
 
 ## 5. Solver
 
-Der Solver ist das Herz des Projekts: er prüft Eindeutigkeit, misst
-Schwierigkeit und liefert die Tipps. Er arbeitet auf Kandidatenmengen und ist
-**sound** — er entfernt nur Kandidaten, die beweisbar unmöglich sind.
+The solver is the heart of the project: it checks uniqueness, measures
+difficulty and provides the hints. It works on candidate sets and is **sound**
+— it removes only candidates that are provably impossible.
 
-### 5.1 Zustand
+### 5.1 State
 
-Für jeden Verdächtigen s eine Bitmaske möglicher Zellen `cand[s]`. Abgeleitet je
-Zelle die Menge möglicher Verdächtiger. Blockierte Zellen sind von Beginn an aus
-allen Masken entfernt.
+For every suspect s a bit mask of possible cells `cand[s]`. Derived from it,
+per cell the set of possible suspects. Blocked cells are removed from every
+mask from the start.
 
-### 5.2 Regelstufen
+### 5.2 Rule levels
 
-- **R1 — Hinweispropagation.** Jeder Hinweistyp verkleinert Kandidatenmengen.
-  Relationale Hinweise arbeiten kantenkonsistent, raumbezogene über Ober- und
-  Untergrenzen der Belegung.
-- **R2 — Permutationsregeln.** Vier Ableitungen daraus, dass N Personen auf N
-  Zeilen und N Spalten stehen: gesetzte Person räumt Zeile und Spalte; letzte
-  belegbare Zelle einer Linie ist besetzt; auf eine Linie beschränkte Person
-  sperrt diese für alle anderen; einzige mögliche Person einer Linie steht dort.
+- **R1 — clue propagation.** Every clue type narrows candidate sets.
+  Relational clues work edge-consistently, room clues through upper and lower
+  bounds of occupancy.
+- **R2 — permutation rules.** Four deductions from N people standing on N rows
+  and N columns: a placed person clears their row and column; the last
+  occupiable cell of a line is occupied; a person confined to one line blocks
+  it for everyone else; the only possible person of a line stands there.
 
-**Nur zwei Stufen, nicht vier.** Die ursprüngliche Fassung hatte zusätzlich
-Gruppenausschluss (R3) und Schnittfeldelimination (R4). Eine Messung über 60
-erzeugte Rätsel zeigte: beide feuerten **kein einziges Mal** — die Hinweissuche
-begrenzt sich bewusst auf R1+R2, damit die Erzeugung im Zeitbudget bleibt, und
-damit sind höhere Regeln unerreichbar. Rund 250 Zeilen unerreichbarer Code sind
-entfallen (VALIDATION.md, Runde 14).
+**Only two levels, not four.** The original version also had group exclusion
+(R3) and intersection elimination (R4). A measurement over 60 generated puzzles
+showed that neither fired *even once* — the clue search deliberately limits
+itself to R1+R2 to stay within the time budget, and so higher rules are
+unreachable. Some 250 lines of unreachable code went (VALIDATION.md, round 14).
 
-### 5.3 Ablauf
+### 5.3 Procedure
 
-Bis zum Fixpunkt: R1, dann R2, sobald R1 nichts mehr bewirkt; nach jedem Erfolg
-zurück auf R1. Kein Backtracking, keine Hypothesen. Ergebnis ist `solved`,
-`stuck` oder `contradiction`. Da der Solver sound ist, bedeutet ein
-vollständiger Durchlauf ohne Fallunterscheidung zugleich, dass die Lösung
-eindeutig ist.
+Until a fixed point: R1, then R2 once R1 achieves nothing more; after every
+success back to R1. No backtracking, no hypotheses. The result is `solved`,
+`stuck` or `contradiction`. Since the solver is sound, a complete run without
+case analysis also means the solution is unique.
 
-Mitgeschrieben wird die **Ableitungskette**: jeder Schritt mit Person, Zelle und
-Begründung. Sie ist zugleich die Quelle der Tipps (§5.5) — der Spieler bekommt
-damit genau die Begründung zu sehen, die der Löser tatsächlich benutzt hat, und
-nicht eine nachträglich erfundene.
+The **chain of deductions** is recorded: every step with person, cell and
+reason. It is also the source of hints (§5.5) — the player sees exactly the
+reasoning the solver actually used, not one invented afterwards.
 
-### 5.4 Schwierigkeitsmaß
+### 5.4 Measuring difficulty
 
-Die Gittergröße ist der **primäre, überschneidungsfreie** Schlüssel — genau so
-wächst die Schwierigkeit mit der Zahl der Verdächtigen. Dazu kommen zwei
-**gemessene** Kennzahlen als Untergrenze und die Regeltiefe als Obergrenze:
+Grid size is the **primary, non-overlapping** key — which is exactly how
+difficulty grows with the number of suspects. Two **measured** figures serve as
+lower bounds:
 
-- **Streuung** — die mittlere Zahl der Kandidatenzellen je Person, nachdem nur
-  die Hinweise angewendet wurden (R1 bis zum Fixpunkt), bevor irgendeine
-  Permutationslogik greift. Sie misst unmittelbar, wieviel Kombinationsarbeit
-  das Rätsel verlangt: bei Streuung 4 ist fast jede Person schon durch ihren
-  eigenen Hinweis eingegrenzt, bei Streuung 12 trägt der Hinweis allein kaum.
-- **Indirekte Hinweise** — Hinweise, die nichts unmittelbar über die eigene
-  Zelle sagen, sondern nur ein Verhältnis: `ALONE`, `SAME_ROOM_AS`,
-  `DIR_OF_SUSPECT`, `DIR_OF_OBJECT`, `CORNER`, `ALIGNED_WITH_OBJECT`,
-  `DIAGONAL_OF`, `ALONE_WITH`. Sie sind spürbar schwerer zu verarbeiten als
-  `ON_OBJECT` oder `IN_ROOM`.
-| Stufe | Schlüssel | Gitter | Streuung ≥ | indirekte Hinweise ≥ |
+- **Spread** — the mean number of candidate cells per person after only the
+  clues have been applied (R1 to a fixed point), before any permutation logic.
+  It measures directly how much combinatorial work the puzzle demands: at
+  spread 4 almost everyone is pinned down by their own clue; at spread 12 the
+  clue alone hardly carries.
+- **Indirect clues** — clues that say nothing directly about the own cell, only
+  a relation: `ALONE`, `SAME_ROOM_AS`, `DIRECTION_OF_SUSPECT`,
+  `DIRECTION_OF_OBJECT`, `CORNER`, `ALIGNED_WITH_OBJECT`, `DIAGONAL_OF`,
+  `ALONE_WITH`. They are noticeably harder to work with than `ON_OBJECT` or
+  `IN_ROOM`.
+
+| Tier | Key | Grid | Spread ≥ | Indirect clues ≥ |
 |---|---|---|---|---|
-| Sehr leicht | `veryEasy` | 5×5, 6×6 | 3,2 | 0 |
-| Leicht | `easy` | 7×7 | 4,5 | 1 |
-| Mittel | `medium` | 8×8 | 6,0 | 2 |
-| Schwer | `hard` | 9×9 | 6,5 | 2 |
-| Experte | `expert` | 10×10 | 7,5 | 3 |
+| very easy | `veryEasy` | 5×5, 6×6 | 3.2 | 0 |
+| easy | `easy` | 7×7 | 4.5 | 1 |
+| medium | `medium` | 8×8 | 6.0 | 2 |
+| hard | `hard` | 9×9 | 6.5 | 2 |
+| expert | `expert` | 10×10 | 7.5 | 3 |
 
-Beide Schranken steigen monoton mit der Stufe, keine Gittergröße kommt in zwei
-Stufen vor, und beide sind maschinell nachprüfbar (G5). Die Werte sind nicht
-geschätzt, sondern aus rund 26 000 erzeugten Tatorten abgelesen — Messung und
-Herleitung stehen in [VALIDATION.md](VALIDATION.md), Runde 5.
+Both bounds rise monotonically with the tier, no grid size occurs in two tiers,
+and both can be checked by machine (G5). The values are not guesses but read
+off some 26,000 generated crime scenes — measurement and derivation are in
+[VALIDATION.md](VALIDATION.md), round 5.
 
-**Keine Regeltiefe mehr.** Da es nur noch R1 und R2 gibt (§5.2) und jedes
-ausgelieferte Rätsel damit vollständig lösbar ist, wäre eine Obergrenze „maxRule
-≤ R2" für jedes Rätsel dieselbe Aussage. Sie ist ersatzlos entfallen; die
-Ohne-Raten-Zusage hängt seither allein daran, dass der Löser durchkommt.
+**No rule depth any more.** With only R1 and R2 (§5.2) and every shipped puzzle
+fully solvable by them, an upper bound "maxRule ≤ R2" would say the same for
+every puzzle. It went without replacement; the never-guess promise now rests
+solely on the solver getting through.
 
-> **Was heißt hier „gemessen"?** Beide Kennzahlen liegen als
-> `difficultyProof` im Rätsel selbst und lassen sich nachrechnen, ohne es zu
-> lösen. Ein Rätsel, das seine Schranke reißt, wird verworfen und neu erzeugt —
-> nie umetikettiert.
+> **What does "measured" mean here?** Both figures are stored in the puzzle as
+> `difficultyProof` and can be recomputed without solving it. A puzzle that
+> misses its bound is discarded and regenerated — never relabelled.
 
-> **Warum die Regeltiefe zweimal gescheitert ist.** Der ursprüngliche Plan
-> verlangte sie als *Untergrenze*: „Mittel" sollte mindestens einmal R3
-> brauchen. Die Messung widerlegte das — über 96 % aller lösbaren Rätsel kommen
-> mit R1 und R2 aus, R4 kam nie vor. Also blieb sie als Obergrenze stehen. Beim
-> Umbau der Bibliothek fiel dann auf, dass R3 und R4 in 60 von 60 erzeugten
-> Rätseln **kein einziges Mal feuerten** und auch gar nicht konnten: die
-> Hinweissuche prüft nur mit R1+R2 auf Lösbarkeit. Damit war auch die Obergrenze
-> gegenstandslos, und rund 250 Zeilen unerreichbarer Code sind entfallen
-> (VALIDATION.md, Runde 14).
+> **Why rule depth failed twice.** The original plan demanded it as a *lower*
+> bound: "medium" should need R3 at least once. The measurement disproved that
+> — over 96 % of all solvable puzzles manage with R1 and R2, R4 never occurred.
+> So it stayed as an upper bound. When the library was reworked it turned out
+> that R3 and R4 fired *not once* in 60 of 60 generated puzzles and could not:
+> the clue search checks solvability with R1+R2 only. So the upper bound was
+> meaningless too, and some 250 lines of unreachable code went
+> (VALIDATION.md, round 14).
 
 → **V2**
 
-### 5.5 Tipp
+### 5.5 Hint
 
-Der Tipp läuft **immer auf dem leeren Ausgangszustand**, nie auf dem Spielstand.
-Der Solver erzeugt einmalig die kanonische Ableitungskette des Rätsels; der Tipp
-zeigt daraus den ersten Schritt, dessen Ergebnis auf dem Brett noch nicht steht,
-mit Begründung: welcher Hinweis oder welche Regel greift und was daraus folgt.
+The hint *always runs on the empty starting state*, never on the player's
+board. The solver produces the puzzle's canonical chain of deductions once; the
+hint shows its first step whose result is not yet on the board, with the
+reason: which clue or rule applies and what follows.
 
-Das ist bewusst so gewählt. Liefe der Tipp auf dem Spielstand, könnte man ihn zum
-Fehlersucher zweckentfremden („Sackgasse" ⇒ irgendetwas ist falsch) und die
-bewusst binäre Rückmeldung aus §3.3 wäre ausgehebelt. So kommentiert der Tipp
-Spielerfehler nie, sondern spricht ausschließlich über das Rätsel selbst.
+That is deliberate. If the hint ran on the player's board, it could be abused
+as an error finder ("dead end" ⇒ something is wrong), and the deliberately
+binary feedback of §3.3 would be undermined. This way the hint never comments
+on the player's mistakes; it only ever talks about the puzzle.
 
-Ein Tipp platziert nichts automatisch: er hebt die Zelle hervor und nennt die
-Begründung. Steht dort bereits eine andere Figur, räumt der Spieler sie selbst.
-Tipps werden gezählt und in der Auflösung ausgewiesen.
+A hint places nothing automatically: it highlights the cell and names the
+reason. If another figure already stands there, the player clears it. Hints are
+counted and shown in the resolution.
 
-### 5.6 Referenzlöser
+### 5.6 Reference solver
 
-`solving/reference.ts` zählt per erschöpfender Suche alle gültigen Belegungen.
-Er ist nicht Teil des Spiels, sondern Prüfinstanz: Eindeutigkeit gegenprüfen und
-Soundness des Logiklösers nachweisen. Er teilt sich mit dem Logiklöser
-absichtlich **keinen** Code außer der Hinweisauswertung — ein gemeinsamer
-Denkfehler soll nicht in beiden zugleich stecken.
+`solving/reference.ts` counts every valid assignment by exhaustive search. It
+is not part of the game but a checking authority: cross-checking uniqueness and
+proving the logic solver sound. It deliberately shares *no* code with the logic
+solver except clue evaluation — a shared thinking error should not sit in both
+at once.
 
-Er arbeitet mit Budget (`solutionLimit`, `maxNodes`) und meldet über
-`exhaustive`, ob er den Suchraum wirklich ausgeschöpft hat. Ein aufgebrauchtes
-Budget zählt in den Tests als *unentschieden*, nie als bestanden.
+It works to a budget (`solutionLimit`, `maxNodes`) and reports through
+`exhaustive` whether it really exhausted the search space. A spent budget counts
+as *undecided* in the tests, never as passed.
 
 ---
 
@@ -388,849 +380,841 @@ Budget zählt in den Tests als *unentschieden*, nie als bestanden.
 
 ### 6.1 Seed
 
-Format `v<gen>-<theme>-<size>-<diff>-<rng36>`, zum Beispiel
-`v3-garage-6-vl-k3f9tq`. Enthält Generatorversion, Theme, Kantenlänge, Zielstufe
-und die Zufallszahl. Route `/#/p/v3-garage-6-vl-k3f9tq` — Hash-Routing, damit
-jeder statische Host ohne Rewrite-Regeln funktioniert. Gleicher Seed ergibt das
-identische Rätsel. → **V6**
+Format `v<gen>-<theme>-<size>-<diff>-<rng36>`, for example
+`v4-garage-6-vl-k3f9tq`. It holds the generator version, theme, side length,
+target tier and the random number. Route `/#/p/v4-garage-6-vl-k3f9tq` — hash
+routing, so any static host works without rewrite rules. The same seed gives
+the identical puzzle. → **V6**
 
-Die Stufe steht im Seed als **Kurzzeichen** (`vl`, `l`, `m`, `s`, `x`), im Code
-dagegen als lesbarer Schlüssel (`veryEasy` … `expert`). Die Kurzform hält den
-Link kurz, der Schlüssel hält den Code lesbar; die Übersetzung zwischen beiden
-steht an genau einer Stelle.
+The tier appears in the seed as a **short code** (`vl`, `l`, `m`, `s`, `x`),
+in code as a readable key (`veryEasy` … `expert`). The short form keeps the
+link short, the key keeps the code readable; the translation between the two
+lives in exactly one place.
 
-Ein Seed mit fremder Generatorversion wird **abgelehnt**, nicht stillschweigend
-neu gedeutet: dieselbe Zeichenkette beschriebe unter einer anderen Version ein
-anderes Rätsel, und ein geteilter Link, der etwas anderes zeigt, ist schlimmer
-als einer, der ehrlich nicht mehr funktioniert.
+A seed with a foreign generator version is **refused**, not quietly
+reinterpreted: under another version the same string would describe a
+different puzzle, and a shared link showing something else is worse than one
+that honestly stops working.
 
-Die App erkennt das **an der Zeichenkette, bevor der Generator anläuft**, und
-sagt es in der Sprache des Spielers: „Dieser Link stammt aus einer älteren
-Fassung des Spiels." Vorher lief der Seed bis in den Generator und kam als „Für
-diesen Seed ließ sich kein Rätsel erzeugen" zurück — eine Auskunft, die sachlich
-falsch ist, denn erzeugt werden sollte hier gar nichts.
+The app recognises this **from the string, before the generator starts**, and
+says so in the player's language: "This link comes from an older version of
+the game." Before, the seed went all the way into the generator and came back
+as "No puzzle could be generated for this seed" — a factually wrong answer,
+since nothing was meant to be generated here.
 
-Der Beispiel-Seed im Eingabefeld wird aus derselben Konstante gebaut. Fest
-eingetippt stand dort noch `v1`, lange nachdem Version 2 lief — ein Beispiel,
-das die App selbst abgewiesen hätte.
+The example seed in the input field is built from the same constant. Typed in
+by hand it still said `v1` long after version 2 shipped — an example the app
+itself would have refused.
 
-Der Zufallsgenerator ist ein eigener, deterministischer PRNG (SplitMix64 zur
-Initialisierung, xoshiro128 zur Ausgabe) — nie `Math.random`. Verwirft ein
-Versuch, wird der Versuchszähler in den PRNG-Strom eingespeist; dadurch bleibt
-auch die Wiederholung Teil der reproduzierbaren Kette.
+The random number generator is our own deterministic PRNG (SplitMix64 for
+seeding, xoshiro128 for output) — never `Math.random`. When an attempt is
+discarded, the attempt counter is fed into the PRNG stream, so the retry too
+stays part of the reproducible chain.
 
-#### 6.1.1 Der Tagesfall und sein Wochenrhythmus
+#### 6.1.1 The daily case and its weekly rhythm
 
-Das Datum **ist** die Zufallszahl: alle, die am selben Tag spielen, bekommen
-denselben Fall, ohne dass ein Server daran beteiligt wäre. Dazu bestimmt der
-Wochentag die Stufe:
+The date *is* the random number: everyone playing on the same day gets the
+same case, with no server involved. On top, the weekday decides the tier:
 
-| Mo | Di | Mi | Do | Fr | Sa | So |
+| Mon | Tue | Wed | Thu | Fri | Sat | Sun |
 |---|---|---|---|---|---|---|
-| sehr leicht | leicht | leicht | mittel | mittel | schwer | Experte |
+| very easy | easy | easy | medium | medium | hard | expert |
 
-Fünf Stufen auf sieben Tage gehen nicht glatt auf, die Verteilung ist also eine
-Wahl und keine Formel: kurze Fälle an Werkabenden, der lange am Sonntag. Vorher
-war die Gittergröße auf 6 festgenagelt, wodurch **jeder** Tagesfall „sehr
-leicht" war — ein Kalender aus 365 gleichen Tagen.
+Five tiers do not divide seven days evenly, so the distribution is a choice,
+not a formula: short cases on working evenings, the long one on Sunday. Before,
+the grid size was nailed to 6, which made *every* daily case "very easy" — a
+calendar of 365 identical days.
 
-`dailySeed` nimmt **drei blanke Zahlen** statt eines `Date`. Ein `Date` trägt
-eine Zeitzone, und welchen Tag es benennt, hängt davon ab, wo der Leser steht —
-genau die Frage, zu der die Engine keine Meinung haben darf. Welcher Tag gemeint
-ist, entscheidet die App, und sie entscheidet sich für die **Ortszeit**: ein
-Kalender ist ein Ding der Ortszeit.
+`dailySeed` takes **three plain numbers** rather than a `Date`. A `Date`
+carries a time zone, and which day it names depends on where the reader is —
+exactly the question the engine must have no opinion on. The app decides which
+day is meant, and it decides on **local time**: a calendar is a local-time
+thing.
 
-Der Wochentag wird **gerechnet** (Sakamoto), nicht aus einem `Date` gelesen —
-die Engine liest keine Uhr (§8.1.1). Weil eine selbstgebaute Formel sich selbst
-bestätigen würde, prüft ein Test sie gegen die Plattform: 366 Tage, Tag für Tag,
-dazu benannte Stichtage wie der 1.1.2000 und der Schalttag 29.2.2028.
+The weekday is **computed** (Sakamoto), not read from a `Date` — the engine
+reads no clock (§8.1.1). Because a home-made formula would confirm itself, a
+test checks it against the platform: 366 days, day by day, plus named dates
+such as 1 January 2000 and the leap day 29 February 2028.
 
-Vor dem **Starttag 1.1.2026** gibt es nichts, nach heute ist der Tag noch nicht
-gekommen; beides ist im Kalender gesperrt (§8.2).
+Before the **start day 1 January 2026** there is nothing; after today the day
+has not come yet; both are locked in the calendar (§8.2).
 
-### 6.2 Räume
+### 6.2 Rooms
 
-**Räume sind zusammenhängende Zellmengen, keine Rechtecke.** L-Formen, Nischen
-und schmale Gänge gehören dazu, so wie in echten Gebäuden. Maßgeblich ist die
-Zellmenge; `bounds` ist nur das umschließende Rechteck und sagt nichts über die
-Form.
+**Rooms are connected sets of cells, not rectangles.** L-shapes, alcoves and
+narrow corridors belong to them, as in real buildings. The set of cells is what
+counts; `bounds` is only the enclosing rectangle and says nothing about the
+shape.
 
-Drei Schritte:
+Three steps:
 
-1. **Guillotine-Teilung** des Quadrats in K Rechtecke, Mindestkante 2,
-   Mindestfläche 4. Schnitte nahe der Mitte werden bevorzugt, damit ähnlich
-   große Räume entstehen — ein Riesenraum neben drei Kammern macht Raumhinweise
-   wertlos.
-2. **Gang ausschneiden** (mit Wahrscheinlichkeit 0,55). Der Gang läuft entlang
-   einer Linie, darf einmal abknicken und ist eine Zelle breit. Zellen werden
-   nur übernommen, solange der abgebende Raum zusammenhängend und groß genug
-   bleibt — dadurch entsteht nie ein zerschnittener Raum.
-3. **Rechteckige Bisse** zwischen benachbarten Räumen verschieben, etwa
-   1,2 Runden je Kantenlänge. Bewusst nicht zellweise: einzeln wandernde Zellen
-   erzeugen ausgefranste Ränder, die nach Rauschen aussehen statt nach
-   Grundriss. Ein Biss von bis zu 3 × 3 Zellen liefert dagegen genau die Formen,
-   die Gebäude haben — L-Formen, T-Formen und Nischen mit geraden Wänden.
+1. **Guillotine split** of the square into K rectangles, minimum side 2,
+   minimum area 4. Cuts near the middle are preferred so rooms come out of
+   similar size — a huge room next to three closets makes room clues worthless.
+2. **Carve a corridor** (with probability 0.55). The corridor runs along a line,
+   may bend once and is one cell wide. Cells are only taken over while the room
+   giving them up stays connected and large enough — so a room is never cut in
+   two.
+3. **Rectangular bites** moved between neighbouring rooms, about 1.2 rounds per
+   side length. Deliberately not cell by cell: single wandering cells make
+   frayed edges that look like noise rather than a floor plan. A bite of up to
+   3 × 3 cells gives exactly the shapes buildings have — L-shapes, T-shapes and
+   alcoves with straight walls.
 
-Nach jedem Schritt gilt: **jeder Raum bleibt zusammenhängend** (Vierer-
-Nachbarschaft) und **behält mindestens vier Zellen**; ein Gang darf schmal sein,
-muss aber mindestens drei Zellen lang sein. Änderungen, die das verletzen,
-werden zurückgenommen. Gemessen sind gut 80 % der erzeugten Räume nicht
-rechteckig.
+After every step: **every room stays connected** (four-neighbourhood) and
+**keeps at least four cells**; a corridor may be narrow but must be at least
+three cells long. Changes violating this are undone. Measured, a good 80 % of
+generated rooms are not rectangular.
 
-| Kantenlänge | 5 | 6 | 7 | 8 | 9 | 10 |
+| Side length | 5 | 6 | 7 | 8 | 9 | 10 |
 |---|---|---|---|---|---|---|
-| Räume K | 3 | 3 | 4 | 5 | 6 | 7 |
+| Rooms K | 3 | 3 | 4 | 5 | 6 | 7 |
 
-Jedes Theme muss mindestens **sieben** Raumnamen bereitstellen; ein Test prüft
-das für alle Themes, sonst bliebe bei K = 7 ein Raum namenlos.
+Every theme must provide at least **seven** rooms; a test checks this for every
+theme, or a room would stay nameless at K = 7.
 
-Die Eckendefinition aus §4.2 trägt unverändert: „Raumzelle mit zwei zueinander
-senkrechten Nachbarn außerhalb des Raums". Bei einer L-Form ist die einspringende
-Ecke folgerichtig **keine** Ecke, bei einem Gang sind es genau die beiden Enden.
+The corner definition of §4.2 carries over unchanged: "a room cell with two
+perpendicular neighbours outside the room". The re-entrant corner of an
+L-shape is consistently *no* corner; for a corridor it is exactly its two ends.
 
-### 6.3 Lösung zuerst, Möblierung danach
+### 6.3 Solution first, furniture second
 
-**Die Reihenfolge ist umgekehrt zur naheliegenden.** Zuerst steht die Lösung
-fest, dann wird der Tatort um sie herum eingerichtet. Der ursprüngliche Plan
-möblierte zufällig und suchte anschließend eine Lösung — das lieferte in der
-Messung für 8×8 und größer **kein einziges lösbares Rätsel**, weil Personen
-regelmäßig auf nichtssagenden Feldern landeten, für die es keinen scharfen
-Hinweis gibt (VALIDATION.md, Runde 5).
+**The order is the reverse of the obvious one.** The solution is fixed first,
+then the crime scene is furnished around it. The original plan furnished at
+random and then searched for a solution — measured, that gave *not one solvable
+puzzle* for 8×8 and above, because people kept landing on featureless cells
+with no sharp clue to describe them (VALIDATION.md, round 5).
 
-1. **Lösung würfeln.** Eine zufällige Permutation legt je Zeile die belegte
-   Spalte fest. Sie wird verworfen und neu gewürfelt, bis mindestens ein Raum
-   genau zwei Personen enthält — das ist die Voraussetzung für den Opferhinweis
-   und hängt allein von der Permutation ab, nicht davon, wer wo steht.
-2. **Anker setzen.** Jede Lösungszelle bekommt ein Objekt, das sie beschreibbar
-   macht: entweder ein begehbares Objekt genau darauf („war in einem Auto") oder
-   ein sperrendes Objekt orthogonal daneben im selben Raum („war neben einem
-   Regal"). **Jeder Objekttyp dient höchstens einmal als Anker** — bekämen zwei
-   Karten denselben Wortlaut, entstünde eine echte Symmetrie und damit mehrere
-   Lösungen.
-3. **Füllwerk.** Weitere Objekte für Atmosphäre, bis die Zieldichte erreicht ist
-   (Faktor 3 der Kantenlänge). Ankertypen bleiben dabei ausgespart, damit die
-   Ankerhinweise scharf bleiben.
+1. **Roll the solution.** A random permutation fixes the occupied column per
+   row. It is discarded and rerolled until at least one room holds exactly two
+   people — the precondition for the victim's clue, which depends on the
+   permutation alone, not on who stands where.
+2. **Place anchors.** Every solution cell gets an object that makes it
+   describable: either a walkable object right on it ("was in a car") or a
+   blocking object orthogonally next to it in the same room ("was next to a
+   shelf"). **Every object type serves as an anchor at most once** — if two
+   cards got the same wording, a real symmetry would arise and with it several
+   solutions.
+3. **Filler.** More objects for atmosphere until the target density is reached
+   (3 times the side length). Anchor types are left out so the anchor clues
+   stay sharp.
 
-Grenzen: höchstens 40 % blockierte Zellen je Raum; ein Objekt liegt vollständig
-in genau einem Raum; passt seine Grundfläche nicht, wird es dort nicht
-angeboten. **Sperrende Objekte liegen nie auf einer Lösungszelle** — dadurch
-bleibt die Lösung konstruktionsbedingt gültig. → **V3**
+Limits: at most 40 % blocked cells per room; an object lies entirely within one
+room; if its footprint does not fit, it is not offered there. **Blocking objects
+never lie on a solution cell** — so the solution stays valid by construction.
+Laid objects (carpets, mats) grow into free shapes instead (§13.3). → **V3**
 
-#### Was begehbar ist
+#### What is walkable
 
-Begehbar ist ausschließlich, worauf eine Person sinnvollerweise stehen oder
-sitzen kann. Die Liste ist abschließend und wird von einem Test erzwungen:
+Walkable is only what a person could sensibly stand or sit on. The list is
+final and enforced by a test:
 
-| begehbar | Bett, Teppich, Matte, Palette, Stuhl, Gartenstuhl, Sofa, Bank, Badewanne, Auto, Ölfleck, Trittstein, Sandkasten, Teich |
+| walkable | bed, carpet, mat, pallet, chair, garden chair, sofa, bench, bathtub, car, oil stain, stepping stone, sandbox, pond |
 |---|---|
-| **gesperrt** | Tisch, Lampe, Schrank, Bücherregal, Regal, Werkbank, Küchenzeile, Tresen, Werkzeugkasten, Fass, Reifenstapel, Pflanze, Baum, Busch, Beet, Schuppen, Schubkarre |
+| **blocking** | table, lamp, cupboard, bookshelf, shelf, workbench, kitchen unit, counter, toolbox, barrel, tyre stack, plant, tree, bush, flower bed, shed, wheelbarrow |
 
-Der Teich steht bewusst auf der begehbaren Seite: Murdokus FAQ beantwortet
-„Kann Wasser besetzt werden?" ausdrücklich mit ja (§2).
+The pond is deliberately walkable: Murdoku's FAQ answers "Can water be
+occupied?" with an explicit yes (§2).
 
-Jedes Theme muss je Raum **mindestens einen begehbaren und einen sperrenden**
-Objekttyp anbieten, sonst bekämen Lösungszellen in diesem Raum keinen Anker.
-Darüber hinaus braucht jedes Theme genug *verschiedene* begehbare Typen: da
-jeder Typ höchstens einmal als Anker dient, bestimmt ihre Zahl unmittelbar, wie
-schnell große Gitter erzeugt werden (VALIDATION.md, Runde 9).
+Every theme must offer **at least one walkable and one blocking** object type
+per room, or solution cells in that room would get no anchor. Beyond that,
+every theme needs enough *different* walkable types: since every type anchors
+at most once, their number directly decides how fast large grids are generated
+(VALIDATION.md, round 9).
 
-### 6.4 Machbarkeitsprüfung
+### 6.4 Feasibility check
 
-Weil sperrende Objekte Lösungszellen aussparen, existiert immer mindestens ein
-perfektes Matching — die Lösung selbst. Die bipartite Prüfung (Kuhn über
-Zeilen × Spalten auf begehbaren Zellen) bleibt trotzdem als Wächter erhalten und
-wird in den Abnahmetests gegen jedes erzeugte Rätsel geführt (G9).
+Because blocking objects spare solution cells, there is always at least one
+perfect matching — the solution itself. The bipartite check (Kuhn over rows ×
+columns on walkable cells) still stays as a guard and is run against every
+generated puzzle in the acceptance tests (G9).
 
-### 6.5 Rollen
+### 6.5 Roles
 
-Verdächtige werden per Seed aus Namens- und Porträtpool gezogen und den
-Lösungszellen zugewiesen. Aus einem Raum mit genau zwei Personen wird eine zum
-Opfer, die andere zum Mörder; gibt es mehrere solche Räume, entscheidet der
-Seed. Der Opferhinweis ist damit in jedem Fall wahr.
+Suspects are drawn from the name and portrait pool by seed and assigned to the
+solution cells. From a room with exactly two people, one becomes the victim,
+the other the murderer; if there are several such rooms, the seed decides. So
+the victim's clue is true in any case.
 
-### 6.6 Hinweissuche
+### 6.6 Clue search
 
-Zunächst werden alle **wahren** Hinweise zur Lösung aufgezählt, beschränkt auf
-das Vokabular der Zielstufe (§4.2, §4.4), und nach Stärke sortiert.
-**Hinweisstärke** ist genau definiert: die Anzahl Zellen, die der Hinweis
-allein — auf dem leeren Ausgangszustand, ohne alle anderen Hinweise — aus der
-Kandidatenmenge seines Subjekts entfernt. Aus jeder Hinweisgruppe bleiben
-höchstens vier Vertreter, gleichmäßig über das Stärkespektrum verteilt; das hält
-die Suche kurz und verhindert fünf fast identische Richtungshinweise.
+First, every **true** clue about the solution is enumerated, limited to the
+target tier's vocabulary (§4.2, §4.4), and sorted by strength. **Clue
+strength** is defined exactly: the number of cells the clue alone — on the empty
+starting state, without any other clue — removes from its subject's candidate
+set. At most four representatives stay from each group of clues, spread evenly
+over the strength range; that keeps the search short and prevents five nearly
+identical direction clues.
 
-Danach vier Phasen:
+Then four phases:
 
-1. **Start.** Je Karte der stärkste wahre Hinweis, Wortlaut-Doppelungen
-   aufgelöst. Bleibt der Löser hängen, kommen globale Tatorthinweise dazu
-   (bis zu ⌈N/2⌉, mindestens 3).
-2. **Reparatur.** Solange der Löser hängt, bekommen die unsichersten Karten
-   einen *anderen* Hinweis — denjenigen, der die Restmengen am stärksten
-   schrumpfen lässt. Ohne diese Phase scheitern Rätsel regelmäßig an den letzten
-   zwei Personen, die einander symmetrisch bleiben.
-3. **Abschwächen.** Greedy zurück: jede Karte bekommt den schwächstmöglichen
-   Hinweis, der die Lösbarkeit erhält. Der so entstehende Satz ist der
-   schwerste, den diese Lösung hergibt.
-4. **Vielfalt.** Reichen die indirekten Hinweise für die Stufe nicht (§5.4),
-   werden direkte gegen indirekte getauscht, solange lösbar bleibt.
+1. **Start.** The strongest true clue per card, duplicate wordings resolved. If
+   the solver gets stuck, global scene clues are added (up to ⌈N/2⌉, at
+   least 3).
+2. **Repair.** While the solver is stuck, the most uncertain cards get a
+   *different* clue — the one that shrinks the remaining sets most. Without this
+   phase puzzles regularly fail on the last two people, who stay symmetric to
+   each other.
+3. **Weaken.** Greedily back: every card gets the weakest clue that keeps the
+   puzzle solvable. The resulting set is the hardest this solution offers.
+4. **Variety.** If the indirect clues do not suffice for the tier (§5.4), direct
+   clues are swapped for indirect ones while it stays solvable.
 
-Zum Schluss fallen globale Hinweise weg, die nicht mehr gebraucht werden, und
-jeder verbleibende Hinweis wird noch einmal gegen die Lösung evaluiert.
+Finally global clues that are no longer needed are dropped, and every remaining
+clue is evaluated against the solution once more.
 
-Der Löser arbeitet dabei mit demselben Regelwerk wie später im Spiel — R1 und
-R2, mehr gibt es nicht (§5.2). Damit gilt: was die Suche für lösbar hält, ist
-auch für den Spieler lösbar. In der früheren Fassung war das eine Annahme, weil
-die Suche aus Zeitgründen weniger Regeln benutzte als die Endprüfung; heute ist
-es dieselbe Rechnung. → **V4**
+The solver uses the same rules as later in the game — R1 and R2, there is
+nothing else (§5.2). So what the search considers solvable is solvable for the
+player too. In the earlier version that was an assumption, since for time
+reasons the search used fewer rules than the final check; today it is the same
+computation. → **V4**
 
-### 6.7 Ausführung im Worker
+### 6.7 Running in a worker
 
-Der Generator läuft in einem Web Worker mit Zeitbudget und meldet Fortschritt.
-Die UI zeigt währenddessen eine Ermittlungs-Animation. Reines TypeScript ohne
-DOM-Zugriff, damit derselbe Code in Node-Tests und im Browser läuft. → **V7**
+The generator runs in a web worker with a time budget. The UI shows an
+investigation animation meanwhile; after 30 seconds without an answer it
+reports a failure instead of waiting forever (§14, U8). Pure TypeScript without
+DOM access, so the same code runs in Node tests and in the browser. → **V7**
 
-### 6.8 Ausgabeformat
+### 6.8 Output format
 
 ```
 Puzzle {
-  core: {                                  // deterministisch, Grundlage von G4
+  core: {                                  // deterministic, the basis of G4
     seed, generatorVersion, size, difficulty, themeKey,
     rooms:    [{ id, nameKey, cells, bounds }],
     objects:  [{ id, key, cells, walkable, placement, roomId }],   // placement: 'fixed' | 'tiled' (§13)
-    suspects: [{ id, nameKey, gender, portraitKey, isVictim }],
+    suspects: [{ id, name, gender, portraitKey, isVictim }],
     clues:    [{ ownerId | null, clue: { type, … } }],
-    solution: [{ suspectId, cell }],
+    solution: [cell per suspect id],
     murdererId,
     difficultyProof: { spread, indirect, attempts }
   },
-  meta: { durationMs, generatedAt }        // Laufzeitmessung, nicht deterministisch
+  meta: { durationMs, generatedAt }        // runtime measurement, not deterministic
 }
 ```
 
-Auf der Leitung liegt das Ganze als Dokument mit `format: 'indizio-puzzle'` und
-`schemaVersion`. Zwei Zählungen, die nicht dasselbe meinen und deshalb getrennt
-sind: `generatorVersion` (derzeit **4**) sagt, welcher Algorithmus die Rätsel
-erzeugt hat — sie steckt im Seed, weil sich bei einer Änderung dieselbe Zeichen-
-kette auf ein anderes Rätsel bezöge. `schemaVersion` (derzeit **3**) sagt nur,
-wie die Felder heißen; Dokumente vor 3 kennen `placement` nicht und werden als
-lauter feste Objekte gelesen.
+On the wire the whole thing is a document with `format: 'indizio-puzzle'` and
+`schemaVersion`. Two counters that mean different things and so stay separate:
+`generatorVersion` (currently **4**) says which algorithm generated the puzzle
+— it is part of the seed, because after a change the same string would refer to
+a different puzzle. `schemaVersion` (currently **3**) only says what the fields
+are called; documents before 3 do not know `placement` and are read as all
+fixed objects.
 
-Die Serialisierung von `core` ist feldstabil sortiert, damit gleiche Seeds
-byte-identische Ausgaben liefern. `meta` enthält alles, was von Rechner und
-Zeitpunkt abhängt, und ist ausdrücklich **nicht** Teil des Vergleichs in G4 —
-sonst wäre das Kriterium prinzipiell unerfüllbar. `attempts` gehört dagegen zu
-`core`, weil der Versuchszähler deterministisch aus dem Seed folgt.
+The serialisation of `core` is field-stable, so equal seeds give byte-identical
+output. `meta` holds everything that depends on machine and time, and is
+explicitly *not* part of the comparison in G4 — otherwise the criterion could
+never be met. `attempts`, on the other hand, belongs to `core`, since the
+attempt counter follows deterministically from the seed.
 
-`parsePuzzle` prüft beim Lesen vollständig und sammelt **alle** Beanstandungen,
-statt bei der ersten abzubrechen: Räume zusammenhängend, Zellen in Reichweite,
-Objekte zusammenhängend in ihrem Raum, feste Objekte rechteckig, gleichartige
-verlegte Objekte ohne Berührung (§13.6), genau ein Opfer, Lösung eine Permutation, Hinweistypen
-bekannt. Wer ein kaputtes Dokument einliest, sieht damit in einem Durchgang, was
-alles daran fehlt. → **V6**
+`parsePuzzle` validates completely on reading and collects **every** problem
+rather than stopping at the first: rooms connected, cells in range, objects
+connected within their room, fixed objects rectangular, laid objects of one
+kind not touching (§13.6), exactly one victim, the solution a permutation, clue
+types known. Whoever reads a broken document sees everything wrong with it in
+one go. → **V6**
 
 ---
 
-## 7. Grafik
+## 7. Drawings
 
-**Alles ist Vektor, alles ist selbst gemacht.** Keine Rasterbilder, kein
-Sprite-Atlas, keine fremden Grafikpakete. Jede Form ist SVG im 24×24-Raster und
-bleibt bei jeder Größe scharf — vom 24-Pixel-Symbol in der Werkzeugleiste bis
-zum großen Porträt in der Auflösung. → **V5**
+**Everything is vector, everything is home-made.** No raster images, no sprite
+atlas, no foreign art packs. Every shape is SVG on a 24×24 grid and stays sharp
+at any size — from the 24-pixel icon in the toolbar to the large portrait in the
+resolution. → **V5**
 
-### 7.0 Jede Grafik ist eine Datei
+### 7.0 Every drawing is a file
 
-Die App **zeichnet nichts**. Sie lädt Dateien aus `art/`. Eine Grafik
-austauschen heißt: die Datei ersetzen — am Code ändert sich nichts.
+The app **draws nothing**. It loads files from `art/`. Replacing a drawing
+means replacing the file — no code changes.
 
-Das ist keine Formalie, sondern die Vorbereitung auf den Zustand, der ohnehin
-kommt: was heute dort liegt, sind **Platzhalter**, und sie sind dafür da,
-ersetzt zu werden. Solange die Formen als Quelltext im Programm stünden, wäre
-jeder Austausch ein Eingriff in den Code — mit allem, was daran hängen kann.
+That is not a formality but preparation for what is coming anyway: what is
+there today are **placeholders**, and they exist to be replaced. As long as the
+shapes lived as source code in the program, every replacement was an edit to
+the code — with everything that can hang on that.
 
 ```
 art/
-  common/characters/   p01 … p14
-  common/icons/        ui-x, ui-check, …
-  common/floors/       Rückfall für fremde Themes
-  themes/<theme>/objects/   Requisiten dieses Themes
-  themes/<theme>/tiles/     Blätter der verlegten Requisiten (§13.4)
-  themes/<theme>/floors/    Beläge seiner Räume
+  common/characters/        p01 … p14
+  common/icons/             ui-x, ui-check, …
+  common/floors/            fallback for foreign themes
+  themes/<theme>/objects/   this theme's props
+  themes/<theme>/tiles/     sheets of laid props (§13.4)
+  themes/<theme>/floors/    the floors of its rooms
 ```
 
-**Gesucht wird erst im Theme, dann gemeinsam.** Jedes Theme bekommt damit sein
-eigenes Grafikset, ohne dass Figuren und Symbole dreimal danebenliegen müssen.
-Zwei Themes dürfen denselben Schlüssel benutzen — `chair` steht in Werkstatt und
-Wohnung — und trotzdem verschieden aussehen.
+**Lookup goes theme first, then common.** So every theme gets its own set of
+drawings without characters and icons lying there three times. Two themes may
+use the same key — `chair` is in the car repair shop and the flat — and still
+look different.
 
-**Requisiten haben je Grundfläche eine Datei**, der Name trägt sie in Feldern:
-`bed_2x1.svg` neben `bed_1x2.svg`, `kitchenunit_3x1.svg`. Die Zeichenfläche
-wächst mit — 24 je Feld, also `0 0 72 24` für drei Felder nebeneinander —, und
-der Renderer legt die Datei über genau diese Felder.
+**Props have one file per footprint**, the name carrying it in cells:
+`bed_2x1.svg` next to `bed_1x2.svg`, `kitchenunit_3x1.svg`. The drawing area
+grows with it — 24 per cell, so `0 0 72 24` for three cells side by side — and
+the renderer lays the file over exactly those cells.
 
-Der Grund ist nicht Ordnung, sondern Zeichnung: ein Bett quer ist **kein
-gedrehtes Bett längs**. Eine einzige 24×24-Grafik ließe nur zwei schlechte
-Möglichkeiten, sie auf zwei Felder zu bringen — verzerren oder klein in die
-Mitte setzen. Welche Grundflächen es gibt, steht in der Theme-Definition der
-Bibliothek; heute sind es 48 über drei Themes.
+The reason is not tidiness but drawing: a bed across is **not a rotated bed
+lengthways**. A single 24×24 drawing would leave only two bad ways of getting
+it onto two cells — stretch it, or put it small in the middle. Which footprints
+exist is in the engine's theme definitions; today there are 48 across three
+themes.
 
-**Verlegte Requisiten** — Teppich und Matte — haben keine Grundfläche, sondern
-ein Blatt `tiles/<key>.svg` mit 48 × 72, aus dem das Spiel jede Form in Vierteln
-zusammensetzt (§13.4).
+**Laid props** — carpet and mat — have no footprint but a sheet
+`tiles/<key>.svg` of 48 × 72, from which the game assembles any shape in
+quarters (§13.4).
 
-Wer mit einer Datei für alle Flächen auskommt, legt sie ohne Zusatz ab
-(`bed.svg`); der Renderer nimmt sie, wenn er die passende Fläche nicht findet.
+Whoever manages with one file for every footprint stores it without a suffix
+(`bed.svg`); the renderer takes it when it finds no matching footprint.
 
-**Zum Schlüssel gehört die Art der Grafik**, nicht nur ihr Name. In der Wohnung
-heißt `carpet` zweierlei: der Teppich, auf dem jemand steht, und der
-Teppichboden des Schlafzimmers. Wer nur nach dem Dateinamen sucht, legt dem
-halben Zimmer eine Requisite als Boden aus (VALIDATION.md, Runde 15).
+**The kind of drawing is part of the key**, not just its name. In the flat,
+`carpet` means two things: the carpet someone stands on, and the bedroom's
+fitted carpet. Looking up by file name alone lays a prop as floor across half
+the room (VALIDATION.md, round 15).
 
-Erzeugt werden die Platzhalter mit `npm run art`, **nur während der
-Entwicklung**. Jede erzeugte Datei trägt einen Vermerk; eine Datei ohne diesen
-Vermerk stammt von jemand anderem und wird nicht überschrieben. Ein
-versehentlicher Lauf kostet damit keine fertige Grafik. Die Zeichenvorschriften
-der Platzhalter liegen in `scripts/art/` — außerhalb der App, die von dort
-nichts importiert; sind die endgültigen Grafiken da, kann der Ordner weg.
+The placeholders are made with `npm run art`, **during development only**.
+Every generated file carries a marker; a file without it came from someone else
+and is not overwritten. So an accidental run never costs a finished drawing. The
+placeholder drawing instructions live in `scripts/art/` (one file per theme in
+`scripts/art/themes/`) — outside the app, which imports nothing from there; once
+the final drawings are in, the folder can go.
 
-Die Dateien werden beim Bauen eingebettet und nicht zur Laufzeit geladen: das
-hält das Spiel offline lauffähig (§11, G11) und erspart je Form eine Anfrage.
+The files are embedded at build time, not loaded at runtime: that keeps the
+game playable offline (§11, G11) and saves a request per shape.
 
-### 7.1 Stil
+### 7.1 Style
 
-Klar und einfach, an flachen Vektor-Symbolsätzen orientiert:
+Clear and simple, modelled on flat vector icon sets:
 
-- **flache Flächen**, keine Konturen, keine Verläufe, keine Schatten;
-- je Material ein Grundton und ein dunklerer Ton für Tiefe;
-- großzügig abgerundete Ecken;
-- eine gemeinsame, enge Palette für alle Platzhalter (`scripts/art/palette.ts`);
-- jede Form auf ihre Silhouette reduziert, damit sie auch bei 24 px trägt.
+- **flat areas**, no outlines, no gradients, no shadows;
+- per material a base colour and a darker one for depth;
+- generously rounded corners;
+- one shared, tight palette for all placeholders (`scripts/art/palette.ts`);
+- every shape reduced to its silhouette so it still carries at 24 px.
 
-### 7.2 Figuren ohne Gesichter
+### 7.2 Characters without faces
 
-Die Verdächtigen sind **Silhouetten ohne Gesicht**. Das ist keine Sparmaßnahme,
-sondern folgt aus der Zusicherung, dass Porträts nie lösungsrelevant sind (§2,
-FAQ): ein Gesicht lädt dazu ein, etwas hineinzulesen, eine Silhouette nicht.
+The suspects are **silhouettes without a face**. Not a saving, but a
+consequence of the promise that portraits never matter for the solution (§2,
+FAQ): a face invites reading something into it; a silhouette does not.
 
-Unterschieden werden die vierzehn Figuren über drei Merkmale, die zusammen
-eindeutige Kombinationen ergeben: **Kleidungsfarbe**, **Kopfform** (sieben
-Frisuren und Kopfbedeckungen) und **Hautton**. Jede Figur ist damit von jeder
-anderen zu trennen, auch klein im Gitter.
+The fourteen characters differ in three features that together give distinct
+combinations: **clothing colour**, **head shape** (seven hairstyles and
+headwear) and **skin tone**. So every character can be told from every other,
+even small on the grid.
 
-### 7.3 Bodenbeläge
+### 7.3 Floors
 
-Jeder Raum hat einen Belag, und der folgt dem **Raumnamen**, nicht der Raum-Id:
-im Bad liegen Fliesen, auf dem Rasen wächst Gras, in der Werkstatt ist Estrich.
-Das ist kein Schmuck — fast jeder Hinweis nimmt auf Räume Bezug, und ein Boden,
-den man wiedererkennt, macht die Raumgrenzen ohne Nachlesen klar.
+Every room has a floor, and it follows the **room**, not its id: tiles in the
+bathroom, grass on the lawn, concrete in the workshop. Not decoration — almost
+every clue refers to rooms, and a floor you recognise makes room borders clear
+without reading. Since §14 the floor is part of the theme's room definition
+(`rooms: [{ key, floor }]`).
 
-| Belag | Räume |
+| Floor | Rooms |
 |---|---|
-| Dielen | Wohnzimmer, Flur, Arbeitszimmer |
-| Fliesen | Bad, Küche, Waschhalle, Wartebereich |
-| Platten | Empfang, Terrasse, Balkon |
-| Estrich | Werkstatt, Lager |
-| Teppich | Schlafzimmer, Büro |
-| Rasen | Rasen |
-| Erde | Gemüsebeet, Gewächshaus |
-| Kies | Hof, Schuppenplatz |
-| Sand | Spielplatz |
-| Wasser | Teichufer |
+| planks | living room, hallway, study |
+| tiles | bathroom, kitchen, wash bay, waiting area |
+| paving | reception, patio, balcony |
+| concrete | workshop, storage |
+| fitted carpet | bedroom, office |
+| grass | lawn |
+| soil | vegetable patch, greenhouse |
+| gravel | yard, shed area |
+| sand | play area |
+| water | pond side |
 
-Die Töne sind bewusst gedämpft: Figuren und Requisiten sind kräftig gefärbt und
-müssen sich davor abheben. Die Kacheln laufen aneinander fort — Fugen und
-Dielenstöße treffen sich an den Kanten.
+The colours are deliberately muted: characters and props are strongly coloured
+and have to stand out against them. The tiles continue into one another —
+grout and plank joints meet at the edges.
 
-Gegen sichtbare Wiederholung **spiegelt das Spiel die Kachel je Zelle**, und
-zwar nur bei Belägen, bei denen nichts über die Kante läuft: Rasen, Erde, Kies,
-Sand. Dielen, Fliesen, Platten, Estrich, Teppich und Wasser bleiben ungespiegelt,
-sonst zerschnitte der Nachbar ihre Fugen und Wellen. Die Spiegelung hängt allein
-vom Zellindex ab, dieselbe Zelle sieht also immer gleich aus.
+Against visible repetition **the game mirrors the tile per cell**, but only for
+floors where nothing runs over the edge: grass, soil, gravel, sand. Planks,
+tiles, paving, concrete, carpet and water stay unmirrored, or the neighbour
+would cut their grout and waves. The mirroring depends only on the cell index,
+so the same cell always looks the same.
 
-Früher wurde stattdessen je Zelle neu gestreut. Das ging nur, solange die
-Kacheln im Programm gezeichnet wurden; als Datei gibt es je Belag genau ein
-Bild, und die Spiegelung leistet dasselbe mit einer Datei statt mit vielen.
+It used to scatter anew per cell instead. That only worked while the tiles were
+drawn in the program; as files there is exactly one picture per floor, and the
+mirroring does the same with one file instead of many.
 
-Liegen zwei benachbarte Räume auf demselben Belag, unterscheidet sie eine
-winzige Helligkeitsstufe je Raum. Ein fremdes Theme mit unbekannten Raumnamen
-fällt auf Estrich zurück.
+If two neighbouring rooms share a floor, a tiny brightness step per room tells
+them apart. A foreign theme with unknown rooms falls back to concrete.
 
-### 7.4 Umfang
+### 7.4 Extent
 
-| Gruppe | Dateien | Wo |
+| Group | Files | Where |
 |---|---|---|
-| Requisiten | 48 | `art/themes/<theme>/objects/` (18 + 15 + 15), je Grundfläche eine |
-| Verlegte Requisiten | 2 | `art/themes/<theme>/tiles/` (Teppich, Matte), je Art ein Blatt |
-| Bodenbeläge | 16 | `art/themes/<theme>/floors/` (5 + 4 + 6), dazu der Rückfall |
-| Figuren | 14 | `art/common/characters/` |
-| Bediensymbole | 8 | `art/common/icons/` |
-| App-Symbol | 1 | `public/icon.svg`, zugleich Manifest-Icon |
+| Props | 48 | `art/themes/<theme>/objects/` (18 + 15 + 15), one per footprint |
+| Laid props | 2 | `art/themes/<theme>/tiles/` (carpet, mat), one sheet per kind |
+| Floors | 16 | `art/themes/<theme>/floors/` (5 + 4 + 6), plus the fallback |
+| Characters | 14 | `art/common/characters/` |
+| Icons | 8 | `art/common/icons/` |
+| App icon | 1 | `public/icon.svg`, also the manifest icon |
 
-88 Dateien: `chair` und `plant` kommen in zwei Themes vor und bekommen jeweils
-eine eigene Fassung, und jede Requisite zählt je zulässiger Grundfläche einmal.
-Welche Dateien gebraucht werden, bestimmt allein die **Theme-Definition der
-Bibliothek**; kommt dort ein Objekt oder eine Grundfläche dazu, fehlt hier eine
-Datei — und der Test sagt welche.
+88 files: `chair` and `plant` occur in two themes and each get their own
+version, and every prop counts once per allowed footprint. Which files are
+needed is decided solely by the **engine's theme definitions**; if an object or
+a footprint is added there, a file is missing here — and the test says which.
 
-Geprüft wird: jede Grundfläche jedes festen Objekts hat eine Datei mit passender
-Zeichenfläche, jedes verlegte ein Blatt mit 48 × 72, jeder Raum den Belag seines Themes, jeder Porträtschlüssel eine Figur, jedes Bediensymbol ist da,
-jedes Bild des Tutorials lässt sich auflösen, keine Datei liegt ohne Verwendung
-herum, jede Datei ist ein für sich stehendes SVG im 24er-Raster, und nichts
-zeichnet an eine negative Stelle. Eine fehlende Grafik fiele sonst erst auf,
-wenn der Generator dieses Objekt zufällig einmal einbaut.
+Checked: every footprint of every fixed object has a file with a fitting drawing
+area, every laid one a 48 × 72 sheet, every room its theme's floor, every
+portrait key a character, every icon is there, every tutorial picture resolves,
+no file lies around unused, every file is a standalone SVG on the 24-unit grid,
+and nothing is drawn at a negative position. A missing drawing would otherwise
+only show when the generator happens to use that object.
 
-### 7.5 Warum kein Atlas mehr
+### 7.5 Why no atlas any more
 
-Die erste Fassung nutzte einen gerasterten Sprite-Atlas aus CC0-Pixelgrafik.
-Vektorformen sind hier in jeder Hinsicht besser: sie skalieren verlustfrei
-(wichtig, weil die Zellgröße sich mit dem Fenster ändert), brauchen keine
-Bau-Pipeline, keine Rohdateien im Projekt und keine Lizenzverwaltung — und sie
-liegen als Quelltext vor, sind also im Diff lesbar und gezielt änderbar.
+The first version used a rasterised sprite atlas of CC0 pixel art. Vector shapes
+are better here in every respect: they scale losslessly (important, since the
+cell size changes with the window), need no build pipeline, no raw files in the
+project and no licence bookkeeping — and they are source text, readable in a
+diff and changeable on purpose.
 
-## 8. Anwendung
+## 8. Application
 
-### 8.1 Struktur
+### 8.1 Structure
 
-Die Spiellogik liegt **im Projekt, aber hinter genau zwei Türen**. Sie war bis
-Plan v12 ein eigenes Paket (`@indizio/puzzle`); das ist zurückgenommen, weil die
-App der einzige Nutzer war und die Paketgrenze jede Änderung über zwei
-Verzeichnisse, zwei Manifeste und zwei Testläufe verteilte. Was bleibt, ist die
-Grenze selbst — nur erzwungen statt geerbt (§8.1.1).
+The game logic lives **in the project, but behind exactly two doors**. Up to
+plan v12 it was a package of its own (`@indizio/puzzle`); that was reversed,
+because the app was its only user and the package boundary spread every change
+over two directories, two manifests and two test runs. What remains is the
+boundary itself — enforced rather than inherited (§8.1.1).
 
 ```
 indizio/
-  package.json          ein Manifest, ein Testlauf, ein verify
-  eslint.config.js      zwei Bloecke: streng fuer die Engine, react-hooks fuer die App
-  tsconfig.json         die App
-  tsconfig.engine.json  die Engine, mit strengeren Schaltern
-  public/               Icons, Manifest, Service Worker
-  scripts/              Hilfsskripte: Grafiken, Referenzdaten, Version
+  package.json            one manifest, one test run, one verify
+  eslint.config.js        one strictness for all code; engine door and platform rules
+  tsconfig.base.json      compiler strictness shared by engine and app
+  tsconfig.json           the app (DOM)
+  tsconfig.engine.json    the engine (no DOM)
+  CODING_GUIDELINES.md    what no tool checks
+  public/                 icons, manifest, service worker
+  scripts/                helper scripts: drawings, reference data, CSS types, version
   src/
-    engine/             Generator und Loeser, ohne Abhaengigkeiten
-      index.ts          die Tuer: alles, was die App benutzen darf
-      README.md         der Vertrag (englisch, wie der ganze Ordner)
-      api.ts            hohe Ebene: solvePuzzle, verifyPuzzle, hintFor, boardLayout
-      core/             Typen, Gitterrechnung, Seeds, Stufen, Zufallsgenerator
-      clues/            was ein Hinweis bedeutet: auswerten, aufzaehlen, einschraenken
-      solving/          Kandidaten, Propagation, Permutationsregeln, Tipp, Referenz
-      generation/       Grundriss, Moeblierung, Rollen, Hinweissuche
-      io/               JSON-Austauschformat mit vollstaendiger Pruefung
-      content/          Themes und Namen - Daten, austauschbar
-      i18n/             zweite Tuer: i18next-Ressourcen und Hinweisuebersetzer
-    worker/             Generator im Web Worker
-    app/                Oberflaeche (React), Zustand, Speicherung, Kalender
-    styles/
-  tests/                App-Tests und die Grenze (boundary.test.ts)
-    engine/             Tests der Engine, inklusive erzwungener Entkopplung
-      deep/             der gruendliche Lauf: Eigenschaften und Zeiten
-      reference/        eingefrorene Pruefsummen und Beispielraetsel
+    engine/               generator and solver, no DOM, no React
+      index.ts            the door: everything the app may use
+      README.md           the contract
+      api.ts              high level: solvePuzzle, verifyPuzzle, hintFor, boardLayout
+      core/               types, grid arithmetic, seeds, tiers, random numbers, locales
+      clues/              what a clue means: evaluate, enumerate, restrict
+      solving/            candidates, propagation, permutation rules, hint, reference
+      generation/         floor plan, furnishing, roles, clue search
+      io/                 JSON interchange format with complete validation
+      content/themes/     one folder per theme — data, replaceable
+      i18n/               second door: i18next resources and clue translator
+    worker/               the generator in a web worker
+    app/                  the React UI
+      features/           game (with board/), calendar, settings
+      shared/             art, errors, help, i18n, layout, puzzle, storage, styles, ui
+  tests/                  app tests and the boundaries (boundary.test.ts)
+    engine/               engine tests, including the enforced decoupling
+      deep/               the thorough run: properties and times
+      reference/          frozen checksums and sample puzzles
 ```
 
-Die Engine läuft unter **strengeren Compilerschaltern** als die Oberfläche
-(`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax`).
-Deshalb zwei `tsconfig`-Dateien statt eines Kompromisses: in dichter Zahlenarbeit
-über typisierten Feldern finden diese Schalter Fehler, in JSX erzeugen sie vor
-allem Lärm.
+Engine and app share one set of **strict compiler flags** (`tsconfig.base.json`:
+`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`,
+`verbatimModuleSyntax` …). They differ only in what they may see: the engine
+gets no DOM, so a stray `window` fails to compile.
 
-Die Ordner sind **Schichten mit einer Richtung**: `generation` darf `solving`
-benutzen, `solving` darf `clues` benutzen, `clues` darf `core` benutzen, und
-niemand darf zurückgreifen. Der Nutzen ist nicht Ordnungsliebe — wer eine
-Änderung an der Hinweisbedeutung vornimmt, weiß dadurch sicher, dass er die
-Erzeugung nicht mitverändert hat.
+The engine's folders are **layers with one direction**: `generation` may use
+`solving`, `solving` may use `clues`, `clues` may use `core`, and nothing reaches
+back. The benefit is not tidiness — whoever changes what a clue means knows for
+sure they have not changed generation along with it.
 
-### 8.1.1 Die Entkopplung wird erzwungen, nicht bloß behauptet
+The app is grouped **by feature**: a feature uses `shared/` but never another
+feature (§14, U5).
 
-Solange die Engine ein Paket war, hielt `exports` in ihrem Manifest die
-Schnittstelle zusammen: an `solving/solve.js` kam niemand. Im selben Projekt gibt
-es diesen Schutz nicht mehr — ein relativer Import dorthin wäre technisch
-tadellos und genau das, was der Umzug nicht kosten sollte.
+### 8.1.1 The decoupling is enforced, not just claimed
 
-Die Grenze steht deshalb **zweimal ausdrücklich** da:
+While the engine was a package, `exports` in its manifest held the interface
+together: nobody got at `solving/solve.js`. Within one project that protection
+is gone — a relative import there would be technically fine and exactly what the
+move was not meant to cost.
 
-| Wächter | Wann er greift |
+So the boundary is stated **twice**:
+
+| Guard | When it applies |
 |---|---|
-| `no-restricted-imports` in `eslint.config.js` | beim Schreiben |
-| `tests/boundary.test.ts` | auch dann, wenn jemand den Linter überspringt |
+| `no-restricted-imports` in `eslint.config.js` | while writing |
+| `tests/boundary.test.ts` | even when someone skips the linter |
 
-Beide lassen nur `@engine` und `@engine/i18n` durch — und zwar in genau dieser
-Schreibweise, damit eine Suche nach `@engine` alle Nutzer findet. Der Test hat
-sich beim ersten Lauf selbst bewiesen: er fand drei Verstöße, einer davon frisch
-vom Umzug eingeschleppt.
+Both let through only `@engine` and `@engine/i18n` — in exactly that spelling,
+so a search for `@engine` finds every user. The test proved itself on its first
+run: it found three violations, one freshly brought in by the move.
+`tests/boundary.test.ts` also enforces the feature boundaries of the app.
 
-Dazu liest eine Testdatei den Quelltext der Engine und weist nach:
+In addition, a test file reads the engine's source and proves:
 
-| Prüfung | Warum |
+| Check | Why |
 |---|---|
-| Importe halten die Schichtrichtung ein | sonst zerfällt die Gliederung still |
-| Kein blanker Import außer i18next | am Code geprüft statt an einem Manifest behauptet |
-| i18next nur in `i18n/` | der Kern bleibt abhängigkeitsfrei |
-| Kein DOM, kein React, keine Node-Module | derselbe Code in Browser, Worker und Test |
-| Kein `Math.random` | Reproduzierbarkeit (V6) |
-| Keine Uhr außer in `generate.ts` | `core` muss deterministisch bleiben |
-| Bezeichner und Kommentare englisch | eine Bibliothek für andere Projekte |
+| imports keep the layer direction | otherwise the structure falls apart quietly |
+| no bare import except i18next | checked in code rather than claimed in a manifest |
+| i18next only in `i18n/` | the core stays dependency-free |
+| no DOM, no React, no Node modules | the same code in browser, worker and test |
+| no `Math.random` | reproducibility (V6) |
+| no clock except in `generate.ts` | `core` must stay deterministic |
+| identifiers and comments in English | one language for the code |
 
-Diese Prüfung hat sich selbst bewiesen: sie fand einen echten Schichtverstoß
-(`clues/constrain.ts` griff nach `solving`), der beim Lesen niemandem aufgefallen
-war. Die Datei ist daraufhin nach `solving/propagate.ts` gewandert — sie
-beschreibt nicht, was ein Hinweis *bedeutet*, sondern wie man *mit* ihm schließt.
+This check proved itself: it found a real layer violation
+(`clues/constrain.ts` reached for `solving`) that nobody had noticed reading.
+The file then moved to `solving/propagate.ts` — it does not describe what a clue
+*means*, but how to reason *with* it.
 
-Ein weiterer Test erzeugt ein Rätsel mit einem **fremden Theme**, das die
-Bibliothek nicht kennt.
+Another test generates a puzzle with a **foreign theme** the library does not
+know.
 
-Der Austausch zwischen Projekten läuft über ein JSON-Dokument (`§6.8`), das
-`parsePuzzle` vollständig prüft, bevor es etwas zurückgibt.
+Exchange between projects goes through a JSON document (§6.8) that
+`parsePuzzle` validates completely before returning anything.
 
-### 8.2 Bildschirme
+### 8.2 Screens
 
-- **Startseite** — der **Kalender ist die Hauptsache**. Darüber ein einziger
-  Primärknopf für den heutigen Fall, darunter Zufallsfall und Seed-Eingabe als
-  Beiwerk. Vorher stritten eine Tagesfall-Karte, eine kuratierte Fallliste und
-  das Seed-Feld um dieselbe Aufmerksamkeit. → **V2**
-  - Ein Monat je Seite, sieben Spalten, **Woche ab Montag**, vor und zurück
-    blätterbar bis zum Starttag; nach heute ist gesperrt.
-  - Vier Zustände je Tag: leer, **angefangen**, gelöst, gesperrt. „Angefangen"
-    liest nur, *ob* ein Spielstand existiert — eine Kalenderzelle soll nicht den
-    ganzen Stand einlesen und wieder wegwerfen, um einen Punkt zu zeichnen.
-  - Ein schmaler Balken zeigt die Stufe, in **Farbe und Breite**, damit er auch
-    ohne Farbwahrnehmung unterscheidbar bleibt. Künftige Tage zeigen ihn schon:
-    dass Sonntag der große Fall wird, darf man vorher sehen.
-  - Monatsnamen und Wochentage kommen von `Intl`, nicht aus der Textdatei.
-- **Zufallsfall** — fünf Knöpfe, einer je Stufe, mit der Gittergröße als
-  Beiwerk. Die Größe folgt aus der Stufe, wird also nicht gewählt sondern
-  hergeleitet; bei „sehr leicht" entscheidet das Los zwischen 5 und 6. Der
-  Zufall kommt aus `crypto.getRandomValues`. Lässt sich zu einem ausgelosten
-  Seed nichts erzeugen, wird bis zu dreimal neu gewürfelt — ein **eingetippter**
-  Seed wird dagegen nie ersetzt: wer einen bestimmten Fall aufruft, will genau
-  den. Die Adresse zeigt dabei immer den Fall, der gerade versucht wird.
-- **Spiel** — Gitter, Karten, Werkzeuge, Tipp, Bestätigen, Timer.
-- **Auflösung** — Mörder, Zeit, benötigte Tipps, Link zum Teilen.
-- **Regeln und Tutorial** — sechs Schritte, dazu eine dauerhaft erreichbare
-  Regelseite mit Schlüsselwörtern und Techniken.
+- **Start page** — the **calendar is the main thing**. Above it a single primary
+  button for today's case, below it the random case and seed entry as extras.
+  Before, a daily-case card, a curated case list and the seed field competed for
+  the same attention. → **V2**
+  - One month per page, seven columns, **week starting Monday**, paging back and
+    forth down to the start day; after today is locked.
+  - Four states per day: open, **started**, solved, locked. "Started" only reads
+    *whether* a saved game exists — a calendar cell should not read and discard
+    a whole save to draw a symbol.
+  - The state shows twice: as the cell's fill (orange started, green solved) and
+    as a large symbol; the border belongs to "today".
+  - A thin bar shows the tier, in **colour and width**, so it stays readable
+    without colour vision. Future days show it already: that Sunday will be the
+    big case may be seen in advance.
+  - Month and weekday names come from `Intl`, not from the resources.
+- **Random case** — five buttons, one per tier, with the grid size as an extra.
+  The size follows from the tier, so it is derived rather than chosen; for "very
+  easy" the draw picks 5 or 6. The randomness comes from
+  `crypto.getRandomValues`. If nothing can be generated for a drawn seed, it is
+  redrawn up to three times — a **typed-in** seed, by contrast, is never
+  replaced: whoever opens a particular case wants exactly that one. The address
+  always shows the case currently being tried.
+- **Game** — grid, cards, tools, hint, confirm, timer.
+- **Resolution** — murderer, time, hints used, a link to share.
+- **Rules and tutorial** — six steps, plus a rules page always within reach,
+  with keywords and techniques.
+- **Settings** — language, hold time, vibration, cell names.
 
-### 8.3 Eingabe
+### 8.3 Input
 
-**Bleistiftnotizen.** Ein kurzes Tippen auf ein Feld setzt den Anfangsbuchstaben
-der ausgewählten Person als Notiz — **links oben** in der Zelle, wie bei Murdoku.
-Mehrere Notizen in derselben Zelle stehen nebeneinander und laufen bei Bedarf um;
-sie bleiben auch neben einer X-Markierung sichtbar. Erneutes Tippen mit derselben
-Person entfernt ihre Notiz wieder.
+**Pencil notes.** A short tap on a cell sets the selected person's first letter
+as a note — **top left** in the cell, as in Murdoku. Several notes in one cell
+sit side by side and wrap if needed; they stay visible next to an X. Tapping
+again with the same person removes the note.
 
-**Bedienung mit der Tastatur.** Platzieren ging bis Plan v12 nur mit einem
-Zeiger: halten, doppelklicken oder rechtsklicken. Wer keine Maus benutzen kann,
-konnte das Spiel damit nicht spielen — nicht schwer, sondern gar nicht.
+**Playing by keyboard.** Up to plan v12, placing needed a pointer: hold,
+double-click or right-click. Whoever cannot use a mouse could not play at all —
+not with difficulty, not at all.
 
-| Taste | Wirkung |
+| Key | Effect |
 |---|---|
-| Pfeile | Rahmen bewegen; am Rand bleibt er stehen, statt umzubrechen |
-| Pos1 / Ende | an den Anfang oder das Ende der Zeile |
-| Eingabe / Leertaste | gewählte Person platzieren |
-| `N` | Notiz setzen oder entfernen |
-| `X` | Markierung setzen oder entfernen |
-| Entf / Rück | Feld leeren |
-| Komma / Punkt | eine Person zurück oder weiter |
+| arrows | move the frame; at the edge it stops rather than wrapping |
+| Home / End | to the start or end of the row |
+| Enter / Space | place the selected person |
+| `N` | add or remove a note |
+| `X` | add or remove a mark |
+| Delete / Backspace | clear the cell |
+| comma / full stop | one person back or on |
 
-**Modusfrei:** jede Taste tut eine Sache, man muss nie wissen, welches Werkzeug
-gerade aktiv ist. Das Brett ist **ein** Tabstopp — hundert Felder einzeln
-anzuspringen wäre auf einem 10×10 schlimmer als gar keine Tastaturbedienung.
-Urteil und Tipp stehen in einer Statusregion und werden damit auch angesagt,
-nicht nur angezeigt.
+**Modeless:** every key does one thing; you never need to know which tool is
+active. The board is **one** tab stop — tabbing through a hundred cells on a
+10×10 would be worse than no keyboard use at all. Verdict and hint sit in a
+status region and are therefore announced, not only shown.
 
-**Zeigerauswertung über Koordinaten.** Welche Zelle gemeint ist, wird
-ausschließlich aus den Zeigerkoordinaten bestimmt (`elementFromPoint`), nie aus
-dem Ereignisziel. Grund: sobald der Zeiger für das Ziehen eingefangen ist
-(`setPointerCapture`), liefern alle Folgeereignisse den Gitter-Container als
-Ziel statt der Zelle darunter — ein zielbasierter Zugriff findet dann beim
-Loslassen keine Zelle mehr, und genau daran ist das kurze Tippen gescheitert
-(VALIDATION.md, Runde 10).
+**Pointer by coordinates.** Which cell is meant is decided solely from the
+pointer coordinates (`elementFromPoint`), never from the event target. Reason:
+once the pointer is captured for dragging (`setPointerCapture`), every following
+event targets the grid container rather than the cell beneath — a target-based
+lookup then finds no cell on release, and exactly that is how the short tap
+failed (VALIDATION.md, round 10).
 
-**Raumgrenzen sind immer sichtbar.** Jeder Raum ist von einer **dicken
-schwarzen Linie** umgeben, die Felder darin trennt ein dünner Strich. Das ist
-Spielinformation und keine Verzierung: fast jeder Hinweis nimmt auf Räume Bezug
-(„allein im Raum", „im selben Raum wie"), und wer die Grenze nicht sieht, kann
-den Hinweis nicht anwenden.
+**Room borders are always visible.** Every room is surrounded by a **thick black
+line**; a thin one separates the cells inside. That is game information, not
+decoration: almost every clue refers to rooms ("alone in the room", "in the same
+room as"), and whoever cannot see the border cannot apply the clue.
 
-Früher trug die Hervorhebung unter der Maus diese Aufgabe allein. Das war ein
-Entwurfsfehler: **auf dem Handy gibt es kein Schweben**, und eine Information,
-die nur der Maus zugänglich ist, fehlt der Hälfte der Spieler (VALIDATION.md,
-Runde 15). Die farbige Hervorhebung beim Schweben kommt am Schreibtisch
-obendrauf — sie hebt den Raum unter dem Zeiger an und färbt seinen Namen ein,
-aber sie ersetzt nichts.
+The highlight under the mouse used to carry this job alone. That was a design
+error: **phones have no hover**, and information only a mouse can reach is
+missing for half the players (VALIDATION.md, round 15). The coloured highlight
+on hover comes on top at a desk — it brightens the room under the pointer and
+colours its name — but it replaces nothing.
 
-Beide Strichstärken wachsen mit der Feldgröße und haben eine Untergrenze, damit
-sie auch im härtesten Fall — 10×10 auf einem 360 px breiten Gerät, Feld ≈ 32 px —
-noch als **zwei verschiedene** Stärken lesbar sind. Darauf kommt es an: die
-Raumgrenze muss sich vom Feldraster unterscheiden, nicht nur vorhanden sein.
+Both stroke widths grow with the cell size and have a minimum, so that even in
+the hardest case — 10×10 on a 360 px wide device, a cell ≈ 32 px — they stay
+readable as **two different** widths. That is what matters: the room border must
+differ from the cell grid, not merely exist.
 
-Gezeichnet wird alles in **einem** SVG über dem Boden, nicht als Schatten je
-Zelle. Eine geteilte Kante wird damit einmal gezeichnet statt zweimal halb, und
-die Strichstärke ist überall genau die angegebene — bei Kachelschatten wäre sie
-an Raumgrenzen doppelt so dick wie am Brettrand. Die Linien liegen über den
-Requisiten (eine Grenze, die hinter dem Schrank verschwindet, lässt den Raum
-offen aussehen, wo er geschlossen ist) und unter allem, was der Spieler selbst
-setzt. Sie nehmen keine Eingabe an.
+Everything is drawn in **one** SVG above the floor, not as a shadow per cell. A
+shared edge is drawn once instead of twice by halves, and the stroke width is
+exactly the given one everywhere — with tile shadows it would be twice as thick
+at room borders as at the board's edge. The lines lie above the props (a border
+disappearing behind a cupboard makes a room look open where it is closed) and
+below everything the player sets. They take no input.
 
-**Platzieren zieht die Konsequenzen nach.** In jeder Zeile und jeder Spalte
-steht genau eine Person. Sobald jemand gesetzt wird, ist damit der Rest seiner
-Zeile und Spalte ausgeschlossen — das trägt die Oberfläche selbst nach, statt es
-dem Spieler als Fleißarbeit zu überlassen (so macht es auch Murdoku, §2,
-Tutorial Schritt 3):
+Labels keep a fixed distance from the cell edge (half the wall plus 2 px): the
+room name as a small sign cut to the room's width in its row, the person's
+letter and the notes.
 
-- alle übrigen Felder der Zeile und Spalte bekommen ein X,
-- deren Notizen fallen weg, denn dort kann niemand mehr stehen,
-- sämtliche Notizen der gesetzten Person verschwinden, sie ist ja fix,
-- eine andere Person, die dieselbe Zeile oder Spalte belegte, wird
-  heruntergenommen — sonst entstünde ein Brett, das die Grundregel bricht.
+**Placing carries out the consequences.** Every row and every column holds
+exactly one person. Once someone is placed, the rest of their row and column is
+ruled out — the UI records that itself rather than leaving it to the player as
+busywork (Murdoku does the same, §2, tutorial step 3):
 
-Rückgängig macht all das in einem Schritt wieder rückgängig.
+- every other cell of the row and column gets an X,
+- their notes go, since nobody can stand there any more,
+- all notes of the placed person go, since they are fixed now,
+- another person occupying the same row or column is taken off — otherwise the
+  board would break the basic rule.
 
-**Gesperrte Felder nehmen keine Eingabe an.** Auf einem sperrenden Objekt kann
-niemand stehen (§3.2 Regel 3), deshalb ignoriert das Gitter dort Platzieren,
-Notieren und X-Markieren vollständig und quittiert den Versuch mit einem kurzen
-roten Aufblitzen. Der Zustand kann so gar nicht erst ungültig werden — die Regel
-steht nicht nur im Prüfcode, sondern in der Bedienung.
+Undo reverts all of this in one step.
 
-Touch: Tippen setzt eine Notiz, Halten (350 ms) platziert, Ziehen malt Notizen.
-Desktop zusätzlich: Doppelklick platziert, Rechtsklick setzt X, Pfeiltasten mit
-Eingabe- und X-Taste. Werkzeuge: X-Markierung, Radierer (halten leert alles),
-Rückgängig über einen Zustandsstapel. Haltedauer und Vibration sind in den
-Optionen einstellbar.
+**Blocked cells take no input.** Nobody can stand on a blocking object (§3.2,
+rule 3), so the grid ignores placing, notes and marks there entirely and answers
+the attempt with a short red flash. The state cannot even become invalid — the
+rule lives not only in the checking code but in the controls.
 
-### 8.4 Zustand und Speicherung
+Touch: tap sets a note, hold (350 ms) places, drag paints notes. On desktop
+also: double-click places, right-click sets an X, arrow keys with Enter and X.
+Tools: X mark, eraser (holding clears everything), undo via a state stack. Hold
+time and vibration are adjustable in the settings.
 
-Ein Reducer hält Platzierungen, Notizen, X-Marken, Undo-Stapel, Timer und
-Tippzähler. Gespeichert wird pro Seed in `localStorage` unter
-`indizio:v3:save:<seed>`, dazu ein Fortschrittsindex für den Kalender.
+### 8.4 State and storage
 
-**Der gespeicherte Stand ist der Anfangszustand der Sitzung**, nicht etwas, das
-ein Effekt nachreicht. Zwei Effekte — einer lädt, einer schreibt zurück —
-ergaben einen Wettlauf: der schreibende sieht den Zustand des Renders, der
-gerade fertig wurde, und das ist beim ersten Durchlauf das leere Brett. Im
-Browser hat er damit den geladenen Spielstand überschrieben, bevor er sichtbar
-wurde; die Tests blieben dabei grün.
+A reducer holds placements, notes, X marks, the undo stack, timer and hint
+counter. Each seed's game is saved in `localStorage` under
+`indizio:v4:save:<seed>`, plus a progress index for the calendar. Everything
+read back is checked against a schema; what does not match is dropped (§14, U7).
 
-Der **Seed bleibt die Quelle der Wahrheit** — der Spielstand referenziert ihn und
-enthält nie eine eigene Rätselkopie. Damit das Wiederaufnehmen eines 10×10 nicht
-jedes Mal Sekunden kostet (§11, G6), wird das erzeugte `core`-Objekt zusätzlich
-unter `indizio:v3:puzzle:<seed>` zwischengespeichert.
+**The saved game is the session's initial state**, not something an effect
+hands in later. Two effects — one loading, one writing back — made a race: the
+writing one sees the state of the render that just finished, which on the first
+pass is the empty board. In the browser it overwrote the loaded game before it
+showed; the tests stayed green meanwhile.
 
-Das Präfix trägt die Version, weil beides zugleich veralten kann: unter einer
-anderen Generatorversion beschreibt derselbe Seed ein anderes Rätsel, und das
-Austauschformat hat andere Felder. Alte Einträge werden dadurch nicht
-fehlinterpretiert, sondern schlicht nicht mehr gefunden — ein Spielstand von
-gestern verschwindet, ein falsches Rätsel erscheint nie.
+The **seed stays the source of truth** — a save refers to it and never holds a
+copy of the puzzle. So that resuming a 10×10 does not cost seconds every time
+(§11, G6), the generated `core` is also cached under `indizio:v4:puzzle:<seed>`
+and read back through `parsePuzzle`.
 
-Beim Schritt auf Generator 3 ist dieses Mitziehen **unterblieben**: die Schlüssel
-standen weiter auf `v2` und versprachen eine Version, die nicht stimmte.
-Nachgeholt, und ein einmaliger Lauf beim Start räumt die Einträge früherer
-Fassungen weg — sie werden nie wieder gelesen und belegen bei einem 10×10 schnell
-hunderte Kilobyte.
+The prefix carries the version, because both can go stale at once: under
+another generator version the same seed describes a different puzzle, and the
+interchange format has other fields. Old entries are therefore not misread but
+simply no longer found — yesterday's save disappears, a wrong puzzle never
+appears.
 
-### 8.4.1 Versionsnummer
+On the step to generator 3 this was **forgotten**: the keys stayed at `v2` and
+promised a version that was not true. Fixed, and a one-off run at start-up
+clears the entries of earlier versions — they are never read again and take
+hundreds of kilobytes after a few 10×10 puzzles.
 
-Format `<Jahr>.<Nummer>`, zum Beispiel `2026.5` — die fünfte Fassung aus diesem
-Jahr. Sie steht in der Fußzeile jedes Bildschirms.
+### 8.4.1 Version number
 
-**Bewusst kein Semver.** Semantische Versionen sagen etwas über Verträge
-zwischen Programmen zu; die Bibliothek hat solche Nutzer (§8.1, dort gilt
-Semver), das Spiel hat Menschen vor dem Bildschirm. Für die ist „die vierte
-Fassung aus diesem Jahr" die nützlichere Auskunft.
+Format `<year>.<number>`, for example `2026.5` — the fifth version this year.
+It is in the footer of every screen.
 
-Gepflegt wird die Nummer an **einer** Stelle, der `package.json`; beim Bauen
-wird sie eingesetzt. Eine zweite Stelle hieße, dass beide auseinanderlaufen
-können — und eine Versionsnummer, der man nicht glauben kann, ist schlimmer als
-keine. Ein Test vergleicht deshalb, was die Oberfläche anzeigt, mit dem, was in
-der Datei steht.
+**Deliberately not semver.** Semantic versions promise something about contracts
+between programs; the engine has such users (§8.1, where semver would apply),
+the game has people in front of a screen. For them "the fourth version this
+year" is the more useful information.
 
-Hochgezählt wird mit `npm run bump`, beim Jahreswechsel wieder ab eins. Der
-Reset ist nötig, damit die Nummer etwas aussagt: „2027.58" ließe offen, ob 58
-Änderungen in einem Jahr oder in fünf passiert sind.
+The number is kept in **one** place, `package.json`; it is filled in at build
+time. A second place would mean the two can drift apart — and a version number
+you cannot believe is worse than none. So a test compares what the UI shows with
+what is in the file.
 
-**Nicht an den Bau gehängt.** Gebaut wird auch zum Ausprobieren, und dabei
-ändert sich nichts am Spiel. Die Nummer soll steigen, wenn jemand etwas geändert
-hat — das weiß nur der Mensch, der es geändert hat.
+It is counted up with `npm run bump`, restarting at one in a new year. The reset
+is needed for the number to say something: "2027.58" would leave open whether 58
+changes happened in one year or in five.
 
-Die Fußzeile kennt ihre eigene Höhe und gibt sie als `FOOTER_PX` weiter: der
-Spielbildschirm rechnet die Gittergröße aus dem Viewport und muss wissen, was
-unter dem Brett Platz belegt, sonst schöbe die Fußzeile das Gitter aus dem Bild.
+**Not tied to the build.** Builds also happen just to try things, and the game
+does not change by that. The number should go up when someone changed something
+— which only the person who changed it knows.
 
-### 8.5 Darstellung auf allen Geräten
+The footer knows its own height and passes it on as `FOOTER_PX`: the game screen
+sizes the grid from the viewport and must know what takes space below the
+board, or the footer would push the grid out of view.
 
-Ein Layout, zwei Anordnungen: ab 900 px stehen die Karten links neben dem
-Gitter, darunter als waagerecht scrollbares Band darüber. Das Gitter skaliert auf
-`min(verfügbare Breite, verfügbare Höhe)` mit ganzzahligem Sprite-Faktor.
-Zielgeräte 360 px bis 1440 px, Treffflächen mindestens 44 px. → **V7**
+### 8.5 Every device
 
-Gemessen auf 375×812:
+One layout, two arrangements: from 900 px the cards stand left of the grid;
+below that as a horizontally scrolling strip above it. The grid scales to
+`min(available width, available height)` in steps of 8 px. Target devices
+360 px to 1440 px, touch targets at least 44 px. → **V7**
+
+Measured at 375×812:
 
 | | |
 |---|---|
-| Spielbildschirm 10×10 und 6×6 | Seitenhöhe **exakt 812**, kein Scrollen |
-| Kopfzeile des Spiels | 44 px, eine Zeile |
-| Kalenderzellen | 44×44, kein waagerechtes Scrollen |
+| game screen 10×10 and 6×6 | page height **exactly 812**, no scrolling |
+| game header | 44 px, one line |
+| calendar cells | 44×44, no horizontal scrolling |
 
-**Offener Punkt.** Die Höhe, die der Spielbildschirm für alles außer dem Brett
-abzieht, ist eine Konstante. Sie musste bereits zweimal von Hand nachgezogen
-werden — erst wegen der Fußzeile, dann wegen eines dritten Knopfes in der
-Kopfzeile. Ein gemessener Wert wäre ehrlicher als eine Zahl, die jede
-UI-Änderung stillschweigend falsch macht. Beim zweiten Mal war die Ursache
-ohnehin eine andere: auf dem Handy bindet die **Breite** (347 gegen 414 freie
-Pixel), ein größerer Höhenabzug änderte gar nichts. Behoben wurde es, indem die
-Kopfzeile nicht mehr umbrechen darf und der Titel notfalls abschneidet.
-
----
-
-## 9. Auslieferung
-
-`npm run build` erzeugt rein statische Dateien, lauffähig auf jedem Webspace,
-GitHub Pages oder Netlify. Service Worker und Manifest machen das Spiel nach dem
-ersten Laden offline spielbar und auf dem Handy zum Startbildschirm
-hinzufügbar. Kein Backend, kein Konto, keine Datenübertragung. → **V7**
+**Open point.** The height the game screen subtracts for everything but the
+board is a constant. It already had to be adjusted by hand twice — first for the
+footer, then for a third button in the header. A measured value would be more
+honest than a number every UI change quietly makes wrong. The second time the
+cause was a different one anyway: on a phone the **width** binds (347 against
+414 free pixels), and a larger height deduction changed nothing. It was fixed by
+not letting the header wrap and letting the title cut off if needed.
 
 ---
 
-## 10. Meilensteine
+## 9. Delivery
 
-Alle vierzehn Etappen sind umgesetzt. Die Abnahme (§11) ist grün; offen ist
-allein der Offline-Nachweis G11 in einem normalen Browser.
+`npm run build` produces purely static files that run on any web host, GitHub
+Pages or Netlify. Service worker and manifest make the game playable offline
+after the first load and addable to a phone's home screen. No backend, no
+account, no data transfer. → **V7**
 
-| M | Inhalt | Ergebnis |
+---
+
+## 10. Milestones
+
+| M | Content | Result |
 |---|---|---|
-| M0 ✓ | Vite + TS + React, Vitest, ESLint, Ordnergerüst | `npm run dev` läuft |
-| M1 ✓ | Datenmodell, Themes, Hinweistypen, Evaluator, i18n-Rendering, Referenzlöser | Hinweise sind prüfbar und in DE/EN lesbar |
-| M2 ✓ | Solver, Schwierigkeitsmaß, Tipp-API, Soundness-Tests | Rätsel sind maschinell lösbar und bewertbar |
-| M3 ✓ | Generator, Seed, Worker, Zeitmessung | Reproduzierbare Rätsel aller fünf Stufen |
-| M4 ✓ (ersetzt) | Zunächst Atlas aus CC0-Pixelgrafik, später vollständig durch eigene Vektorgrafik abgelöst (§7.5) | Tatorte sind sichtbar |
-| M5 ✓ | Spiel-UI, Eingabe, Werkzeuge, Undo, Bestätigen, Persistenz | **ab hier spielbar** |
-| M6 ✓ (ersetzt) | Katalog mit Fortschritt, Tipp-UI, Auflösungsbildschirm | Vollständige Spielschleife |
-| M7 ✓ | Tutorial, Timer, Teilen, Drucken | Ausstattung komplett |
-| M8 ✓ | i18n vollständig, Responsive-Feinschliff, PWA, Abnahmelauf G1–G14 | Abnahmekriterien erfüllt |
-| M9 ✓ | Bibliothek refaktoriert: englisch, geschichtet, i18next, zwei Regelstufen, Testsuite in zwei Stufen (§8.1.1, §11) | Wartbar und nachprüfbar |
-| M10 ✓ | Grafiken als austauschbare Dateien je Theme (§7.0), Raumgrenzen ohne Maus erkennbar (§8.3) | Bereit für endgültige Grafiken |
-| M11 ✓ | Versionsnummer `<Jahr>.<Nummer>` in der Fußzeile (§8.4.1) | Jeder Stand ist benennbar |
-| M12 ✓ | „Neben" nennt nie das eigene Standobjekt (§4.2.1), Generatorversion 3 | Hinweise sagen, was am nächsten liegt |
-| M13 ✓ | Requisiten je Grundfläche (§7.0), gewählte Person leuchtet im Gitter (§3.1) | Objekte belegen sichtbar ihren Platz |
-| M14 ✓ | Engine zurück ins Projekt hinter zwei Türen (§8.1), Kalender statt Katalog (§8.2), Zufallsfall nach Stufe, Spiel ohne Maus bedienbar (§8.3) | Ein Projekt, ein Testlauf, jeder Tag ein Fall |
-| M15 ✓ | Verlegte Objekte (§13): Verlegeart im Theme, Formwachstum, Viertelkachel-Blatt, Teppich und Matte umgestellt, Generatorversion 4, Schemaversion 3 | Teppiche laufen um Ecken |
+| M0 ✓ | Vite + TS + React, Vitest, ESLint, folder skeleton | `npm run dev` runs |
+| M1 ✓ | data model, themes, clue types, evaluator, i18n rendering, reference solver | clues can be checked and read in DE/EN |
+| M2 ✓ | solver, difficulty measure, hint API, soundness tests | puzzles can be solved and rated by machine |
+| M3 ✓ | generator, seed, worker, timing | reproducible puzzles of all five tiers |
+| M4 ✓ (replaced) | first an atlas of CC0 pixel art, later replaced entirely by our own vector art (§7.5) | crime scenes are visible |
+| M5 ✓ | game UI, input, tools, undo, confirm, persistence | **playable from here** |
+| M6 ✓ (replaced) | catalogue with progress, hint UI, resolution screen | complete game loop |
+| M7 ✓ | tutorial, timer, sharing, printing | feature-complete |
+| M8 ✓ | complete i18n, responsive polish, PWA, acceptance run G1–G14 | acceptance criteria met |
+| M9 ✓ | library reworked: English, layered, i18next, two rule levels, two-tier test suite (§8.1.1, §11) | maintainable and verifiable |
+| M10 ✓ | drawings as replaceable files per theme (§7.0), room borders visible without a mouse (§8.3) | ready for final drawings |
+| M11 ✓ | version `<year>.<number>` in the footer (§8.4.1) | every build has a name |
+| M12 ✓ | "next to" never names the own standing object (§4.2.1), generator version 3 | clues say what is closest |
+| M13 ✓ | props per footprint (§7.0), the selected person lights up on the grid (§3.1) | objects visibly take their place |
+| M14 ✓ | engine back into the project behind two doors (§8.1), calendar instead of catalogue (§8.2), random case by tier, playable without a mouse (§8.3) | one project, one test run, a case every day |
+| M15 ✓ | laid objects (§13): way of laying per theme, shape growth, quarter-tile sheet, carpet and mat switched, generator version 4, schema version 3 | carpets turn corners |
+| M16 ✓ | rework (§14): strict tooling, features, react-i18next, one folder per theme, parsed storage, error codes, CSS modules, everything in English | simple, consistent, easy to extend |
 
-Themes: Werkstatt (Auto, Regal, Werkbank, Ölfleck, Reifenstapel), Wohnung (Sofa,
-Küchenzeile, Bett, Teppich, Bücherregal), Hinterhofgarten (Baum, Beet,
-Gartenstuhl, Teich, Schuppen).
+Themes: car repair shop (car, shelf, workbench, oil stain, tyre stack …), flat
+(sofa, kitchen unit, bed, carpet, bookshelf …), backyard garden (tree, flower
+bed, garden chair, pond, shed …).
 
 ---
 
-## 11. Abnahmekriterien
+## 11. Acceptance criteria
 
-Automatisiert (Node, ohne Browser), sofern nicht anders vermerkt. Die Kriterien
-stecken seit dem Umbau in der **Testsuite selbst** statt in einem
-eigenen Abnahmeskript — dort werden sie bei jeder Änderung mitgeprüft, statt nur
-dann, wenn jemand daran denkt, den Abnahmelauf zu starten.
+Automated (Node, no browser) unless noted. Since the rework the criteria live in
+the **test suite itself** rather than a separate acceptance script — there they
+are checked with every change, not only when someone remembers to run the
+acceptance run.
 
-| Lauf | Befehl | Umfang |
+| Run | Command | Scope |
 |---|---|---|
-| Schnell | `npm test` | Sekunden; Engine und App zusammen, hält die Zusagen zwischen zwei gründlichen Läufen ehrlich |
-| Gründlich | `npm run test:deep` | alle Gittergrößen, hunderte Seeds, Zeitbudgets |
-| Vor dem Commit | `npm run verify` | Typprüfung beider Projekte, Lint, alle Tests |
+| quick | `npm test` | seconds; engine and app together, keeps the promises honest between two thorough runs |
+| thorough | `npm run test:deep` | every grid size, hundreds of seeds, time budgets |
+| before committing | `npm run verify` | type check of both projects, lint, formatting, all tests |
 
-Zwei Ergänzungen, die es vorher nicht gab:
+Two additions that did not exist before:
 
-- **Eigenschaftsbasierte Tests** (fast-check) erzeugen die Fälle selbst, statt
-  eine Handvoll ausgesuchter Seeds zu prüfen. Was hier fällt, kommt mit dem
-  verkleinerten Gegenbeispiel zurück.
-- **Eingefrorene Prüfsummen** (`tests/engine/reference/`) halten G4 über die Zeit fest:
-  zehn Seeds mit ihrem Prüfwert und zwei vollständige Beispielrätsel. Ändert
-  sich der Generator ungewollt, fällt der Test; ändert er sich absichtlich, wird
-  die Referenz mit einem eigenen Skript und der erhöhten `generatorVersion` neu
-  geschrieben.
+- **Property-based tests** (fast-check) generate their own cases instead of
+  checking a handful of chosen seeds. Whatever fails comes back with the shrunk
+  counterexample.
+- **Frozen checksums** (`tests/engine/reference/`) pin G4 down over time: ten
+  seeds with their checksum and two complete sample puzzles. If the generator
+  changes unintentionally, the test fails; if it changes on purpose, the
+  reference is rewritten with its own script and a raised `generatorVersion`.
 
-| # | Kriterium |
+| # | Criterion |
 |---|---|
-| G1 | 500 Rätsel je Stufe: 100 % vom Logiklöser ohne Fallunterscheidung vollständig gelöst |
-| G2 | Stichprobe 200 je Stufe: Referenzlöser bestätigt genau eine Lösung |
-| G3 | 100 % aller ausgegebenen Hinweise sind gegen die Lösung wahr |
-| G4 | Gleicher Seed ⇒ byte-identisches `core`-JSON (ohne `meta`), 1000 Wiederholungen über Prozessgrenzen hinweg |
-| G5 | 100 % der ausgelieferten Rätsel erfüllen beide Schranken ihrer Stufe aus §5.4 (Streuung, indirekte Hinweise); Rätsel außerhalb der Schranken werden verworfen, nicht umetikettiert |
-| G6 | p95-Generierungszeit im Node-Referenzlauf: 5×5 < 100 ms, 7×7 < 400 ms, 8×8 < 300 ms, 9×9 < 1 s, 10×10 < 4 s. Für Mobilgeräte gilt der dreifache Wert, einmal real auf einem Mittelklasse-Handy in M8 nachgemessen. Die Generierung läuft im Worker, die Oberfläche bleibt bedienbar |
-| G7 | Solver-Soundness: 10 000 Zufallszustände, jeder eliminierte Kandidat vom Referenzlöser als unmöglich bestätigt |
-| G8 | 100 % der Rätsel: Raum des Opfers enthält genau zwei Personen |
-| G9 | 100 % der Rätsel: jede Zeile und jede Spalte enthält genau eine Person, keine auf blockiertem Feld |
-| G10 | Layout ohne waagerechtes Scrollen bei 360/390/768/1280 px, Treffflächen ≥ 44 px (Browser-Prüfung) |
-| G11 | Nach erstem Laden im Flugmodus spielbar, Rätsel wird offline generiert (Browser-Prüfung) |
-| G12 | Alle Oberflächentexte und alle Hinweistypen in DE und EN vorhanden; ein Schlüsselabgleich meldet fehlende oder verwaiste Einträge |
-| G13 | Kein Kartenhinweis verletzt die Einschränkungen aus §4.2.1 (eindeutiges Bezugsobjekt, kein namentlicher Opferbezug, keine Zweierzyklen, kein „neben" auf das eigene Standobjekt) |
-| G14 | Der Tipp greift nie auf den Spielstand zu: Läufe mit zufällig verfälschten Brettern liefern denselben Tipp wie das leere Brett |
-| G15 | Die Schichtgrenzen der Bibliothek aus §8.1.1 sind eingehalten, geprüft am Quelltext |
-| G16 | Jede Grafik, die das Spiel anfordert, liegt als Datei vor — je Theme, je Art, je Grundfläche, ohne Verwaiste (§7.4) |
-| G17 | Die angezeigte Versionsnummer hat das Format `<Jahr>.<Nummer>` und stimmt mit der `package.json` überein (§8.4.1) |
-| G18 | Niemand außerhalb von `src/engine/` greift an den beiden Türen vorbei — am Quelltext geprüft, zusätzlich zur Lint-Regel (§8.1.1) |
-| G19 | Jeder Kalendertag ergibt einen Seed der Stufe, die sein Wochentag vorgibt, und trägt die aktuelle Generatorversion (§6.1.1) |
-| G20 | Der Tastaturrahmen bleibt bei jeder Gittergröße und jeder Taste im Brett und bricht am Rand nicht in die nächste Zeile um (§8.3) |
-| G21 | 100 % der Rätsel: jedes Objekt hängt über die Vierernachbarschaft zusammen und liegt ganz in seinem Raum; `fixed`-Objekte sind Rechtecke einer erlaubten Grundfläche; `tiled`-Objekte haben `minCells` bis `maxCells` Zellen und berühren keine gleichartige Instanz orthogonal; ein verlegter Anker überdeckt keine fremde Lösungszelle (§13.2, §13.3) |
-| G22 | Für alle 256 Nachbarschaften einer Zelle liefert die Viertelwahl ein Viertel aus dem Blatt, und je zwei verbundene Nachbarn stoßen mit Kante an Kante, nie mit Rand an Füllung (§13.4) |
+| G1 | 500 puzzles per tier: 100 % solved completely by the logic solver without case analysis |
+| G2 | sample of 200 per tier: the reference solver confirms exactly one solution |
+| G3 | 100 % of all clues given are true of the solution |
+| G4 | same seed ⇒ byte-identical `core` JSON (without `meta`), 1000 repetitions across processes |
+| G5 | 100 % of shipped puzzles meet both bounds of their tier from §5.4 (spread, indirect clues); puzzles outside the bounds are discarded, not relabelled |
+| G6 | p95 generation time in the Node reference run: 5×5 < 100 ms, 7×7 < 400 ms, 8×8 < 300 ms, 9×9 < 1 s, 10×10 < 4 s. On mobile three times that, measured once for real on a mid-range phone in M8. Generation runs in the worker; the UI stays usable |
+| G7 | solver soundness: 10,000 random states, every eliminated candidate confirmed impossible by the reference solver |
+| G8 | 100 % of puzzles: the victim's room holds exactly two people |
+| G9 | 100 % of puzzles: every row and every column holds exactly one person, none on a blocked cell |
+| G10 | layout without horizontal scrolling at 360/390/768/1280 px, touch targets ≥ 44 px (browser check) |
+| G11 | playable in flight mode after the first load; the puzzle is generated offline (browser check) |
+| G12 | every UI text and every clue type exists in DE and EN; resource keys are typed and compared, missing or stray entries fail |
+| G13 | no card clue breaks the restrictions of §4.2.1 (unique reference object, no victim named, no two-cycles, no "next to" the own standing object) |
+| G14 | the hint never reads the player's board: runs with randomly altered boards give the same hint as the empty board |
+| G15 | the engine's layer boundaries of §8.1.1 hold, checked in the source |
+| G16 | every drawing the game asks for exists as a file — per theme, per kind, per footprint, none orphaned (§7.4) |
+| G17 | the shown version has the format `<year>.<number>` and matches `package.json` (§8.4.1) |
+| G18 | nobody outside `src/engine/` reaches past the two doors — checked in the source, in addition to the lint rule (§8.1.1) |
+| G19 | every calendar day gives a seed of the tier its weekday prescribes and carries the current generator version (§6.1.1) |
+| G20 | the keyboard frame stays on the board for every grid size and every key and does not wrap into the next row (§8.3) |
+| G21 | 100 % of puzzles: every object is connected in the four-neighbourhood and lies entirely in its room; `fixed` objects are rectangles of an allowed footprint; `tiled` objects have `minCells` to `maxCells` cells and touch no instance of the same kind orthogonally; a laid anchor covers no other solution cell (§13.2, §13.3) |
+| G22 | for all 256 neighbourhoods of a cell the quarter choice gives a quarter from the sheet, and two connected neighbours always meet edge to edge, never border to fill (§13.4) |
+| G23 | data from outside (storage, worker, documents) is parsed, not cast; invalid entries are dropped, never half-applied (§14, U7) |
+| G24 | everything but player-facing text is English — checked across the repository (§14, U4) |
 
 ---
 
-## 12. Risiken
+## 12. Risks
 
-| Risiko | Gegenmaßnahme |
+| Risk | Counter-measure |
 |---|---|
-| Hinweissuche findet für 8×8 und größer keine ohne Raten lösbare Belegung | **Eingetreten und behoben** (VALIDATION.md, Runde 5). Wirksam waren: Lösung zuerst, Möblierung danach (§6.3); je Objekttyp höchstens ein Anker; Reparaturphase in der Hinweissuche (§6.6); mehr und kleinere Räume (§6.2). Ergebnis im Benchmark: alle fünf Stufen erzeugbar, 0 Fehlschläge, Eindeutigkeit vom Referenzlöser bestätigt |
-| Generierung zu langsam auf schwachen Handys | Worker mit Zeitbudget, Messung in G6; notfalls Hybrid mit vorberechnetem Katalog (bewusst nach V1 verschoben) |
-| Solver unsound, mehrdeutige Rätsel gehen durch | Referenzlöser als unabhängige Prüfinstanz, G2 und G7 |
-| Fremde Grafikpakete decken ein Theme nicht ab | **Entfallen:** alle Grafik ist eigener Vektor (§7), kein Paket mehr im Spiel |
-| Testsuite prüft nur ausgesuchte Seeds und übersieht seltene Fälle | Eigenschaftsbasierte Tests erzeugen die Fälle selbst (§11); der gründliche Lauf deckt jede Gittergröße ab |
-| i18next zieht eine Abhängigkeit in den Kern | Nur hinter der Tür `@engine/i18n`; ein Test weist am Quelltext nach, dass außerhalb von `i18n/` kein einziger blanker Import steht (§8.1.1) |
-| Ohne Paketgrenze greift die App irgendwann quer in die Engine | Zwei Wächter statt einer geerbten Grenze: Lint-Regel beim Schreiben, Test beim Prüfen (§8.1.1, G18) |
-| Die Engine ist nicht mehr als Paket veröffentlichbar | **Bewusst aufgegeben.** Die App war der einzige Nutzer. Die Ordnerstruktur bleibt so, dass ein Rückweg billig wäre: `src/engine/` ist in sich geschlossen und greift nach nichts außerhalb |
-| Große verlegte Anker machen `ON_OBJECT` stumpf, die Hinweissuche findet seltener eine Lösung | Ein verlegter Anker überdeckt keine fremde Lösungszelle (§13.3); `maxCells` im Theme begrenzt die Fläche; G6 wird nach M15 neu gemessen, bei Verschlechterung zuerst `maxCells` der Anker senken |
-| Nähte zwischen Vierteln bei krummen Pixelgrößen | `cellPx` ist bereits ein Vielfaches von 8, ein Viertel also ganzzahlig; ein Test hält das fest (§13.5) |
-| Versionssprung auf Generator 4 leert Fortschritt, Kalenderhistorie und Einstellungen | **Bewusst hingenommen** wie beim Schritt auf 3 (§13.6) |
-| Deutsche Beugung in Hinweisen wird holprig | Kasusformen je Objekt in den Sprachdateien statt Zusammenkleben zur Laufzeit; Textprüfung aller Typen in M1 |
+| clue search finds no guess-free assignment for 8×8 and up | **Happened and fixed** (VALIDATION.md, round 5). What worked: solution first, furniture second (§6.3); every object type anchors at most once; repair phase in the clue search (§6.6); more and smaller rooms (§6.2). Benchmark result: all five tiers generate, 0 failures, uniqueness confirmed by the reference solver |
+| generation too slow on weak phones | worker with a time budget, measured in G6; a 30 s timeout reports a failure rather than hanging (§14, U8) |
+| solver unsound, ambiguous puzzles slip through | reference solver as an independent checking authority, G2 and G7 |
+| foreign art packs do not cover a theme | **Gone:** all drawings are our own vector art (§7), no package in the game any more |
+| test suite checks only chosen seeds and misses rare cases | property-based tests generate their own cases (§11); the thorough run covers every grid size |
+| i18next pulls a dependency into the core | only behind the `@engine/i18n` door; a test proves in the source that there is not a single bare import outside `i18n/` (§8.1.1) |
+| without a package boundary the app eventually reaches across into the engine | two guards instead of an inherited boundary: lint rule while writing, test while checking (§8.1.1, G18) |
+| the engine can no longer be published as a package | **Given up on purpose.** The app was the only user. The folder structure keeps a way back cheap: `src/engine/` is self-contained and reaches for nothing outside |
+| large laid anchors make `ON_OBJECT` blunt, the clue search finds solutions less often | a laid anchor covers no other solution cell (§13.3); `maxCells` in the theme limits the area; G6 remeasured after M15 and passed |
+| seams between quarters at odd pixel sizes | `cellPx` is a multiple of 8, so a quarter is whole pixels; a test holds that (§13.5) |
+| the step to generator 4 empties progress, calendar history and settings | **accepted on purpose**, as on the step to 3 (§13.6) |
+| German inflection in clues becomes clumsy | case forms per object in each theme's resources instead of gluing at runtime; every clue type rendered in tests |
 
 ---
 
-## 13. Verlegte Objekte
+## 13. Laid objects
 
-Teppiche, Matten und später Gänge im Raumschiff gibt es bisher nur in festen
-Grundflächen (`2x1`, `1x2`, `2x2` …). Künftig sollen sie **beliebige Formen**
-innerhalb eines Raums annehmen: um Ecken laufen, sich verzweigen, kreuzen, als
-Fläche oder als schmale Bahn. Das hängt nicht an einzelnen Objekten, sondern ist
-eine **Verlegeart**, die jedes Theme für jede Objektart wählen kann. → **V11**
+Carpets, mats and later corridors on a spaceship used to exist only in fixed
+footprints (`2x1`, `1x2`, `2x2` …). Now they take **any shape** inside a room:
+turn corners, branch, cross, as an area or as a narrow runner. That is not tied
+to particular objects but is a **way of laying** that every theme can choose per
+object kind. → **V11**
 
-Die Entscheidungen unten sind in einer Befragung am 28.09.2026 getroffen worden;
-die Begründung steht jeweils dabei, damit sie später nicht neu verhandelt werden
-muss.
+The decisions below were made in an interview on 28 September 2026; each comes
+with its reason, so it need not be negotiated again later.
 
-### 13.1 Was schon passt und was nicht
+### 13.1 What already fits and what does not
 
-Das Datenmodell trägt freie Formen bereits: `SceneObject.cells` ist eine
-beliebige Zellmenge, und alle Hinweise rechnen zellweise (§4). **An der
-Bedeutung der Hinweise ändert sich nichts** — `ON_OBJECT`, `ADJACENT_OBJECT`
-(über die Berührmenge im selben Raum), `DIRECTION_OF_OBJECT` (jede Zelle der
-einzigen Instanz) und `ALIGNED_WITH_OBJECT` bleiben wörtlich gültig. Ein langer
-Gang macht `ALIGNED_WITH_OBJECT` schwächer; das ist richtig so und wird vom
-Schwierigkeitsmaß (§5.4) ohnehin erfasst.
+The data model carries free shapes already: `SceneObject.cells` is any set of
+cells, and every clue computes per cell (§4). **The meaning of clues does not
+change** — `ON_OBJECT`, `ADJACENT_OBJECT` (through the touch set in the same
+room), `DIRECTION_OF_OBJECT` (every cell of the only instance) and
+`ALIGNED_WITH_OBJECT` stay valid word for word. A long corridor makes
+`ALIGNED_WITH_OBJECT` weaker; that is right, and the difficulty measure (§5.4)
+captures it anyway.
 
-Am Rechteck hängen nur drei Stellen: der Generator (`positionsFor` in
-`furnish.ts`), der Renderer (ein Bild über die umschließende Box in `Grid.tsx`)
-und das Grafikschema (eine Datei je Grundfläche, §7.0).
+Only three places depend on the rectangle: the generator (`positionsFor` in
+`furnish.ts`), the renderer (one picture over the bounding box) and the drawing
+scheme (one file per footprint, §7.0).
 
-### 13.2 Form: beliebiges Polyomino, eine Fläche je Instanz
+### 13.2 Shape: any polyomino, one area per instance
 
-- Eine verlegte Instanz ist eine **zusammenhängende Zellmenge** unter der
-  Vierernachbarschaft, ganz in **einem** Raum — wie Räume selbst (§6.2). Diagonal
-  berührende Zellen sind nicht verbunden. Flächen sind ausdrücklich erlaubt, nicht
-  nur ein Feld breite Bahnen: sonst könnte die Verlegeart den heutigen
-  `2x2`-Teppich nicht abbilden, und es gäbe für dieselbe Objektart zwei Systeme.
-- **Verbunden ist, was zur selben Instanz gehört.** Es gibt keine gespeicherten
-  Kanten; die Verbindung einer Zelle zu ihrem Nachbarn folgt allein daraus, ob
-  der Nachbar zur Instanz gehört.
-- **Zwei Instanzen derselben Art berühren sich nie orthogonal.** Sonst sähen zwei
-  Teppiche aus wie einer, und „neben genau zwei Teppichen" hinge an einer Naht,
-  die bei 24 px niemand sieht. Diagonal ist erlaubt. Verschiedene Arten dürfen
-  aneinanderstoßen, sie sehen verschieden aus.
+- A laid instance is a **connected set of cells** in the four-neighbourhood,
+  entirely within **one** room — like rooms themselves (§6.2). Cells touching
+  diagonally are not connected. Areas are explicitly allowed, not only
+  one-cell-wide runners: otherwise the way of laying could not express the old
+  `2x2` carpet, and one object kind would need two systems.
+- **Connected is what belongs to the same instance.** No edges are stored; a
+  cell's connection to its neighbour follows solely from whether the neighbour
+  belongs to the instance.
+- **Two instances of the same kind never touch orthogonally.** Otherwise two
+  carpets would look like one, and "next to exactly two carpets" would hinge on a
+  seam nobody sees at 24 px. Diagonal is allowed. Different kinds may meet; they
+  look different.
 
-### 13.3 Theme: die Verlegeart
+### 13.3 Theme: the way of laying
 
-`ThemeObject.footprints` wird zu einer Union; jede Objektart hat **genau eine**
-Verlegeart, damit feststeht, welchen Grafiksatz sie braucht:
+`ThemeObject.footprints` became a union; every object kind has **exactly one**
+way of laying, so it is clear which set of drawings it needs:
 
 ```ts
 placement:
@@ -1238,244 +1222,262 @@ placement:
   | { kind: 'tiled';
       minCells: number;     // ≥ 1
       maxCells: number;     // ≥ minCells
-      compactness: number;  // 0 … 1: 0 = nur Bahnen und Verzweigungen, 1 = Flächen
-      straightness: number; // 0 … 1: Neigung, in Laufrichtung weiterzuwachsen
+      compactness: number;  // 0 … 1: 0 = only runners and branches, 1 = areas
+      straightness: number; // 0 … 1: tendency to keep growing in the same direction
     }
 ```
 
-Umgestellt werden **`carpet`** (Wohnung) und **`mat`** (Werkstatt). `pond` und
-`sandbox` bleiben `fixed`: sie stehen je in genau einem Raum mit
-`maxPerScene: 1` und würden als Anker unnötig große Flächen belegen. Ein
-Raumschiff-Theme mit Gängen ist ein eigener Plan; es braucht hier nichts als die
-Verlegeart.
+Switched over are **`carpet`** (flat) and **`mat`** (car repair shop). `pond`
+and `sandbox` stay `fixed`: each stands in exactly one room with
+`maxPerScene: 1` and would take needlessly large areas as anchors. A spaceship
+theme with corridors is a plan of its own; it needs nothing but the way of
+laying.
 
-Richtwerte:
+Guide values:
 
-| Art | `minCells` | `maxCells` | `compactness` | `straightness` |
+| Kind | `minCells` | `maxCells` | `compactness` | `straightness` |
 |---|---|---|---|---|
-| Teppich | 2 | 6 | 0.7 | 0.3 |
-| Matte | 1 | 4 | 0.4 | 0.5 |
-| Gang (später) | 3 | 10 | 0 | 0.8 |
+| carpet | 2 | 6 | 0.7 | 0.3 |
+| mat | 1 | 4 | 0.4 | 0.5 |
+| corridor (later) | 3 | 10 | 0 | 0.8 |
 
-**Formwachstum** (neu in `furnish.ts`, neben `positionsFor`): Start in einer
-Zelle, dann wird schrittweise ein Randfeld hinzugenommen, bis eine gewürfelte
-Zielgröße aus `minCells … maxCells` erreicht ist oder kein Randfeld mehr passt.
-Bleibt die Form unter `minCells`, wird sie verworfen.
+**Shape growth** (in `furnish.ts`, next to `positionsFor`): start in one cell,
+then add one cell from the rim at a time until a rolled target size from
+`minCells … maxCells` is reached or no rim cell fits. A shape below `minCells` is
+discarded.
 
-- Ein Randfeld mit genau einem Nachbarn in der Form hat Gewicht 1; eines mit
-  *k* ≥ 2 Nachbarn Gewicht `compactness · k`. Bei `compactness` 0 wächst die Form
-  also als Baum — Ecken, T-Stücke und Kreuzungen, aber keine Ringe und keine
-  Flächen. Das ist gewollt.
-- Setzt ein Randfeld die Richtung fort, aus der sein Nachbar gewachsen ist, wird
-  sein Gewicht mit `1 + 3 · straightness` multipliziert.
-- Kandidaten werden in aufsteigender Zellreihenfolge gesammelt, bevor die
-  seed-gebundene `Rng` zieht — sonst hinge das Ergebnis an der Einfügeordnung
-  einer `Set`, und G4 fiele.
-- Ein Randfeld ist nur zulässig, wenn es im Raum liegt, frei ist und keine
-  Instanz derselben Art orthogonal berührt.
+- A rim cell with exactly one neighbour in the shape weighs 1; one with *k* ≥ 2
+  neighbours weighs `compactness · k`. At `compactness` 0 the shape therefore
+  grows as a tree — corners, T-pieces and crossings, but no rings and no areas.
+  That is intended.
+- If a rim cell continues the direction its neighbour grew in, its weight is
+  multiplied by `1 + 3 · straightness`.
+- Candidates are collected in ascending cell order before the seeded `Rng`
+  draws — otherwise the result would depend on a `Set`'s insertion order and G4
+  would fail.
+- A rim cell is only allowed if it lies in the room, is free and touches no
+  instance of the same kind orthogonally.
 
-**Regeln im Generator** (§6.3 gilt weiter, ergänzt um):
+**Rules in the generator** (§6.3 still applies, plus):
 
-- *Anker darauf.* `anchorUnderfoot` lässt eine verlegte Art von der Lösungszelle
-  aus wachsen. Die Form darf dabei **keine andere Lösungszelle** überdecken —
-  sonst stünde „auf dem Teppich" für mehrere Personen, und der Hinweis wäre
-  stumpf. Beim Füllwerk gilt die heutige Regel: begehbar darf auf Lösungszellen
-  liegen.
-- *Anker daneben.* `anchorBeside` nimmt weiter nur `fixed`-Objekte mit `1x1`.
-  Eine sperrende verlegte Form, die an eine Person grenzt, zählt über
-  `ADJACENT_OBJECT` ohnehin.
-- *Sperrend.* Die Verlegeart ist unabhängig von `walkable`. Eine sperrende
-  verlegte Form wächst nie auf eine Lösungszelle, und ihre Zellen zählen gegen
-  die 40 %-Grenze je Raum.
-- *Dichte.* `addFiller` zählt weiter Objekte, nicht Zellen; `maxCells` begrenzt
-  die Fläche. `maxPerScene` zählt Instanzen.
+- *Anchor underfoot.* `anchorUnderfoot` grows a laid kind from the solution cell.
+  The shape may then cover **no other solution cell** — otherwise "on the carpet"
+  would be true of several people and the clue would be blunt. For filler the
+  usual rule applies: walkable objects may lie on solution cells.
+- *Anchor beside.* `anchorBeside` still takes only `fixed` objects of `1x1`. A
+  blocking laid shape bordering a person counts through `ADJACENT_OBJECT` anyway.
+- *Blocking.* The way of laying is independent of `walkable`. A blocking laid
+  shape never grows onto a solution cell, and its cells count against the 40 %
+  limit per room.
+- *Density.* `addFiller` still counts objects, not cells; `maxCells` limits the
+  area. `maxPerScene` counts instances.
 
-### 13.4 Grafikschema: ein Viertelkachel-Blatt je Art
+### 13.4 Drawing scheme: one quarter-tile sheet per kind
 
-Jede verlegte Art hat **eine** Datei, `art/themes/<theme>/tiles/<key>.svg`, mit
-Rückfall auf `art/common/tiles/<key>.svg`. Der eigene Ordner ist zugleich eine
-eigene Grafikart (`ArtKind 'tiles'`): `objects/carpet.svg` bedeutet schon „eine
-Datei für alle Grundflächen", und ein vergessener Umbau würde das Blatt sonst
-still als verzerrtes Rechteck zeichnen.
+Every laid kind has **one** file, `art/themes/<theme>/tiles/<key>.svg`, falling
+back to `art/common/tiles/<key>.svg`. The folder of its own is also a kind of
+drawing of its own (`ArtKind 'tiles'`): `objects/carpet.svg` already means "one
+file for every footprint", and a forgotten change would otherwise quietly draw
+the sheet as a distorted rectangle.
 
-Das Blatt ist `viewBox="0 0 48 72"`, also 2 × 3 Felder, und folgt dem
-bekannten Autotile-Aufbau (RPG Maker A2), in Vierteln zu 12 × 12:
+The sheet is `viewBox="0 0 48 72"`, so 2 × 3 cells, and follows the well-known
+autotile layout (RPG Maker A2), in quarters of 12 × 12:
 
 ```
         x: 0     12    24    36    48
 y:  0   ┌───────────┬───────────┐
-        │  Einzel-  │  Innen-   │   Zeile 0: links Vorschau (Einzelfeld),
-        │   feld    │  ecken    │   rechts die vier Innenecken
+        │  single   │   inner   │   row 0: preview on the left (single cell),
+        │   cell    │  corners  │   the four inner corners on the right
    24   ├─────┬─────┼─────┬─────┤
         │ ┌NW │ ─N  │ N─  │ NE┐ │
    36   ├─────┼─────┼─────┼─────┤
-        │ │W  │ ··  │ ··  │  E│ │   Zeilen 1–2: ein 2×2-Block —
-   48   ├─────┼─────┼─────┼─────┤   Außenecken, Kanten, Füllung
+        │ │W  │ ··  │ ··  │  E│ │   rows 1–2: a 2×2 block —
+   48   ├─────┼─────┼─────┼─────┤   outer corners, edges, fill
         │ │W  │ ··  │ ··  │  E│ │
    60   ├─────┼─────┼─────┼─────┤
         │ └SW │ ─S  │ S─  │ SE┘ │
    72   └─────┴─────┴─────┴─────┘
 ```
 
-Jede Zelle auf dem Brett besteht aus vier Vierteln. Welches Viertel sie bekommt,
-hängt nur an den zwei Nachbarn, die an dieses Viertel grenzen (einer senkrecht,
-einer waagerecht), und an der Diagonalen dazwischen:
+Every cell on the board consists of four quarters. Which quarter it gets depends
+only on the two neighbours that quarter borders (one vertical, one horizontal)
+and on the diagonal between them:
 
-| senkrecht | waagerecht | diagonal | Viertel |
+| vertical | horizontal | diagonal | quarter |
 |---|---|---|---|
-| fehlt | fehlt | – | Außenecke |
-| fehlt | da | – | waagerechte Kante |
-| da | fehlt | – | senkrechte Kante |
-| da | da | fehlt | Innenecke |
-| da | da | da | Füllung |
+| missing | missing | – | outer corner |
+| missing | present | – | horizontal edge |
+| present | missing | – | vertical edge |
+| present | present | missing | inner corner |
+| present | present | present | fill |
 
-**Ein Viertel kommt immer aus derselben Lage im Blatt**, in der es auf dem Brett
-sitzt: das Nordwest-Viertel einer Zelle stammt aus einer linken oberen
-Viertelposition des Blatts. Für die Lage Nordwest heißt das:
+**A quarter always comes from the same position in the sheet** as it takes on
+the board: a cell's north-west quarter comes from a top-left quarter position of
+the sheet. For the north-west position that means:
 
-| Fall | Quelle (x, y) |
+| Case | Source (x, y) |
 |---|---|
-| Außenecke | 0, 24 |
-| waagerechte Kante | 24, 24 |
-| senkrechte Kante | 0, 48 |
-| Füllung | 24, 48 |
-| Innenecke | 24, 0 |
+| outer corner | 0, 24 |
+| horizontal edge | 24, 24 |
+| vertical edge | 0, 48 |
+| fill | 24, 48 |
+| inner corner | 24, 0 |
 
-Die anderen drei Lagen entsprechen dem: für Ost kommt die Quelle aus der rechten
-Hälfte ihres Feldes (Außenecke und senkrechte Kante ganz rechts bei x = 36,
-waagerechte Kante und Füllung bei x = 12, Innenecke bei x = 36), für Süd aus der
-unteren (Außenecke und waagerechte Kante bei y = 60, senkrechte Kante und
-Füllung bei y = 36, Innenecke bei y = 12). Das Einzelfeld oben links wird auf dem
-Brett nie verwendet — eine Einzelzelle setzt sich aus den vier Außenecken
-zusammen — und dient als Vorschau in Anleitung und Übersichten.
+The other three positions follow: for east the source comes from the right half
+of its cell (outer corner and vertical edge at x = 36, horizontal edge and fill
+at x = 12, inner corner at x = 36), for south from the lower half (outer corner
+and horizontal edge at y = 60, vertical edge and fill at y = 36, inner corner at
+y = 12). The single cell top left is never used on the board — a lone cell is
+made of the four outer corners — and serves as the preview in the rules and in
+overviews.
 
-Damit ist **jede** Form darstellbar: alle 47 unterscheidbaren Nachbarschaften,
-Bahnen von einem Feld Breite, Kreuzungen, Flächen mit Innenecken. Nichts wird
-gedreht, Licht und Perspektive der Zeichnung bleiben stimmig. Eine Grafikerin
-zeichnet ein Blatt statt 47 Kacheln.
+So **every** shape can be drawn: all 47 distinguishable neighbourhoods, runners
+one cell wide, crossings, areas with inner corners. Nothing is rotated; the
+drawing's light and perspective stay right. An artist draws one sheet instead of
+47 tiles.
 
-Anforderungen an das Blatt, zusätzlich zu §7.0:
+Requirements for the sheet, in addition to §7.0:
 
-- Kanten und Füllung laufen **nahtlos** über Viertelgrenzen: was an einer
-  offenen Seite eines Viertels endet, muss an die gegenüberliegende offene Seite
-  jedes anderen Viertels passen.
-- Außen bleibt wie bei festen Requisiten ein, zwei Einheiten **Luft zur
-  Zellkante**, damit der Boden als Rahmen sichtbar bleibt; an verbundenen Seiten
-  läuft die Zeichnung bis an die Kante.
+- Edges and fill run **seamlessly** across quarter boundaries: whatever ends at
+  an open side of a quarter must fit the opposite open side of every other
+  quarter.
+- Outside, as for fixed props, keep one or two units of **air to the cell
+  edge** so the floor stays visible as a frame; on connected sides the drawing
+  runs up to the edge.
 
-**Platzhalter** (`scripts/build-art.ts`): eine Platte im Ton des Sinnbilds über
-den 2×2-Block, 2 Einheiten eingerückt und mit abgerundeten Außenecken; oben
-rechts eine volle Fläche mit vier kleinen Aussparungen in den Ecken als
-Innenecken; oben links das Sinnbild auf einer Einzelplatte. Die bisherigen
-`carpet_*.svg` und `mat_*.svg` räumt der vorhandene Aufräumlauf weg.
+**Placeholder** (`scripts/build-art.ts`): a plate in the symbol's colour over the
+2×2 block, inset by 2 units with rounded outer corners; top right a full area
+with four small notches at the corners as inner corners; top left the symbol on
+a single plate.
 
-### 13.5 Darstellung
+### 13.5 Rendering
 
-- Neue reine Funktion `quarterTiles(cells, size)` in
-  `src/app/render/tiles.ts`: liefert je Zelle die vier Quellpositionen im Blatt
-  und die offenen Außenkanten. Keine DOM-Abhängigkeit, vollständig testbar (G22).
-- Neue Komponente `TiledObject`: je Zelle vier Viertel als Elemente mit dem
-  Blatt als Hintergrund (`background-size: 2·cellPx × 3·cellPx`,
-  `background-position` aus `quarterTiles`).
-- Die Tönung „begehbar/sperrend" (`.object.walkable`, `.object.blocking`) geht
-  **zellweise** mit, der Innenrahmen nur an den Außenkanten derselben Maske —
-  heute läge sie über der ganzen umschließenden Box und färbte bei einer L-Form
-  die Lücke mit ein.
-- `Grid.tsx` verzweigt nach `object.placement`; feste Objekte bleiben unverändert.
-- `cellPx` ist schon heute ein Vielfaches von 8 (`GameScreen.tsx`), ein Viertel
-  also ganzzahlig und ohne Subpixelnaht. Ein Test hält das fest, damit es beim
-  nächsten Umbau der Größenrechnung nicht verloren geht.
-- Die Logik der Viertelwahl gehört in die App, nicht in die Engine: die Engine
-  kennt keine Grafik (§8.1.1).
+- A pure function `quarterTiles(cells, size)` in
+  `src/app/features/game/board/tiles.ts`: returns per cell the four source
+  positions in the sheet and the open outer edges. No DOM dependency, fully
+  testable (G22).
+- A component `TiledObject`: four quarters per cell as elements with the sheet as
+  background (`background-size: 2·cellPx × 3·cellPx`, `background-position` from
+  `quarterTiles`).
+- The walkable/blocking tint goes **cell by cell**, the inner edge only along the
+  outer edges of the same mask — over the whole bounding box it would colour the
+  gap of an L-shape too.
+- `Grid.tsx` branches on `object.placement`; fixed objects stay as they were.
+- `cellPx` is a multiple of 8 (`boardCellPx` in `tiles.ts`), so a quarter is
+  whole pixels without a sub-pixel seam. A test holds that.
+- The quarter logic belongs to the app, not the engine: the engine knows no
+  drawings (§8.1.1).
 
-### 13.6 Format und Versionen
+### 13.6 Format and versions
 
-- `SceneObject` bekommt `placement: 'fixed' | 'tiled'`. Das Dokument bleibt so
-  selbstbeschreibend (§6.8, V9): ein fremdes Theme per JSON kann verlegte Objekte
-  mitbringen, ohne dass die App seinen Katalog kennen muss. `schemaVersion` steigt
-  auf **3**; `parsePuzzle` liest Dokumente ohne das Feld als `fixed`.
-- `parsePuzzle` prüft zusätzlich und sammelt wie bisher alle Beanstandungen:
-  Zellen jeder Instanz zusammenhängend und im Raum `roomId`, `fixed`-Objekte
-  rechteckig, gleichartige `tiled`-Instanzen ohne orthogonale Berührung.
-- `generatorVersion` steigt auf **4**; die Referenz unter
-  `tests/engine/reference/` wird mit `scripts/write-reference.ts` neu geschrieben.
-- Der Speicher zieht mit (`VERSION = 'v4'` in `store.ts`). **Fortschritt,
-  Kalenderhistorie, Spielstände und Einstellungen beginnen damit neu** — so wie
-  beim Schritt auf 3. Das ist bewusst entschieden; eine Übernahme des
-  Fortschritts wurde erwogen und verworfen.
+- `SceneObject` got `placement: 'fixed' | 'tiled'`. That keeps the document
+  self-describing (§6.8, V9): a foreign theme can bring laid objects via JSON
+  without the app knowing its catalogue. `schemaVersion` went to **3**;
+  `parsePuzzle` reads documents without the field as `fixed`.
+- `parsePuzzle` additionally checks, collecting every problem as before: cells of
+  every instance connected and within room `roomId`, `fixed` objects
+  rectangular, `tiled` instances of one kind not touching orthogonally.
+- `generatorVersion` went to **4**; the reference in `tests/engine/reference/`
+  was rewritten with `scripts/write-reference.ts`.
+- Storage followed (`VERSION = 'v4'` in `store.ts`). **Progress, calendar
+  history, saved games and settings start afresh with it** — as on the step to 3.
+  That was decided on purpose; carrying progress over was considered and
+  rejected.
 
-### 13.7 Umsetzung
+### 13.7 Implementation
 
-Fünf Schritte, **jeder für sich grün** unter `npm run verify`:
+Five steps, **each green on its own** under `npm run verify`:
 
-1. **Engine.** `placement`-Union in `themes/types.ts`, alle drei Themes auf
-   `{ kind: 'fixed', … }` umgeschrieben (noch keine verlegte Art). Formwachstum
-   und die Regeln aus §13.3 in `furnish.ts`. `SceneObject.placement` setzen.
-   Themeprüfung (Parameter in ihren Grenzen) und die Invarianten aus G21 in
-   `tests/engine/support/invariants.ts`. Eigenschaftstest: Formwachstum mit
-   zufälligen Parametern liefert nur zulässige Formen.
-2. **Format.** `SCHEMA_VERSION` 3, Standardwert beim Lesen, Formprüfungen in
-   `document.ts`, Fälle in `tests/engine/io.test.ts` (altes Dokument ohne Feld,
-   zerrissene Form, berührende Instanzen, nicht-rechteckiges `fixed`).
-3. **Grafik.** `ArtKind 'tiles'` in `art.ts`, Platzhalter-Blatt in
-   `build-art.ts`, `art.test.ts`: je `tiled`-Art ein Blatt mit
-   `viewBox="0 0 48 72"`, je `fixed`-Art weiter je Grundfläche eine Datei.
-   `art/README.md` und §7.0/§7.4 um das Blatt ergänzen.
-4. **App.** `quarterTiles` mit Tests (G22), `TiledObject`, zellweise Tönung,
-   Test für ganzzahlige Viertel.
-5. **Umstellung.** `carpet` und `mat` auf `tiled` mit den Richtwerten aus §13.3,
-   `GENERATOR_VERSION` 4, Referenz neu, Speicher `v4`, `npm run art`.
-   `npm run test:deep` und G6 neu messen; verschlechtert sich die Laufzeit,
-   zuerst `maxCells` senken.
+1. **Engine.** The `placement` union in `themes/types.ts`, all three themes
+   rewritten to `{ kind: 'fixed', … }` (no laid kind yet). Shape growth and the
+   rules of §13.3 in `furnish.ts`. Set `SceneObject.placement`. Theme validation
+   (parameters within their bounds) and the invariants of G21 in
+   `tests/engine/support/invariants.ts`. Property test: shape growth with random
+   parameters yields only allowed shapes.
+2. **Format.** `SCHEMA_VERSION` 3, default when reading, shape checks in
+   `document.ts`, cases in `tests/engine/io.test.ts` (old document without the
+   field, torn shape, touching instances, non-rectangular `fixed`).
+3. **Drawings.** `ArtKind 'tiles'` in `art.ts`, placeholder sheet in
+   `build-art.ts`, `art.test.ts`: one sheet with `viewBox="0 0 48 72"` per
+   `tiled` kind, still one file per footprint per `fixed` kind.
+4. **App.** `quarterTiles` with tests (G22), `TiledObject`, per-cell tint, a test
+   for whole-pixel quarters.
+5. **Switch-over.** `carpet` and `mat` to `tiled` with the guide values of §13.3,
+   `GENERATOR_VERSION` 4, reference rewritten, storage `v4`, `npm run art`.
+   `npm run test:deep` and G6 remeasured.
 
-Schritt 1 verändert bereits, wie der Generator würfelt, falls die Umschreibung
-auf `placement` die Zugriffsreihenfolge der `Rng` berührt. Das ist erlaubt, aber
-dann wandern `GENERATOR_VERSION` und Referenz schon in Schritt 1 mit, nicht erst
-in Schritt 5 — die eingefrorenen Prüfsummen (§11) melden es.
+Step 1 turned out not to change the random draws: the frozen checksums stayed
+the same until step 2 added the new field.
 
-### 13.8 Bewusst nicht Teil dieses Plans
+### 13.8 Deliberately not part of this plan
 
-- **Kachelvarianten** gegen Tapetenwirkung auf großen Flächen. Ausbau ohne
-  Bruch möglich: ein breiteres Blatt (`0 0 96 72`), dessen zweite Spalte eine
-  andere Füllung trägt, gewählt per Hash aus der Zellnummer wie bei den Böden
-  (§7.3). Ein 48 × 72-Blatt bleibt gültig.
-- **Raumschiff-Theme** mit Gängen.
-- **Ringe** bei `compactness` 0; eine Bahn um ein Hindernis entsteht nur über
-  höhere Kompaktheit.
-- Verlegte Formen **über Raumgrenzen** hinweg.
+- **Tile variants** against a wallpaper look on large areas. Possible later
+  without breaking anything: a wider sheet (`0 0 96 72`) whose second column
+  carries another fill, chosen by a hash of the cell number as for floors
+  (§7.3). A 48 × 72 sheet stays valid.
+- A **spaceship theme** with corridors.
+- **Rings** at `compactness` 0; a runner around an obstacle only comes from
+  higher compactness.
+- Laid shapes **across room borders**.
 
 ---
 
-## 14. Umbau: Struktur, i18n, Qualität, Englisch
+## 14. Rework: structure, i18n, quality, English
 
-Das Spiel ist noch nicht veröffentlicht; nichts muss rückwärtskompatibel
-bleiben. Ziel des Umbaus: eine einfache, einheitliche Struktur, die sich leicht
-warten lässt und in der ein neues Theme ein Ordner ist. Die Entscheidungen
-wurden in einer Befragung am 28.09.2026 getroffen.
+The game is not released yet; nothing has to stay backwards compatible. The aim
+of the rework: a simple, consistent structure that is easy to maintain and in
+which a new theme is one folder. The decisions were made in an interview on
+28 September 2026.
 
-### 14.1 Entscheidungen
+### 14.1 Decisions
 
-| # | Entscheidung | Begründung |
+| # | Decision | Reason |
 |---|---|---|
-| U1 | Die Grenze Engine ↔ App bleibt (§8.1.1) | Hält die Engine testbar und worker-tauglich; das Problem ist nicht die Grenze, sondern ein über fünf Stellen verteiltes Theme |
-| U2 | Ein Theme = ein Ordner `src/engine/content/themes/<key>/` mit `theme.ts` (Räume samt Bodenbelag) und eigenen Sprachdateien; `FLOOR_BY_ROOM` in der App entfällt | Ein neues Theme ist ein Ordner und eine Zeile Registrierung; ein Test prüft jedes Theme auf Vollständigkeit |
-| U3 | react-i18next, **eine** i18next-Instanz, die auch die Engine nutzt; Namespaces `ui`, `help`, `puzzle` und je Theme; Ressourcen als TypeScript mit geprüften Schlüsseln; Startsprache aus der Browsersprache | Ein Tippfehler im Schlüssel wird zum Compilerfehler; kein `locale`-Prop mehr durch jede Komponente |
-| U4 | Alles auf Englisch: Code, Tests, Skripte, CSS, Lint-Meldungen **und alle Dokumente** einschließlich PLAN.md und VALIDATION.md | Eine Sprache für alles, was nicht Spieltext ist |
-| U5 | App nach Features gegliedert (`features/game`, `features/calendar`, `features/settings`, `features/help`, `shared/…`), funktional statt klassenbasiert; ein Feature nutzt `shared/`, nie ein anderes Feature — per Lint-Regel | Alles zu einem Feature liegt beieinander; Klassen nur, wo sie Zustand sinnvoll kapseln |
-| U6 | Strenges Linten für alles (`strictTypeChecked`, `stylisticTypeChecked`, `react`, `react-hooks`, `jsx-a11y`), Prettier, `CODING_GUIDELINES.md` | Was ein Werkzeug prüfen kann, steht nicht nur im Dokument |
-| U7 | Daten von außen prüft **valibot** (nur in der App); zwischengespeicherte Rätsel prüft `parsePuzzle`; Ungültiges wird verworfen und durch den Standard ersetzt | Schema = Typ, beides kann nicht auseinanderlaufen; die Engine bleibt abhängigkeitsfrei |
-| U8 | Engine-Fehler tragen einen festen **Code**, die App übersetzt ihn; Worker mit Zeitgrenze und `messageerror`; Error Boundary um App und Spielbildschirm; technische Details eingeklappt; kein Fehler-Tracking | Verständliche Meldung statt rohem Text oder weißer Seite |
-| U9 | CSS Modules neben den Komponenten, gemeinsame Werte als Tokens in `shared/styles/tokens.css`; kein Tailwind | Kollisionen wie die doppelte Klasse `.tile` sind mechanisch ausgeschlossen; ein Stilsystem statt zwei |
-| U10 | Die Rätsel bleiben **Byte für Byte gleich**; die eingefrorenen Prüfsummen sind das Sicherheitsnetz; `GENERATOR_VERSION` bleibt 4 | Keine Rückwärtskompatibilität heißt nicht, dass sich Verhalten unbemerkt ändern darf |
-| U11 | Ein Branch von `main`, ein Commit je Phase, jede Phase für sich grün (`verify`, `test:deep`), am Ende ein PR | Phasen verschieben Dateien, die die nächste wieder anfasst |
+| U1 | The engine ↔ app boundary stays (§8.1.1) | It keeps the engine testable and fit for the worker; the problem was not the boundary but a theme spread over five places |
+| U2 | A theme = a folder `src/engine/content/themes/<key>/` with `theme.ts` (rooms with their floor) and its own resource files; `FLOOR_BY_ROOM` in the app goes | A new theme is a folder and one line of registration; a test checks every theme for completeness |
+| U3 | react-i18next, **one** i18next instance, also used by the engine; namespaces `ui`, `help`, `puzzle`; resources as TypeScript with checked keys; first language from the browser | A misspelt key becomes a compile error; no more `locale` prop through every component |
+| U4 | Everything in English: code, tests, scripts, CSS, lint messages **and all documents** including PLAN.md and VALIDATION.md | One language for everything that is not game text |
+| U5 | The app grouped by feature (`features/…`, `shared/…`), functional rather than class-based; a feature uses `shared/`, never another feature | Everything about a feature lies together; classes only where they sensibly encapsulate state |
+| U6 | Strict linting for everything (`strictTypeChecked`, `stylisticTypeChecked`, `react`, `react-hooks`, `jsx-a11y`), Prettier, `CODING_GUIDELINES.md` | What a tool can check is not only written in a document |
+| U7 | Data from outside is checked by **valibot** (app only); cached puzzles by `parsePuzzle`; invalid data is dropped and replaced by the default | Schema = type, the two cannot drift apart; the engine stays dependency-free |
+| U8 | Engine errors carry a fixed **code**, the app translates it; worker with a time limit and `messageerror`; error boundaries around the app and the game screen; technical detail folded away; no error tracking | A readable message instead of raw text or a white page |
+| U9 | CSS modules next to the components, shared values as tokens in `shared/styles/tokens.css`; no Tailwind | Collisions like the doubly used `.tile` class are ruled out mechanically; one styling system rather than two |
+| U10 | Puzzles stay **byte for byte the same**; the frozen checksums are the safety net; `GENERATOR_VERSION` stays 4 | No backwards compatibility does not mean behaviour may change unnoticed |
+| U11 | One branch from `main`, one commit per phase, each phase green on its own, one PR at the end | Phases move files the next one touches again |
 
-### 14.2 Phasen
+### 14.2 Phases
 
-1. **Werkzeuge:** Prettier, strenge Lint-Regeln für die App, `CODING_GUIDELINES.md`.
-2. **Gliederung:** App nach Features ordnen — reines Verschieben, keine Logik.
-3. **i18n:** react-i18next, eine Instanz, geprüfte Schlüssel, Browsersprache.
-4. **Themes:** ein Ordner je Theme mit Belag und Sprachdateien, Vollständigkeitstest.
-5. **Robustheit:** valibot, `parsePuzzle` für den Zwischenspeicher, Fehlercodes,
-   Error Boundaries, Worker-Zeitgrenze.
-6. **CSS:** CSS Modules und Tokens.
-7. **Englisch:** restlicher Code, Tests, Skripte und alle Dokumente.
+1. **Tooling:** Prettier, strict lint rules for the app, `CODING_GUIDELINES.md`.
+2. **Structure:** the app ordered by feature — moving only, no logic.
+3. **i18n:** react-i18next, one instance, checked keys, browser language.
+4. **Themes:** one folder per theme with floors and resources, completeness test.
+5. **Robustness:** valibot, `parsePuzzle` for the cache, error codes, error
+   boundaries, worker time limit.
+6. **CSS:** CSS modules and tokens.
+7. **English:** remaining code, tests, scripts and every document.
+
+### 14.3 How it turned out
+
+All seven phases are done; the frozen checksums never changed. Where the result
+differs from the decisions above:
+
+- **Help is shared, not a feature.** Rules and tutorial open from the start page
+  and the game screen, so they live in `shared/help/`.
+- **Feature boundaries are enforced by a test only.** Imports inside the app are
+  relative, and the lint rule cannot tell a feature folder from them;
+  `tests/boundary.test.ts` checks the direction instead.
+- **The compiler got stricter too.** The app now compiles under the engine's
+  flags (`tsconfig.base.json`); only the engine is denied the DOM.
+- **CSS class names are typed.** With `noPropertyAccessFromIndexSignature`, Vite's
+  loose module types would have made every `styles.x` an error, so
+  `scripts/css-types.ts` writes a declaration per module; a misspelt class is a
+  compile error, and a test keeps the declarations current.
+- **Theme texts are namespaced per theme.** Room and object keys only need to be
+  unique within their theme; `roomName`, `objectName` and the clue scene take the
+  theme key. `additionalResources` went: a custom theme brings its own texts.
+- **i18next 26 and react-i18next 17.** No backwards compatibility needed, so the
+  current versions.
+- **The hint is stored as structure**, so a language switch re-renders it.
+- **English is checked across the repository** (`tests/language.test.ts`);
+  German is allowed only in the German resources, the frozen reference data, the
+  page title and manifest, and in tests that check German output.

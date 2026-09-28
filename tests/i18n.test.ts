@@ -55,6 +55,13 @@ describe('one instance for everything', () => {
   });
 });
 
+describe('texts', () => {
+  it('do not claim generation failed for an old link', () => {
+    // An outdated seed is refused on purpose; nothing failed to generate.
+    expect(RESOURCES.de.ui.errors.outdatedSeed.title).not.toContain('erzeugen');
+  });
+});
+
 describe('resources', () => {
   /** Every leaf of a resource tree, as a dotted path. */
   function leaves(value: unknown, path = ''): string[] {

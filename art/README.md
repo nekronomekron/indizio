@@ -1,143 +1,143 @@
-# Grafiken
+# Drawings
 
-Hier liegt **jede Grafik des Spiels als eigene SVG-Datei**. Die App zeichnet
-nichts mehr selbst — sie lädt genau diese Dateien. Eine Grafik austauschen
-heißt: die Datei ersetzen. Am Code ändert sich dabei nichts.
+**Every drawing of the game is its own SVG file** here. The app draws nothing
+itself — it loads exactly these files. Replacing a drawing means replacing the
+file. No code changes.
 
-Was hier liegt, sind bis auf Weiteres **Platzhalter**. Sie sind dafür da,
-ersetzt zu werden.
+What is here are, for now, **placeholders**. They exist to be replaced.
 
-## Aufbau
+## Layout
 
 ```
 art/
-  common/              theme-unabhängig
-    characters/        p01 … p14 — die Verdächtigen
-    icons/             ui-x, ui-check, … — Bedienung
-    floors/            Rückfallbelag für fremde Themes
+  common/              shared by every theme
+    characters/        p01 … p14 — the suspects
+    icons/             ui-x, ui-check, … — controls
+    floors/            fallback floor for foreign themes
   themes/<theme>/
-    objects/           die Requisiten dieses Themes
-    tiles/             Blätter der verlegten Requisiten (Teppich, Matte)
-    floors/            die Bodenbeläge seiner Räume
+    objects/           this theme's props
+    tiles/             sheets of laid props (carpet, mat)
+    floors/            the floors of its rooms
 ```
 
-Gesucht wird **erst im Theme, dann in `common`**. Eine Datei in
-`themes/garage/objects/chair_1x1.svg` gilt nur in der Werkstatt; eine in
-`common/objects/chair_1x1.svg` überall dort, wo das Theme nichts Eigenes
-mitbringt.
+Lookup goes **theme first, then `common`**. A file in
+`themes/garage/objects/chair_1x1.svg` counts only in the car repair shop; one
+in `common/objects/chair_1x1.svg` everywhere the theme brings nothing of its
+own.
 
-Deshalb gibt es `chair_1x1.svg` heute zweimal — in `garage` und in `flat`. Das
-ist Absicht: ein Werkstattstuhl darf anders aussehen als ein Küchenstuhl. Wer
-beide gleich haben will, legt eine Datei nach `common/objects/` und löscht die
-beiden anderen.
+That is why `chair_1x1.svg` exists twice today — in `garage` and in `flat`. On
+purpose: a workshop chair may look different from a kitchen chair. Whoever
+wants both the same puts one file into `common/objects/` and deletes the other
+two.
 
-## Requisiten: eine Datei je Grundfläche
+## Props: one file per footprint
 
-Der Name trägt die Grundfläche in Feldern, **Breite mal Höhe**:
+The name carries the footprint in cells, **width by height**:
 
 ```
-bed_2x1.svg      zwei Felder nebeneinander
-bed_1x2.svg      zwei Felder übereinander
-table_3x1.svg    drei Felder nebeneinander
-tree_1x1.svg     ein Feld
+bed_2x1.svg      two cells side by side
+bed_1x2.svg      two cells one above the other
+table_3x1.svg    three cells side by side
+tree_1x1.svg     one cell
 ```
 
-Ein Bett quer ist damit eine **andere Grafik** als ein Bett längs, nicht ein
-gedrehtes Quadrat. Die Zeichenfläche wächst mit: **24 je Feld**, also
-`viewBox="0 0 72 24"` für `3x1`. Das Spiel legt die Datei über genau diese
-Felder; wer die Zeichenfläche anders wählt, bekommt Luft an den Rändern statt
-eines gestauchten Tisches.
+A bed across is therefore a **different drawing** from a bed lengthways, not a
+rotated square. The drawing area grows with it: **24 per cell**, so
+`viewBox="0 0 72 24"` for `3x1`. The game lays the file over exactly those
+cells; choose another drawing area and you get air at the edges instead of a
+squashed table.
 
-Welche Grundflächen es gibt, bestimmt die **Theme-Definition** der Engine
-(`src/engine/content/themes/`). Fehlt eine, sagt der Test welche.
+Which footprints exist is up to the engine's **theme definition**
+(`src/engine/content/themes/<theme>/theme.ts`). If one is missing, the test
+says which.
 
-Wer für alle Flächen mit einer Datei auskommt, legt sie ohne Zusatz ab
-(`bed.svg`) — das Spiel nimmt sie, wenn es die passende Fläche nicht findet.
-Für die Platzhalter wird davon kein Gebrauch gemacht.
+Whoever manages with one file for every footprint stores it without a suffix
+(`bed.svg`) — the game takes it when it finds no matching footprint. The
+placeholders do not use this.
 
-## Verlegte Requisiten: ein Blatt je Art
+## Laid props: one sheet per kind
 
-Teppiche und Matten haben keine feste Grundfläche. Sie liegen in **beliebiger
-Form** im Raum — um Ecken, mit Abzweigen und Kreuzungen, als Bahn oder als
-Fläche. Welche Requisite so verlegt wird, steht in der Theme-Definition
+Carpets and mats have no fixed footprint. They lie in **any shape** in the
+room — around corners, with branches and crossings, as a runner or an area.
+Which props are laid this way is in the theme definition
 (`placement: { kind: 'tiled', … }`).
 
-Dafür gibt es **eine Datei je Art**, `tiles/<name>.svg`, mit
-`viewBox="0 0 48 72"` — 2 × 3 Felder, aufgebaut wie ein Autotile im Format
-RPG Maker A2:
+For them there is **one file per kind**, `tiles/<name>.svg`, with
+`viewBox="0 0 48 72"` — 2 × 3 cells, laid out like an RPG Maker A2 autotile:
 
 ```
 x: 0          24          48
    ┌───────────┬───────────┐ y 0
-   │ Einzelfeld│ Innenecken│      nur Vorschau | die vier Innenecken
+   │  single   │   inner   │      preview only | the four inner corners
+   │   cell    │  corners  │
    ├─────┬─────┼─────┬─────┤ y 24
    │ ┌   │  ─  │  ─  │   ┐ │
    ├─────┼─────┼─────┼─────┤
-   │ │   │     │     │   │ │      ein 2×2-Block:
-   ├─────┼─────┼─────┼─────┤      Außenecken, Kanten, Füllung
+   │ │   │     │     │   │ │      a 2×2 block:
+   ├─────┼─────┼─────┼─────┤      outer corners, edges, fill
    │ │   │     │     │   │ │
    ├─────┼─────┼─────┼─────┤
    │ └   │  ─  │  ─  │   ┘ │
    └─────┴─────┴─────┴─────┘ y 72
 ```
 
-Das Spiel setzt jede Zelle aus **vier Vierteln zu 12 × 12** zusammen. Welches
-Viertel es nimmt, hängt an den zwei Nachbarn, an die das Viertel grenzt, und an
-der Diagonalen dazwischen: Außenecke, waagerechte Kante, senkrechte Kante,
-Innenecke oder Füllung. Ein Viertel kommt immer aus **derselben Lage** im
-Blatt, in der es auf dem Brett sitzt — das Nordwest-Viertel einer Zelle aus
-einer linken oberen Viertelposition. Gedreht wird nichts.
+The game assembles every cell from **four quarters of 12 × 12**. Which quarter
+it takes depends on the two neighbours that quarter borders and the diagonal
+between them: outer corner, horizontal edge, vertical edge, inner corner or
+fill. A quarter always comes from the **same position** in the sheet as it
+takes on the board — a cell's north-west quarter from a top-left quarter
+position. Nothing is rotated.
 
-Damit das aufgeht:
+For this to work:
 
-- Was an einer offenen Seite eines Viertels endet, muss an die gegenüberliegende
-  offene Seite **jedes** anderen Viertels passen — Muster, Ränder und Fransen
-  laufen über die Viertelgrenzen durch.
-- Außen bleiben wie bei allen Requisiten **2 Einheiten Luft** zur Zellkante.
-  Die Innenecken sind um genau diese 2 eingekerbt, sonst stößt der Rand an
-  einer Innenecke nicht an die Kanten der Nachbarzellen.
-- Das Einzelfeld oben links erscheint nie auf dem Brett; eine einzelne Zelle
-  setzt sich aus den vier Außenecken zusammen. Es ist die Vorschau.
+- Whatever ends at an open side of a quarter must fit the opposite open side of
+  **every** other quarter — patterns, borders and fringes run across quarter
+  boundaries.
+- Outside, as for every prop, keep **2 units of air** to the cell edge. The
+  inner corners are notched by exactly those 2, or the border would not meet
+  the neighbouring cells' edges at an inner corner.
+- The single cell top left never appears on the board; a lone cell is made of
+  the four outer corners. It is the preview.
 
-Die genaue Zuordnung steht in
-[`src/app/render/tiles.ts`](../src/app/render/tiles.ts) und in PLAN.md §13.4.
+The exact mapping is in
+[`src/app/features/game/board/tiles.ts`](../src/app/features/game/board/tiles.ts)
+and in PLAN.md §13.4.
 
-## Was eine Datei erfüllen muss
+## What a file must meet
 
 | | |
 |---|---|
-| Format | SVG, für sich stehend, mit `xmlns` |
-| Zeichenfläche | 24 je Feld: `0 0 24 24` für ein Feld, `0 0 72 24` für `3x1` |
-| Inhalt | vollständig innerhalb der Fläche, keine negativen Koordinaten |
-| Hintergrund | bei Requisiten und Figuren **keiner**, sie stehen auf dem Boden |
-| Rand | ein, zwei Einheiten Luft, damit die Kachel darunter als Rahmen sichtbar bleibt — sie zeigt, ob jemand darauf stehen darf |
-| Größe | wird nie fest gesetzt; das Spiel skaliert die Datei |
+| Format | SVG, standalone, with `xmlns` |
+| Drawing area | 24 per cell: `0 0 24 24` for one cell, `0 0 72 24` for `3x1` |
+| Content | entirely inside the area, no negative coordinates |
+| Background | **none** for props and characters — they stand on the floor |
+| Margin | one or two units of air, so the tile beneath stays visible as a frame — it shows whether anyone may stand there |
+| Size | never fixed; the game scales the file |
 
-Bodenkacheln haben zusätzlich zwei Bedingungen:
+Floor tiles have two more conditions:
 
-- Sie müssen **nahtlos** sein: Fugen, Dielenstöße und Wellen treffen sich an den
-  Kanten, sonst zerfällt der Boden sichtbar in Quadrate.
-- Für `grass`, `soil`, `gravel` und `sand` spiegelt das Spiel die Kachel je
-  Zelle, damit ein großes Gitter nicht nach Tapete aussieht. Bei diesen vier
-  darf deshalb **nichts über die Kante laufen**. Welche Beläge gespiegelt
-  werden, steht in [`src/app/render/floors.ts`](../src/app/render/floors.ts).
+- They must be **seamless**: grout, plank joints and waves meet at the edges,
+  or the floor visibly falls apart into squares.
+- For `grass`, `soil`, `gravel` and `sand` the game mirrors the tile per cell so
+  a large grid does not look like wallpaper. So for these four **nothing may run
+  over the edge**. Which floors are mirrored is in
+  [`src/app/shared/art/floors.ts`](../src/app/shared/art/floors.ts).
 
-## Platzhalter erzeugen
+## Making placeholders
 
 ```bash
-npm run art           # fehlende Platzhalter schreiben
-npm run art -- --force  # auch ersetzte Grafiken überschreiben
-npm run art:sheet     # alle Grafiken auf ein Blatt, zum Draufschauen
+npm run art             # write missing placeholders
+npm run art -- --force  # overwrite replaced drawings too
+npm run art:sheet       # every drawing on one sheet, to look at
 ```
 
-Das läuft **nur während der Entwicklung**. Im fertigen Spiel wird nichts
-erzeugt; dort liegen die Dateien fest.
+This runs **during development only**. The finished game generates nothing;
+the files are fixed there.
 
-Jede erzeugte Datei trägt den Vermerk `<!-- indizio:placeholder -->`. Eine Datei
-ohne diesen Vermerk stammt von jemand anderem und wird **nicht überschrieben** —
-`npm run art` meldet sie als behalten. So kostet ein versehentlicher Lauf keine
-fertige Grafik.
+Every generated file carries the marker `<!-- indizio:placeholder -->`. A file
+without it came from someone else and is **not overwritten** — `npm run art`
+reports it as kept. So an accidental run never costs a finished drawing.
 
-Gezeichnet werden die Platzhalter in [`scripts/art/`](../scripts/art). Die App
-importiert von dort nichts; wenn die endgültigen Grafiken da sind, kann der
-ganze Ordner weg.
+The placeholders are drawn in [`scripts/art/`](../scripts/art), with one file
+of shapes per theme in `scripts/art/themes/`. The app imports nothing from
+there; once the final drawings are in, the whole folder can go.

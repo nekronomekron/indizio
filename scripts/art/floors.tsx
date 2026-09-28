@@ -2,31 +2,30 @@ import type { ReactNode, ReactElement } from 'react';
 import type { FloorMaterial } from '../../src/app/shared/art/floors.js';
 
 /**
- * Platzhalter-Zeichnungen der Bodenbelaege.
+ * Placeholder drawings of the floors.
  *
- * Laeuft nur waehrend der Entwicklung: `npm run art` schreibt daraus je Theme
- * eine fertige SVG-Datei. Die App liest nur noch die Dateien.
+ * Development only: `npm run art` writes a finished SVG file per theme from
+ * these. The app reads only the files.
  *
- * Alle Toene sind bewusst gedaempft — Figuren und Requisiten sind kraeftig
- * gefaerbt und muessen sich davor abheben. Die Kacheln sind so entworfen, dass
- * sie aneinandergesetzt fortlaufen: Fugen und Dielenstoesse treffen sich an den
- * Kanten.
+ * All colours are deliberately muted — characters and props are strongly
+ * coloured and have to stand out. The tiles are designed to continue when set
+ * side by side: grout and plank joints meet at the edges.
  */
 
 interface Material {
-  /** Grundflaeche der Kachel. */
+  /** Base colour of the tile. */
   base: string;
-  /** Musterung. Der Wert streut Halme, Kiesel und Fugen ueber die Kachel. */
+  /** Pattern. The value scatters blades, pebbles and joints over the tile. */
   pattern: (h: number) => ReactNode;
 }
 
 /**
- * Streuwert je Belag.
+ * Scatter value per floor.
  *
- * Frueher wurde je Gitterzelle neu gestreut; seit die Kacheln Dateien sind,
- * gibt es je Belag genau ein Bild. Gegen sichtbare Wiederholung spiegelt die
- * App die Kachel zellweise (siehe `floorFlip`), was nur ein Wert je Belag
- * braucht statt eines je Zelle.
+ * It used to scatter anew per grid cell; since tiles became files there is
+ * exactly one picture per floor. Against visible repetition the app mirrors
+ * the tile per cell (see `floorFlip`), which needs one value per floor rather
+ * than one per cell.
  */
 function seedOf(material: string): number {
   let h = 0x811c9dc5;
@@ -35,7 +34,7 @@ function seedOf(material: string): number {
 }
 
 const MATERIALS: Record<FloorMaterial, Material> = {
-  // Dielen: Stöße waagerecht durchgehend, Fugen je Reihe versetzt.
+  // Planks: horizontal joints running through, butt joints offset per row.
   wood: {
     base: '#4a382a',
     pattern: (h) => {
@@ -55,7 +54,7 @@ const MATERIALS: Record<FloorMaterial, Material> = {
     },
   },
 
-  // Fliesen: vier Felder je Kachel, Fugen laufen über die Kanten weiter.
+  // Tiles: four squares per tile, grout continuing over the edges.
   tile: {
     base: '#39424e',
     pattern: () => (
@@ -68,7 +67,7 @@ const MATERIALS: Record<FloorMaterial, Material> = {
     ),
   },
 
-  // Platten: größere Steine mit versetzten Stößen.
+  // Paving: larger stones with offset joints.
   stone: {
     base: '#3b3945',
     pattern: (h) => {
@@ -84,7 +83,7 @@ const MATERIALS: Record<FloorMaterial, Material> = {
     },
   },
 
-  // Estrich: glatt, ein paar Sprenkel und gelegentlich ein Riss.
+  // Concrete: smooth, a few speckles and the odd crack.
   concrete: {
     base: '#403f4a',
     pattern: (h) => (
@@ -98,7 +97,7 @@ const MATERIALS: Record<FloorMaterial, Material> = {
     ),
   },
 
-  // Teppichboden: warmer Ton, feine Faserung.
+  // Fitted carpet: warm colour, fine fibres.
   carpet: {
     base: '#4a3a44',
     pattern: (h) => (
@@ -110,7 +109,7 @@ const MATERIALS: Record<FloorMaterial, Material> = {
     ),
   },
 
-  // Rasen: Grundgrün mit einzelnen Halmen.
+  // Lawn: base green with single blades.
   grass: {
     base: '#2f4733',
     pattern: (h) => (
@@ -125,7 +124,7 @@ const MATERIALS: Record<FloorMaterial, Material> = {
     ),
   },
 
-  // Erde: dunkler Boden mit Schollen und einer Furche.
+  // Soil: dark ground with clods and a furrow.
   soil: {
     base: '#463527',
     pattern: (h) => (
@@ -137,7 +136,7 @@ const MATERIALS: Record<FloorMaterial, Material> = {
     ),
   },
 
-  // Kies: viele kleine Steine.
+  // Gravel: many small stones.
   gravel: {
     base: '#43414a',
     pattern: (h) => (
@@ -155,7 +154,7 @@ const MATERIALS: Record<FloorMaterial, Material> = {
     ),
   },
 
-  // Sand: heller Grund mit feiner Körnung und Wellen.
+  // Sand: light ground with fine grain and ripples.
   sand: {
     base: '#57492f',
     pattern: (h) => (
@@ -169,7 +168,7 @@ const MATERIALS: Record<FloorMaterial, Material> = {
     ),
   },
 
-  // Wasser: für Räume am Wasser, mit ruhigen Wellen.
+  // Water: for rooms by the water, with calm waves.
   water: {
     base: '#2c4a5c',
     pattern: (h) => (
@@ -181,7 +180,7 @@ const MATERIALS: Record<FloorMaterial, Material> = {
   },
 };
 
-/** Eine Bodenkachel als Vektorgrafik, im 24er-Raster wie alle anderen Formen. */
+/** A floor tile as vector art, on the 24-unit grid like every other shape. */
 export function FloorTile({ material }: { material: FloorMaterial }): ReactElement {
   const def = MATERIALS[material];
   return (

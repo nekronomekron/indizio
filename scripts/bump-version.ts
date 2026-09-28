@@ -1,17 +1,17 @@
 import { nextAppVersion, readAppVersion, writeAppVersion } from './app-version.js';
 
 /**
- * Zaehlt die Versionsnummer eine Stelle hoch.
+ * Counts the version up by one.
  *
  * ```bash
  * npm run bump          # 2026.3 -> 2026.4
- * npm run bump -- --show  # nur anzeigen, nichts aendern
+ * npm run bump -- --show  # only show, change nothing
  * ```
  *
- * Bewusst ein eigener Aufruf und nicht an den Bau gehaengt: gebaut wird auch
- * zum Ausprobieren, und dabei aendert sich nichts am Spiel. Die Nummer soll
- * steigen, wenn jemand etwas geaendert hat — das weiss nur der Mensch, der es
- * geaendert hat.
+ * Deliberately a command of its own rather than part of the build: builds also
+ * happen just to try things, and the game does not change by that. The number
+ * should go up when someone changed something — which only the person who
+ * changed it knows.
  */
 
 const current = readAppVersion();

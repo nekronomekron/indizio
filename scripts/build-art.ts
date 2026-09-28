@@ -10,36 +10,36 @@ import { ICON_SHAPES } from './art/icons.js';
 import { PLACEHOLDER_SHAPES } from './art/themes/index.js';
 
 /**
- * Schreibt die Platzhaltergrafiken als echte SVG-Dateien nach `art/`.
+ * Writes the placeholder drawings as real SVG files into `art/`.
  *
- * Laeuft **nur waehrend der Entwicklung**. Im Spiel wird nichts mehr gezeichnet:
- * die App liest ausschliesslich die Dateien, die hier entstehen. Wer eine
- * Grafik austauschen will, ersetzt die Datei — Code aendert sich dabei nicht.
+ * Runs *during development only*. The game draws nothing: the app reads only
+ * the files made here. Replacing a drawing means replacing the file — no code
+ * changes.
  *
- * Aufteilung nach Themes, weil jedes Theme spaeter ein eigenes Grafikset
- * bekommt. Zwei Themes koennen denselben Objektschluessel benutzen (`chair`
- * steht in Werkstatt und Wohnung); jedes bekommt trotzdem eine eigene Datei,
- * damit ein Stuhl in der Werkstatt anders aussehen darf als im Wohnzimmer.
+ * Split by theme, because every theme will get its own drawings. Two themes
+ * may use the same object key (`chair` is in the car repair shop and the
+ * flat); each still gets its own file, so a workshop chair may look different
+ * from a living-room chair.
  *
- * Requisiten bekommen **je Grundflaeche eine Datei**: `bed_2x1.svg` neben
- * `bed_1x2.svg`. Der Name traegt Breite und Hoehe in Feldern, die Zeichenflaeche
- * ist entsprechend gross (24 je Feld). So kann ein Bett quer anders aussehen
- * als laengs, statt ein gedrehtes Quadrat zu sein.
+ * Props get *one file per footprint*: `bed_2x1.svg` next to `bed_1x2.svg`. The
+ * name carries width and height in cells; the drawing area is sized to match
+ * (24 per cell). So a bed across can look different from a bed lengthways
+ * instead of being a rotated square.
  *
- * Verlegte Requisiten (Teppich, Matte) haben stattdessen **ein Blatt**
- * `tiles/<key>.svg` mit 48 × 72: daraus setzt das Spiel jede Form aus Vierteln
- * zusammen (PLAN.md §13.4, `src/app/render/tiles.ts`).
+ * Laid props (carpet, mat) get *one sheet* `tiles/<key>.svg` of 48 × 72
+ * instead, from which the game assembles any shape in quarters (PLAN.md
+ * §13.4, `src/app/features/game/board/tiles.ts`).
  *
  * ```bash
- * npm run art           # nur fehlende und eigene Platzhalter schreiben
- * npm run art -- --force  # auch ersetzte Grafiken ueberschreiben
+ * npm run art           # write missing placeholders and our own
+ * npm run art -- --force  # overwrite replaced drawings too
  * ```
  */
 
-/** Steht in jeder erzeugten Datei. Fehlt er, stammt die Datei von jemand anderem. */
+/** In every generated file. When it is missing, the file came from someone else. */
 const MARKER = '<!-- indizio:placeholder -->';
 
-// npm-Skripte laufen im Projektstamm, deshalb reicht der Arbeitsordner.
+// npm scripts run in the project root, so the working directory will do.
 const ART = join(process.cwd(), 'art');
 const force = process.argv.includes('--force');
 
@@ -50,14 +50,14 @@ interface Entry {
   height?: number;
 }
 
-/** Kantenlaenge eines Feldes in der Zeichenflaeche. */
+/** Side of one cell in drawing units. */
 const UNIT = 24;
 
 /**
- * Eine Form als vollstaendiges, fuer sich stehendes SVG-Dokument.
+ * A shape as a complete, standalone SVG document.
  *
- * Die Zeichenflaeche folgt der Grundflaeche: ein Objekt ueber drei Felder
- * bekommt 72 breit statt 24, sonst muesste der Renderer es verzerren.
+ * The drawing area follows the footprint: an object over three cells gets 72
+ * wide instead of 24, or the renderer would have to stretch it.
  */
 function svgDocument(inner: string, width = 1, height = 1): string {
   const w = width * UNIT;
@@ -70,31 +70,29 @@ function svgDocument(inner: string, width = 1, height = 1): string {
 }
 
 /**
- * Platzhalter fuer eine Requisite auf einer bestimmten Grundflaeche.
+ * Placeholder for a prop on a particular footprint.
  *
- * Eine Platte in der Groesse der Grundflaeche, darauf das Sinnbild in seiner
- * natuerlichen Groesse. Damit zeigt der Platzhalter beides: **wie viel Platz**
- * das Objekt belegt und **welches** es ist — ohne dass jede der 54 Varianten von
- * Hand gezeichnet werden muesste. Die endgueltigen Grafiken fuellen ihre
- * Flaeche selbst aus; diese hier sind erklaertermassen Stellvertreter.
+ * A plate the size of the footprint with the symbol at its natural size on it.
+ * So the placeholder shows both *how much space* the object takes and *which*
+ * it is — without drawing every footprint by hand. The final drawings fill
+ * their area themselves; these are admittedly stand-ins.
  *
- * Die Platte nimmt den Ton der ersten Flaeche des Sinnbilds. Das ist grob, aber
- * es macht eine Werkbank braun und einen Teich blau, und zwar ohne eine zweite
- * Liste, die veralten kann.
+ * The plate takes the colour of the symbol's first shape. Crude, but it makes a
+ * workbench brown and a pond blue without a second list that can go stale.
  */
 function placeholder(icon: string, width: number, height: number): string {
   const w = width * UNIT;
   const h = height * UNIT;
   const tone = /fill="(#[0-9a-f]{3,8})"/i.exec(icon)?.[1] ?? '#6b6580';
-  // Eingerueckt, damit die Kachel darunter als Rahmen sichtbar bleibt: sie
-  // zeigt, ob jemand auf dem Objekt stehen darf.
+  // Inset, so the tile beneath stays visible as a frame: it shows whether
+  // anyone may stand on the object.
   const inset = 2;
   const plate = `<rect x="${String(inset)}" y="${String(inset)}" width="${String(w - inset * 2)}" height="${String(h - inset * 2)}" rx="4" fill="${tone}" fill-opacity="0.55"/>`;
   const centred = `<g transform="translate(${String((w - UNIT) / 2)} ${String((h - UNIT) / 2)})">${icon}</g>`;
   return plate + centred;
 }
 
-/** Ein Rechteck `size` × `size` ab (x, y), an jeder Ecke um `notch` eingekerbt. */
+/** A `size` × `size` square from (x, y), notched by `notch` at every corner. */
 function notched(x: number, y: number, size: number, notch: number): string {
   const a = x + notch;
   const b = x + size - notch;
@@ -120,19 +118,19 @@ function notched(x: number, y: number, size: number, notch: number): string {
 }
 
 /**
- * Platzhalter-Blatt fuer eine verlegte Requisite, 2 × 3 Felder (PLAN.md §13.4).
+ * Placeholder sheet for a laid prop, 2 × 3 cells (PLAN.md §13.4).
  *
  * ```
- * [ Einzelfeld ][ Innenecken ]   Zeile 0
- * [   2×2-Block: Aussenecken,  ]  Zeilen 1–2
- * [   Kanten und Fuellung      ]
+ * [ single cell ][ inner corners ]   row 0
+ * [   2×2 block: outer corners,   ]  rows 1–2
+ * [   edges and fill              ]
  * ```
  *
- * Ein Rand im Ton des Sinnbilds, innen ein zweiter Ton — so zeigt die fertige
- * Form auf dem Brett ihren Umriss, auch um Ecken herum. Aussen bleiben 2
- * Einheiten Luft, damit der Boden als Rahmen sichtbar bleibt; die Innenecken
- * sind um genau diese 2 (Rand) und 5 (Innenfeld) eingekerbt, damit sie an die
- * Kanten der Nachbarn anschliessen.
+ * A border in the symbol's colour, a second colour inside — so the finished
+ * shape shows its outline on the board, around corners too. Outside there are
+ * 2 units of air so the floor stays visible as a frame; the inner corners are
+ * notched by exactly those 2 (border) and 5 (inner area) so they meet the
+ * neighbours' edges.
  */
 function tileSheet(icon: string): string {
   const fills = [...icon.matchAll(/fill="(#[0-9a-f]{3,8})"/gi)].map((match) => match[1]!);
@@ -158,7 +156,7 @@ function shape(node: unknown): string {
 
 const files: Entry[] = [];
 
-// --- Figuren und Bediensymbole: themenunabhaengig ---------------------------
+// --- Characters and icons: shared by every theme ----------------------------
 for (const [key, node] of Object.entries(CHARACTER_SHAPES)) {
   files.push({ path: join('common', 'characters', key + '.svg'), markup: shape(node) });
 }
@@ -166,20 +164,20 @@ for (const [key, node] of Object.entries(ICON_SHAPES)) {
   files.push({ path: join('common', 'icons', key + '.svg'), markup: shape(node) });
 }
 
-// Rueckfallbelag fuer Themes, die die App nicht kennt.
+// Fallback floor for themes the app does not know.
 files.push({
   path: join('common', 'floors', DEFAULT_FLOOR + '.svg'),
   markup: shape(createElement(FloorTile, { material: DEFAULT_FLOOR })),
 });
 
-// --- Je Theme: seine Objekte und die Belaege seiner Raeume -------------------
+// --- Per theme: its objects and the floors of its rooms ---------------------
 for (const theme of THEMES) {
   for (const object of theme.objects) {
     const node = PLACEHOLDER_SHAPES[theme.key]?.[object.key];
-    if (!node) throw new Error(`Keine Platzhalterform fuer ${theme.key}/${object.key}`);
+    if (!node) throw new Error(`No placeholder shape for ${theme.key}/${object.key}`);
     const icon = shape(node);
 
-    // Verlegt: ein Blatt, aus dem das Spiel jede Form zusammensetzt.
+    // Laid: one sheet from which the game assembles any shape.
     if (object.placement.kind === 'tiled') {
       files.push({
         path: join('themes', theme.key, 'tiles', `${object.key}.svg`),
@@ -190,8 +188,8 @@ for (const theme of THEMES) {
       continue;
     }
 
-    // Je zulaessiger Grundflaeche eine Datei. Welche es gibt, bestimmt die
-    // Theme-Definition der Bibliothek - hier wird nichts geraten.
+    // One file per allowed footprint. Which ones exist is up to the engine's
+    // theme definition — nothing is guessed here.
     for (const [width, height] of object.placement.footprints) {
       files.push({
         path: join('themes', theme.key, 'objects', `${object.key}_${String(width)}x${String(height)}.svg`),
@@ -211,7 +209,7 @@ for (const theme of THEMES) {
   }
 }
 
-// --- Schreiben, aber fremde Grafiken nicht ueberfahren ----------------------
+// --- Write, but never overwrite someone else's drawing ----------------------
 mkdirSync(ART, { recursive: true });
 const written: string[] = [];
 const kept: string[] = [];
@@ -225,8 +223,8 @@ for (const entry of files) {
     existing = null;
   }
 
-  // Eine Datei ohne Marker hat jemand ersetzt. Die ist mehr wert als ein
-  // Platzhalter und wird nur auf ausdruecklichen Wunsch ueberschrieben.
+  // A file without the marker was replaced by someone. It is worth more than
+  // a placeholder and is only overwritten when explicitly asked.
   if (existing !== null && !existing.includes(MARKER) && !force) {
     kept.push(entry.path);
     continue;
@@ -237,7 +235,7 @@ for (const entry of files) {
   written.push(entry.path);
 }
 
-// --- Verwaiste Platzhalter entfernen ----------------------------------------
+// --- Remove orphaned placeholders -------------------------------------------
 const wanted = new Set(files.map((entry) => join(ART, entry.path)));
 const removed: string[] = [];
 
@@ -249,7 +247,7 @@ function sweep(directory: string): void {
       continue;
     }
     if (!item.name.endsWith('.svg') || wanted.has(full)) continue;
-    // Auch hier gilt: nur eigene Platzhalter aufraeumen, nichts Fremdes.
+    // Here too: only clean up our own placeholders, nothing else.
     if (!readFileSync(full, 'utf8').includes(MARKER) && !force) continue;
     rmSync(full);
     removed.push(relative(ART, full));

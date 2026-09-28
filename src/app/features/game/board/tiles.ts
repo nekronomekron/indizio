@@ -1,54 +1,54 @@
 import type { Cell } from '@engine';
 
 /**
- * Verlegte Requisiten zeichnen (PLAN.md §13.4).
+ * Drawing laid props (PLAN.md §13.4).
  *
- * Ein Teppich, der um die Ecke laeuft, ist kein Rechteck und damit auch kein
- * einzelnes Bild. Jede Zelle setzt sich aus **vier Vierteln** zusammen, und
- * jedes Viertel kommt aus einem festen Blatt von 48 × 72 (2 × 3 Felder):
+ * A carpet turning a corner is no rectangle and so no single picture. Every
+ * cell is put together from *four quarters*, and every quarter comes from one
+ * fixed sheet of 48 × 72 (2 × 3 cells):
  *
  * ```
- * [ Einzelfeld ][ Innenecken ]   y  0–24
- * [ 2×2-Block: Aussenecken,  ]   y 24–72
- * [ Kanten und Fuellung      ]
+ * [ single cell ][ inner corners ]   y  0–24
+ * [ 2×2 block: outer corners,    ]   y 24–72
+ * [ edges and fill               ]
  * ```
  *
- * Welches Viertel eine Zelle bekommt, haengt nur an den zwei Nachbarn, an die
- * dieses Viertel grenzt, und an der Diagonalen dazwischen. Ein Viertel kommt
- * immer aus derselben Lage im Blatt, in der es auf dem Brett sitzt — nichts
- * wird gedreht, Licht und Perspektive der Zeichnung bleiben stimmig.
+ * Which quarter a cell gets depends only on the two neighbours that quarter
+ * borders and the diagonal between them. A quarter always comes from the same
+ * position in the sheet as it takes on the board — nothing is rotated, so the
+ * drawing's light and perspective stay right.
  *
- * Reine Rechnung ohne DOM, damit sie sich vollstaendig pruefen laesst.
+ * Pure arithmetic without a DOM, so it can be tested completely.
  */
 
-/** Blattgroesse in Einheiten der Zeichenflaeche. */
+/** Sheet size in drawing units. */
 export const SHEET_WIDTH = 48;
 export const SHEET_HEIGHT = 72;
-/** Kantenlaenge eines Feldes im Blatt; ein Viertel ist halb so gross. */
+/** Side of one cell in the sheet; a quarter is half as big. */
 export const SHEET_UNIT = 24;
 
 export type Corner = 'nw' | 'ne' | 'sw' | 'se';
 
 /**
- * Was an einem Viertel anliegt.
+ * What a quarter borders on.
  *
- * - `outer`: weder der senkrechte noch der waagerechte Nachbar gehoert dazu
- * - `horizontal`: nur der waagerechte, das Viertel ist Teil einer waagerechten Kante
- * - `vertical`: nur der senkrechte, Teil einer senkrechten Kante
- * - `inner`: beide, aber nicht die Diagonale — eine Innenecke
- * - `fill`: alle drei
+ * - `outer`: neither the vertical nor the horizontal neighbour belongs to the shape
+ * - `horizontal`: only the horizontal one; the quarter is part of a horizontal edge
+ * - `vertical`: only the vertical one; part of a vertical edge
+ * - `inner`: both, but not the diagonal — an inner corner
+ * - `fill`: all three
  */
 export type QuarterCase = 'outer' | 'horizontal' | 'vertical' | 'inner' | 'fill';
 
 export interface Quarter {
   corner: Corner;
   case: QuarterCase;
-  /** Linke obere Ecke der Quelle im Blatt, in Einheiten der Zeichenflaeche. */
+  /** Top-left corner of the source in the sheet, in drawing units. */
   x: number;
   y: number;
 }
 
-/** Aussenkanten einer Zelle: dort endet die Form, dort gehoert ein Rand hin. */
+/** Outer edges of a cell: where the shape ends and a border belongs. */
 export interface OpenEdges {
   north: boolean;
   east: boolean;
@@ -65,9 +65,9 @@ export interface TileCell {
 }
 
 /**
- * Quelle je Lage und Fall. Die Nordwest-Zeile steht so auch in PLAN.md §13.4;
- * die anderen folgen daraus, dass ein Ost-Viertel aus der rechten und ein
- * Sued-Viertel aus der unteren Haelfte seines Feldes kommt.
+ * Source per position and case. The north-west row is also in PLAN.md §13.4;
+ * the others follow from an east quarter coming from the right half of its
+ * cell and a south quarter from the lower half.
  */
 const SOURCE: Record<Corner, Record<QuarterCase, readonly [number, number]>> = {
   nw: { outer: [0, 24], horizontal: [24, 24], vertical: [0, 48], fill: [24, 48], inner: [24, 0] },
@@ -76,7 +76,7 @@ const SOURCE: Record<Corner, Record<QuarterCase, readonly [number, number]>> = {
   se: { outer: [36, 60], horizontal: [12, 60], vertical: [36, 36], fill: [12, 36], inner: [36, 12] },
 };
 
-/** Welche Nachbarn ein Viertel beruehren: senkrecht, waagerecht, diagonal, als Zeilen- und Spaltenschritt. */
+/** Which neighbours a quarter touches, as row and column steps: vertical, horizontal, diagonal. */
 const REACH: Record<Corner, { vertical: number; horizontal: number }> = {
   nw: { vertical: -1, horizontal: -1 },
   ne: { vertical: -1, horizontal: 1 },
@@ -93,7 +93,7 @@ export function quarterCase(vertical: boolean, horizontal: boolean, diagonal: bo
   return diagonal ? 'fill' : 'inner';
 }
 
-/** Viertel und Aussenkanten fuer jede Zelle einer Form. */
+/** Quarters and outer edges for every cell of a shape. */
 export function quarterTiles(cells: readonly Cell[], size: number): TileCell[] {
   const inShape = new Set(cells);
   const has = (row: number, column: number): boolean =>
@@ -128,11 +128,11 @@ export function quarterTiles(cells: readonly Cell[], size: number): TileCell[] {
 }
 
 /**
- * Kantenlaenge einer Zelle in Pixeln fuer den verfuegbaren Platz.
+ * Side of a cell in pixels for the space available.
  *
- * In Achterschritten: das haelt Linien scharf und macht ein Viertel (die
- * Haelfte) ganzzahlig. Ein halbes Pixel dort liesse zwischen den Vierteln
- * einer verlegten Form eine Naht durchscheinen.
+ * In steps of eight: that keeps lines sharp and makes a quarter (half a cell)
+ * a whole number. Half a pixel there would let a seam show between the
+ * quarters of a laid shape.
  */
 export function boardCellPx(availableW: number, availableH: number, size: number): number {
   return Math.min(72, Math.max(24, Math.floor(Math.min(availableW, availableH) / size / 8) * 8));

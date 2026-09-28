@@ -1,26 +1,24 @@
 import type { Suspect } from '@engine';
 
 /**
- * Wie die Verdaechtigen dargestellt werden: welcher Buchstabe sie auf dem
- * Brett vertritt und in welcher Reihenfolge ihre Karten stehen.
+ * How suspects are shown: which letter stands for them on the board and in
+ * which order their cards appear.
  *
- * Beides ist reine Darstellung. Die **Id bleibt unangetastet** — sie ist der
- * Index in Loesung, Platzierungen und Notizen. Wer hier sortiert, sortiert
- * Karten, nicht Personen.
+ * Both are presentation only. The *id stays untouched* — it is the index into
+ * solution, placements and notes. Sorting here sorts cards, not people.
  */
 
 /**
- * Buchstabe je Verdaechtigem, nach **Id** abgelegt.
+ * Letter per suspect, stored by *id*.
  *
- * Der Anfangsbuchstabe des Namens statt A, B, C nach Reihenfolge: ein „N" auf
- * dem Brett soll an Nadja erinnern und nicht daran, dass sie die vierte Karte
- * ist. Beim Nachsehen, wer wo steht, spart das den Umweg ueber die Liste.
+ * The first letter of the name rather than A, B, C by order: an "N" on the
+ * board should remind you of Nadja, not of her being the fourth card. Checking
+ * who stands where then needs no detour through the list.
  *
- * Kollidieren zwei Anfangsbuchstaben, bekommen **beide** so viele Buchstaben,
- * wie zur Unterscheidung noetig sind. Der mitgelieferte Namensvorrat hat
- * durchweg verschiedene Anfangsbuchstaben (ein Test der Bibliothek haelt das
- * fest), aber ein fremder Vorrat muss das nicht — und zwei gleiche Marken auf
- * dem Brett waeren schlimmer als eine zweibuchstabige.
+ * If two initials collide, *both* get as many letters as it takes to tell them
+ * apart. The shipped name pool has different initials throughout (an engine
+ * test holds that), but a foreign pool need not — and two identical marks on
+ * the board would be worse than a two-letter one.
  */
 export function suspectLetters(suspects: readonly Suspect[]): string[] {
   const names = suspects.map((suspect) => suspect.name);
@@ -36,11 +34,11 @@ export function suspectLetters(suspects: readonly Suspect[]): string[] {
 }
 
 /**
- * Reihenfolge der Karten: das Opfer zuletzt, alle anderen wie gehabt.
+ * Order of the cards: the victim last, everyone else as they were.
  *
- * Das Opfer ist die einzige Karte, die nichts zu ermitteln gibt — ihr Hinweis
- * steht von Anfang an fest. Mitten in der Reihe unterbricht sie die Liste der
- * Verdaechtigen, am Ende schliesst sie sie ab.
+ * The victim is the one card with nothing to investigate — its clue is fixed
+ * from the start. In the middle it interrupts the list of suspects; at the end
+ * it closes it.
  */
 export function cardOrder(suspects: readonly Suspect[]): Suspect[] {
   return [

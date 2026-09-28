@@ -12,17 +12,16 @@ import { Sprite } from '../src/app/shared/art/Sprite.js';
 import { DEFAULT_FLOOR, FLOOR_MATERIALS, floorFlip, floorFor } from '../src/app/shared/art/floors.js';
 
 /**
- * Die Grafiken liegen als Dateien in `art/` und werden dort spaeter gegen die
- * endgueltigen ausgetauscht. Geprueft wird deshalb nicht, wie etwas gezeichnet
- * wird, sondern **dass jede Grafik da ist, die das Spiel anfordert** — eine
- * fehlende faellt sonst erst auf, wenn der Generator dieses Objekt zufaellig
- * einmal einbaut.
+ * The drawings are files in `art/` and will be replaced there by the final
+ * ones. So what is tested is not how anything is drawn, but *that every drawing
+ * the game asks for is there* — a missing one would otherwise only show when
+ * the generator happens to use that object.
  */
 
 const ART = join(process.cwd(), 'art');
 const ICONS = ['ui-x', 'ui-eraser', 'ui-undo', 'ui-hint', 'ui-check', 'ui-timer', 'ui-victim', 'ui-note'];
 
-/** Alle Dateien unter art/, als Pfade mit Schraegstrich. */
+/** Every file under art/, as a forward-slash path. */
 function allFiles(directory = ART): string[] {
   const out: string[] = [];
   for (const item of readdirSync(directory, { withFileTypes: true })) {
@@ -35,101 +34,101 @@ function allFiles(directory = ART): string[] {
 
 const FILES = allFiles();
 
-describe('Grafikdateien', () => {
-  it('jede Grundflaeche jedes Objekts hat eine eigene Datei', () => {
-    // Ein Bett quer ist eine andere Grafik als ein Bett laengs. Welche
-    // Grundflaechen es gibt, bestimmt die Theme-Definition der Bibliothek.
-    const fehlend: string[] = [];
+describe('drawing files', () => {
+  it('give every footprint of every object a file of its own', () => {
+    // A bed across is a different drawing from a bed lengthways. Which
+    // footprints exist is up to the engine's theme definition.
+    const missing: string[] = [];
     for (const theme of THEMES) {
       for (const object of theme.objects) {
         if (object.placement.kind !== 'fixed') continue;
         for (const [width, height] of object.placement.footprints) {
-          const datei = `themes/${theme.key}/objects/${object.key}_${width}x${height}.svg`;
-          if (!FILES.includes(datei)) fehlend.push(datei);
+          const file = `themes/${theme.key}/objects/${object.key}_${width}x${height}.svg`;
+          if (!FILES.includes(file)) missing.push(file);
         }
       }
     }
-    expect(fehlend).toEqual([]);
+    expect(missing).toEqual([]);
   });
 
-  it('jede verlegte Requisite hat ein Blatt mit 2 mal 3 Feldern', () => {
-    // Aus dem Blatt setzt das Spiel jede Form aus Vierteln zusammen (PLAN.md
-    // §13.4). Eine andere Zeichenflaeche verschoebe jedes Viertel.
-    const falsch: string[] = [];
+  it('give every laid prop a sheet of 2 by 3 cells', () => {
+    // The game assembles any shape from quarters of the sheet (PLAN.md §13.4).
+    // Another drawing area would shift every quarter.
+    const wrong: string[] = [];
     for (const theme of THEMES) {
       for (const object of theme.objects) {
         if (object.placement.kind !== 'tiled') continue;
-        const datei = `themes/${theme.key}/tiles/${object.key}.svg`;
-        if (!FILES.includes(datei)) falsch.push(datei + ' fehlt');
-        else if (!readFileSync(join(ART, datei), 'utf8').includes('viewBox="0 0 48 72"')) falsch.push(datei);
+        const file = `themes/${theme.key}/tiles/${object.key}.svg`;
+        if (!FILES.includes(file)) wrong.push(file + ' missing');
+        else if (!readFileSync(join(ART, file), 'utf8').includes('viewBox="0 0 48 72"')) wrong.push(file);
       }
     }
-    expect(falsch).toEqual([]);
+    expect(wrong).toEqual([]);
   });
 
-  it('die Zeichenflaeche passt zur Grundflaeche', () => {
-    // Ein Tisch ueber drei Felder braucht 72 mal 24, sonst verzerrt ihn der
-    // Renderer beim Einpassen.
-    const falsch: string[] = [];
+  it('size the drawing area to the footprint', () => {
+    // A table over three cells needs 72 by 24, or the renderer distorts it
+    // when fitting it in.
+    const wrong: string[] = [];
     for (const theme of THEMES) {
       for (const object of theme.objects) {
         if (object.placement.kind !== 'fixed') continue;
         for (const [width, height] of object.placement.footprints) {
-          const datei = `themes/${theme.key}/objects/${object.key}_${width}x${height}.svg`;
-          if (!FILES.includes(datei)) continue;
-          const erwartet = `viewBox="0 0 ${width * 24} ${height * 24}"`;
-          if (!readFileSync(join(ART, datei), 'utf8').includes(erwartet)) falsch.push(datei);
+          const file = `themes/${theme.key}/objects/${object.key}_${width}x${height}.svg`;
+          if (!FILES.includes(file)) continue;
+          const expected = `viewBox="0 0 ${width * 24} ${height * 24}"`;
+          if (!readFileSync(join(ART, file), 'utf8').includes(expected)) wrong.push(file);
         }
       }
     }
-    expect(falsch).toEqual([]);
+    expect(wrong).toEqual([]);
   });
 
-  it('jeder Raum jedes Themes hat den Belag, den er braucht', () => {
-    const fehlend: string[] = [];
+  it('give every room of every theme the floor it needs', () => {
+    const missing: string[] = [];
     for (const theme of THEMES) {
       for (const room of theme.rooms) {
         if (!FILES.includes(`themes/${theme.key}/floors/${room.floor}.svg`)) {
-          fehlend.push(`${theme.key}/${room.key} (${room.floor})`);
+          missing.push(`${theme.key}/${room.key} (${room.floor})`);
         }
       }
     }
-    expect(fehlend).toEqual([]);
+    expect(missing).toEqual([]);
   });
 
-  it('jeder Portraetschluessel und jedes Bediensymbol hat eine Datei', () => {
+  it('give every portrait key and every icon a file', () => {
     for (const key of PORTRAIT_KEYS) {
-      expect(FILES, 'Portraet ' + key).toContain(`common/characters/${key}.svg`);
+      expect(FILES, 'portrait ' + key).toContain(`common/characters/${key}.svg`);
     }
     for (const key of ICONS) {
-      expect(FILES, 'Symbol ' + key).toContain(`common/icons/${key}.svg`);
+      expect(FILES, 'icon ' + key).toContain(`common/icons/${key}.svg`);
     }
   });
 
-  it('jedes Theme bringt fuer jedes Objekt genau eine Platzhalterform mit', () => {
+  it('come with exactly one placeholder shape per object of every theme', () => {
     for (const theme of THEMES) {
       const shapes = Object.keys(PLACEHOLDER_SHAPES[theme.key] ?? {}).sort();
       expect(shapes, theme.key).toEqual(theme.objects.map((object) => object.key).sort());
     }
   });
 
-  it('der Rueckfallbelag fuer fremde Themes liegt bereit', () => {
+  it('include the fallback floor for foreign themes', () => {
     expect(FILES).toContain(`common/floors/${DEFAULT_FLOOR}.svg`);
   });
 
-  it('jedes Bild des Tutorials laesst sich aufloesen', () => {
-    // Das Tutorial mischt alle drei Arten: Symbol, Requisite, Figur. Ohne die
-    // Art im Schluessel greift es sonst ins Leere und zeigt eine leere Flaeche.
-    const fehlend = TUTORIAL_ICONS.filter((icon) => !hasArt(icon.kind ?? 'objects', icon.name, icon.theme));
-    expect(fehlend).toEqual([]);
+  it('resolve every picture of the tutorial', () => {
+    // The tutorial mixes all three kinds: icon, prop, character. Without the
+    // kind in the key it would find nothing and show an empty area.
+    const missing = TUTORIAL_ICONS.filter((icon) => !hasArt(icon.kind ?? 'objects', icon.name, icon.theme));
+    expect(missing).toEqual([]);
     // One picture per step, in every language.
     for (const resources of Object.values(RESOURCES)) {
       expect(resources.help.tutorial).toHaveLength(TUTORIAL_ICONS.length);
     }
   });
 
-  it('keine Datei ohne Verwendung', () => {
-    const gebraucht = new Set<string>([
+  it('are all in use', () => {
+    const needed = new Set<string>([
       ...PORTRAIT_KEYS.map((key) => `common/characters/${key}.svg`),
       ...ICONS.map((key) => `common/icons/${key}.svg`),
       `common/floors/${DEFAULT_FLOOR}.svg`,
@@ -144,12 +143,12 @@ describe('Grafikdateien', () => {
         ...theme.rooms.map((room) => `themes/${theme.key}/floors/${room.floor}.svg`),
       ]),
     ]);
-    expect(FILES.filter((file) => !gebraucht.has(file))).toEqual([]);
+    expect(FILES.filter((file) => !needed.has(file))).toEqual([]);
   });
 
-  it('jede Datei ist ein fuer sich stehendes SVG im 24er-Raster', () => {
-    // 24 je Feld: eine Kachel ist 24x24, ein Tisch ueber drei Felder 72x24.
-    const kaputt: string[] = [];
+  it('are each a standalone SVG on the 24-unit grid', () => {
+    // 24 per cell: a tile is 24x24, a table over three cells 72x24.
+    const broken: string[] = [];
     for (const file of FILES) {
       const text = readFileSync(join(ART, file), 'utf8');
       const box = /viewBox="0 0 (\d+) (\d+)"/.exec(text);
@@ -163,134 +162,134 @@ describe('Grafikdateien', () => {
         Number(box[2]) > 0 &&
         text.trimEnd().endsWith('</svg>') &&
         text.length > 80;
-      if (!ok) kaputt.push(file);
+      if (!ok) broken.push(file);
     }
-    expect(kaputt).toEqual([]);
+    expect(broken).toEqual([]);
   });
 
-  it('setzt nichts an eine negative Stelle', () => {
-    // Der Streuwert der Bodenkacheln lief ueber `>>` ins Minus, und die Halme
-    // landeten links neben dem Bild. Geprueft werden nur **absolute** Angaben:
-    // ein negativer Schritt innerhalb eines Pfades (`l1.1 -3.2`) ist normal.
-    const absolut = /(?:\s|")M\s*-|\s(?:x|y|cx|cy|x1|y1|x2|y2)="-/;
-    const daneben = FILES.filter((file) => absolut.test(readFileSync(join(ART, file), 'utf8')));
-    expect(daneben).toEqual([]);
+  it('put nothing at a negative position', () => {
+    // The floor tiles' scatter value once went negative through `>>`, and the
+    // blades of grass landed left of the picture. Only *absolute* values are
+    // checked: a negative step inside a path (`l1.1 -3.2`) is normal.
+    const absolute = /(?:\s|")M\s*-|\s(?:x|y|cx|cy|x1|y1|x2|y2)="-/;
+    const outside = FILES.filter((file) => absolute.test(readFileSync(join(ART, file), 'utf8')));
+    expect(outside).toEqual([]);
   });
 });
 
-describe('Aufloesung der Grafiken', () => {
-  it('kennt alle drei Themes', () => {
+describe('resolving drawings', () => {
+  it('knows all three themes', () => {
     expect(artThemes()).toEqual(THEMES.map((theme) => theme.key).sort());
   });
 
-  it('nimmt die Grafik des Themes vor der gemeinsamen', () => {
-    // 'chair' steht in Werkstatt und Wohnung - jedes Theme hat eine eigene
-    // Datei, damit der Stuhl spaeter unterschiedlich aussehen darf.
+  it("prefers the theme's drawing over the common one", () => {
+    // 'chair' is in the car repair shop and the flat — each theme has its own
+    // file, so the chair may look different later.
     expect(hasArt('objects', 'chair_1x1', 'garage')).toBe(true);
     expect(hasArt('objects', 'chair_1x1', 'flat')).toBe(true);
     expect(artUrl('objects', 'chair_1x1')).toBeUndefined();
   });
 
-  it('haelt die Grundflaechen desselben Objekts auseinander', () => {
-    const quer = artUrl('objects', 'sofa_2x1', 'flat');
-    const laengs = artUrl('objects', 'sofa_1x2', 'flat');
-    expect(quer).toBeDefined();
-    expect(laengs).toBeDefined();
-    expect(quer).not.toBe(laengs);
+  it('keeps the footprints of one object apart', () => {
+    const across = artUrl('objects', 'sofa_2x1', 'flat');
+    const lengthways = artUrl('objects', 'sofa_1x2', 'flat');
+    expect(across).toBeDefined();
+    expect(lengthways).toBeDefined();
+    expect(across).not.toBe(lengthways);
   });
 
-  it('haelt gleichnamige Requisite und Bodenbelag auseinander', () => {
-    // In der Wohnung heisst beides 'carpet': der Teppich, auf dem jemand
-    // steht, und der Teppichboden des Schlafzimmers. Ohne die Art im
-    // Schluessel bekam das halbe Zimmer die Requisite als Boden ausgelegt.
-    const requisite = artUrl('tiles', 'carpet', 'flat');
-    const belag = artUrl('floors', 'carpet', 'flat');
-    expect(requisite).toBeDefined();
-    expect(belag).toBeDefined();
-    expect(requisite).not.toBe(belag);
+  it('keeps a prop and a floor of the same name apart', () => {
+    // In the flat both are called 'carpet': the carpet someone stands on, and
+    // the bedroom's fitted carpet. Without the kind in the key, half the room
+    // got the prop laid as its floor.
+    const prop = artUrl('tiles', 'carpet', 'flat');
+    const floor = artUrl('floors', 'carpet', 'flat');
+    expect(prop).toBeDefined();
+    expect(floor).toBeDefined();
+    expect(prop).not.toBe(floor);
   });
 
-  it('faellt fuer Figuren und Symbole auf die gemeinsamen zurueck', () => {
+  it('falls back to the common characters and icons', () => {
     expect(artUrl('characters', 'p01', 'garden')).toBe(artUrl('characters', 'p01'));
     expect(artUrl('icons', 'ui-x', 'flat')).toBe(artUrl('icons', 'ui-x'));
   });
 
-  it('meldet eine unbekannte Grafik, statt etwas Falsches zu liefern', () => {
-    expect(artUrl('objects', 'raumschiff_1x1', 'garage')).toBeUndefined();
-    expect(hasArt('objects', 'raumschiff_1x1')).toBe(false);
-    // Eine Grundflaeche, die es nicht gibt, liefert nichts - der Sprite faellt
-    // dann auf die flaechenlose Datei zurueck, sofern jemand eine ablegt.
+  it('reports an unknown drawing instead of returning the wrong one', () => {
+    expect(artUrl('objects', 'spaceship_1x1', 'garage')).toBeUndefined();
+    expect(hasArt('objects', 'spaceship_1x1')).toBe(false);
+    // A footprint that does not exist returns nothing — the sprite then falls
+    // back to the file without a footprint, if someone provides one.
     expect(artUrl('objects', 'bed_9x9', 'flat')).toBeUndefined();
-    // Eine Requisite ist kein Bodenbelag, auch wenn es sie gibt.
+    // A prop is no floor, even if it exists.
     expect(artUrl('floors', 'bathtub_2x1', 'flat')).toBeUndefined();
   });
 
-  it('liefert Bilddaten, die ein Browser direkt anzeigt', () => {
+  it('returns image data a browser shows directly', () => {
     const url = artUrl('objects', 'tree_1x1', 'garden');
     expect(url).toMatch(/^data:image\/svg\+xml,/);
     expect(decodeURIComponent(url!)).toContain('<svg');
   });
 
-  it('listet je Art und Theme die passenden Namen', () => {
-    const namen = artNames('objects', 'garden');
-    expect(namen).toContain('tree_1x1');
-    expect(namen).not.toContain('car_2x2');
-    expect(namen).not.toContain('p01');
+  it('lists the matching names per kind and theme', () => {
+    const names = artNames('objects', 'garden');
+    expect(names).toContain('tree_1x1');
+    expect(names).not.toContain('car_2x2');
+    expect(names).not.toContain('p01');
     expect(artNames('characters')).toContain('p01');
   });
 });
 
-describe('Sprite waehlt die Grundflaeche', () => {
+describe('sprite picks the footprint', () => {
   const markup = (props: Record<string, unknown>): string =>
     renderToStaticMarkup(createElement(Sprite, props as never));
 
-  it('nimmt die Datei fuer genau diese Grundflaeche', () => {
-    const quer = markup({ name: 'sofa', theme: 'flat', footprint: [2, 1] });
-    const laengs = markup({ name: 'sofa', theme: 'flat', footprint: [1, 2] });
-    expect(quer).toContain('<img');
-    expect(quer).not.toBe(laengs);
-    expect(decodeURIComponent(quer)).toContain('viewBox="0 0 48 24"');
-    expect(decodeURIComponent(laengs)).toContain('viewBox="0 0 24 48"');
+  it('takes the file for exactly this footprint', () => {
+    const across = markup({ name: 'sofa', theme: 'flat', footprint: [2, 1] });
+    const lengthways = markup({ name: 'sofa', theme: 'flat', footprint: [1, 2] });
+    expect(across).toContain('<img');
+    expect(across).not.toBe(lengthways);
+    expect(decodeURIComponent(across)).toContain('viewBox="0 0 48 24"');
+    expect(decodeURIComponent(lengthways)).toContain('viewBox="0 0 24 48"');
   });
 
-  it('uebernimmt die Pixelmasse der Flaeche', () => {
+  it("takes the area's pixel size", () => {
     const html = markup({ name: 'kitchenunit', theme: 'flat', footprint: [3, 1], width: 96, height: 32 });
     expect(html).toContain('width="96"');
     expect(html).toContain('height="32"');
   });
 
-  it('faellt auf die flaechenlose Datei zurueck', () => {
-    // Eine Grafikerin darf eine einzige Datei fuer alle Flaechen abgeben.
-    // 'p01' liegt flaechenlos in common - stellvertretend fuer diesen Fall.
+  it('falls back to the file without a footprint', () => {
+    // An artist may deliver a single file for every footprint. 'p01' has no
+    // footprint in common — standing in for that case.
     const html = markup({ name: 'p01', kind: 'characters', footprint: [2, 1] });
     expect(html).toContain('<img');
     expect(html).toBe(markup({ name: 'p01', kind: 'characters' }));
   });
 
-  it('laesst die Flaeche leer, wenn es gar nichts gibt', () => {
-    const html = markup({ name: 'raumschiff', theme: 'garage', footprint: [2, 1], width: 40, height: 20 });
+  it('leaves the area empty when there is nothing at all', () => {
+    const html = markup({ name: 'spaceship', theme: 'garage', footprint: [2, 1], width: 40, height: 20 });
     expect(html).not.toContain('<img');
     expect(html).toContain('<span');
   });
 });
 
-describe('Bodenbelaege', () => {
-  it('folgt dem Raum im Theme, mit Rueckfall fuer Fremdes', () => {
+describe('floors', () => {
+  it('follow the room in its theme, with a fallback for anything foreign', () => {
     expect(floorFor('flat', 'bathroom')).toBe('tile');
     expect(floorFor('garden', 'lawn')).toBe('grass');
     expect(floorFor('flat', 'dungeon')).toBe(DEFAULT_FLOOR);
     expect(floorFor('attic', 'loft')).toBe(DEFAULT_FLOOR);
   });
 
-  it('jeder Belag wird von mindestens einem Raum gebraucht', () => {
-    const benutzt = new Set<string>(THEMES.flatMap((theme) => theme.rooms.map((room) => room.floor)));
-    benutzt.add(DEFAULT_FLOOR);
-    expect(FLOOR_MATERIALS.filter((material) => !benutzt.has(material))).toEqual([]);
+  it('are each used by at least one room', () => {
+    const used = new Set<string>(THEMES.flatMap((theme) => theme.rooms.map((room) => room.floor)));
+    used.add(DEFAULT_FLOOR);
+    expect(FLOOR_MATERIALS.filter((material) => !used.has(material))).toEqual([]);
   });
 
-  it('spiegelt nur Belaege ohne durchlaufendes Muster', () => {
-    // Dielenstoesse und Fugen muessen sich an der Kachelkante treffen; ein
-    // gespiegelter Nachbar wuerde sie zerschneiden.
+  it('mirror only floors without a running pattern', () => {
+    // Plank joints and grout must meet at the tile edge; a mirrored neighbour
+    // would cut them.
     for (const material of ['wood', 'tile', 'stone', 'concrete', 'carpet', 'water'] as const) {
       for (let cell = 0; cell < 40; cell++) {
         expect(floorFlip(material, cell), material).toEqual({ x: 1, y: 1 });
@@ -298,16 +297,16 @@ describe('Bodenbelaege', () => {
     }
   });
 
-  it('streut Gras, Kies, Sand und Erde ueber das Gitter', () => {
+  it('scatter grass, gravel, sand and soil over the grid', () => {
     for (const material of ['grass', 'gravel', 'sand', 'soil'] as const) {
-      const varianten = new Set(
+      const variants = new Set(
         Array.from({ length: 40 }, (_, cell) => JSON.stringify(floorFlip(material, cell))),
       );
-      expect(varianten.size, material).toBeGreaterThan(1);
+      expect(variants.size, material).toBeGreaterThan(1);
     }
   });
 
-  it('dieselbe Zelle sieht immer gleich aus', () => {
+  it('draw the same cell the same way every time', () => {
     expect(floorFlip('grass', 42)).toEqual(floorFlip('grass', 42));
   });
 });

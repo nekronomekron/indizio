@@ -2,76 +2,77 @@ import { describe, expect, it } from 'vitest';
 import { describeCell, estimateTipWidth, tipSpot } from '../src/app/features/game/board/cellInfo.js';
 
 /**
- * Die Namen der Felder.
+ * The names of a cell.
  *
- * Die Hinweise nennen Requisiten beim Namen („war neben dem Regal"), das Brett
- * zeigte bisher nur ein Bild davon. Wer die Grafik nicht deutet, konnte den
- * Hinweis nicht prüfen — das war Bilderraten und nicht Schließen. Zwei Dinge
- * müssen dafür stimmen: was im Text steht, und dass die Blase im Brett bleibt.
+ * Clues name props ("was next to the shelf"); the board used to show only a
+ * picture of them. Whoever could not read the drawing could not check the clue
+ * — that was guessing pictures, not deduction. Two things have to be right for
+ * this: what the text says, and that the tip stays on the board.
  */
 
-const OCCUPIED = 'belegt';
+const OCCUPIED = 'blocked';
 
 function facts(over: Partial<Parameters<typeof describeCell>[0]> = {}) {
-  return { room: 'Werkstatt', object: null, person: null, blocked: false, occupied: OCCUPIED, ...over };
+  return { room: 'Workshop', object: null, person: null, blocked: false, occupied: OCCUPIED, ...over };
 }
 
-describe('Beschreibung eines Feldes', () => {
-  it('nennt auf einem leeren Feld nur den Raum', () => {
-    expect(describeCell(facts())).toBe('Werkstatt');
+describe('describing a cell', () => {
+  it('names only the room on an empty cell', () => {
+    expect(describeCell(facts())).toBe('Workshop');
   });
 
-  it('geht vom Raum über den Gegenstand zur Person', () => {
-    const text = describeCell(facts({ object: 'Werkbank', person: 'Nadja' }));
-    expect(text).toBe('Werkstatt · Werkbank · Nadja');
+  it('goes from room to prop to person', () => {
+    const text = describeCell(facts({ object: 'Workbench', person: 'Nadja' }));
+    expect(text).toBe('Workshop · Workbench · Nadja');
   });
 
-  it('lässt fehlende Teile weg statt Trenner stehen zu lassen', () => {
-    expect(describeCell(facts({ person: 'Nadja' }))).toBe('Werkstatt · Nadja');
-    expect(describeCell(facts({ object: 'Werkbank' }))).toBe('Werkstatt · Werkbank');
-    expect(describeCell(facts({ object: '', person: '' }))).toBe('Werkstatt');
+  it('leaves missing parts out rather than leaving separators behind', () => {
+    expect(describeCell(facts({ person: 'Nadja' }))).toBe('Workshop · Nadja');
+    expect(describeCell(facts({ object: 'Workbench' }))).toBe('Workshop · Workbench');
+    expect(describeCell(facts({ object: '', person: '' }))).toBe('Workshop');
   });
 
   /**
-   * Der Fall, um den es eigentlich geht: das Brett blinkt heute nur rot, wenn
-   * man auf ein gesperrtes Feld greift. Der Name des Gegenstands ist die
-   * Erklärung dazu.
+   * The case this is really about: the board only flashes red when you reach
+   * for a blocked cell. The prop's name is the explanation.
    */
-  it('erklärt ein gesperrtes Feld mit dem Gegenstand darauf', () => {
-    expect(describeCell(facts({ object: 'Werkbank', blocked: true }))).toBe('Werkstatt · Werkbank · belegt');
+  it('explains a blocked cell with the prop on it', () => {
+    expect(describeCell(facts({ object: 'Workbench', blocked: true }))).toBe(
+      'Workshop · Workbench · blocked',
+    );
   });
 
-  it('nennt eine Sperre auch ohne Gegenstand', () => {
-    expect(describeCell(facts({ blocked: true }))).toBe('Werkstatt · belegt');
+  it('names a block without a prop too', () => {
+    expect(describeCell(facts({ blocked: true }))).toBe('Workshop · blocked');
   });
 
-  it('nennt niemals Person und Sperre zugleich', () => {
-    // Beides zusammen kann es auf dem Brett nicht geben; kommt es doch, gilt
-    // das Sichtbare: dort steht jemand.
-    expect(describeCell(facts({ person: 'Nadja', blocked: true }))).toBe('Werkstatt · Nadja');
+  it('never names person and block together', () => {
+    // Both cannot happen on the board; if they do, what is visible wins:
+    // someone stands there.
+    expect(describeCell(facts({ person: 'Nadja', blocked: true }))).toBe('Workshop · Nadja');
   });
 });
 
-describe('Ort der Sprechblase', () => {
+describe('position of the tip', () => {
   const CELL = 40;
-  const SIZE = 5; // Brett: 200 Bildpunkte
+  const SIZE = 5; // board: 200 pixels
   const WIDTH = 60;
 
-  it('hängt mittig über dem Feld', () => {
-    const spot = tipSpot(2 * SIZE + 2, SIZE, CELL, WIDTH); // Reihe 2, Spalte 2
+  it('hangs centred above the cell', () => {
+    const spot = tipSpot(2 * SIZE + 2, SIZE, CELL, WIDTH); // row 2, column 2
     expect(spot.below).toBe(false);
-    // Feldmitte 100, halbe Blase 30.
+    // Cell centre 100, half the tip 30.
     expect(spot.left).toBe(70);
     expect(spot.top).toBe(2 * CELL - 22 - 4);
   });
 
-  it('kippt in der obersten Reihe nach unten', () => {
+  it('flips below in the top row', () => {
     const spot = tipSpot(3, SIZE, CELL, WIDTH);
     expect(spot.below).toBe(true);
     expect(spot.top).toBe(CELL + 4);
   });
 
-  it('bleibt links und rechts im Brett', () => {
+  it('stays on the board left and right', () => {
     for (let row = 0; row < SIZE; row++) {
       const left = tipSpot(row * SIZE, SIZE, CELL, WIDTH);
       const right = tipSpot(row * SIZE + SIZE - 1, SIZE, CELL, WIDTH);
@@ -80,7 +81,7 @@ describe('Ort der Sprechblase', () => {
     }
   });
 
-  it('fällt bei keiner Zelle und keiner Brettgröße heraus', () => {
+  it('never falls off, for any cell and board size', () => {
     for (const size of [5, 6, 7, 8, 9, 10]) {
       for (const cellPx of [24, 40, 72]) {
         for (let cell = 0; cell < size * size; cell++) {
@@ -94,13 +95,13 @@ describe('Ort der Sprechblase', () => {
     }
   });
 
-  it('steht links an, wenn die Blase breiter ist als das Brett', () => {
+  it('starts at the left when the tip is wider than the board', () => {
     const spot = tipSpot(12, SIZE, CELL, 400);
     expect(spot.left).toBe(0);
   });
 
-  it('schätzt die Breite mit der Länge des Textes', () => {
+  it('estimates its width from the length of the text', () => {
     expect(estimateTipWidth('')).toBeGreaterThan(0);
-    expect(estimateTipWidth('Werkstatt · Werkbank')).toBeGreaterThan(estimateTipWidth('Werkstatt'));
+    expect(estimateTipWidth('Workshop · Workbench')).toBeGreaterThan(estimateTipWidth('Workshop'));
   });
 });

@@ -12,7 +12,7 @@ export interface TiledObjectProps {
   theme: string;
 }
 
-/** Innenrahmen nur dort, wo die Form endet — an verbundenen Seiten laeuft sie durch. */
+/** Inner edge only where the shape ends — on connected sides it runs through. */
 function edgeShadow(edges: OpenEdges): string {
   const parts: string[] = [];
   if (edges.north) parts.push('inset 0 1px 0 0 var(--object-edge)');
@@ -23,12 +23,11 @@ function edgeShadow(edges: OpenEdges): string {
 }
 
 /**
- * Eine verlegte Requisite: je Zelle vier Viertel aus dem Blatt `tiles/<key>`
- * (PLAN.md §13.4, `tiles.ts`).
+ * A laid prop: four quarters per cell from the sheet `tiles/<key>` (PLAN.md
+ * §13.4, `tiles.ts`).
  *
- * Die Toenung „begehbar/sperrend" geht zellweise mit. Ueber die umschliessende
- * Box gelegt, wie bei festen Requisiten, faerbte sie bei einer L-Form die
- * Luecke mit ein.
+ * The walkable/blocking tint goes cell by cell. Laid over the bounding box, as
+ * for fixed props, it would colour the gap of an L-shape too.
  */
 export function TiledObject({ object, size, cellPx, theme }: TiledObjectProps): ReactElement {
   const tiles = useMemo(() => quarterTiles(object.cells, size), [object.cells, size]);

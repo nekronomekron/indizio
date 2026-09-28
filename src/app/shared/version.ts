@@ -1,11 +1,10 @@
 /**
- * Die Versionsnummer des Spiels, `<Jahr>.<Nummer>`.
+ * The game's version, `<year>.<number>`.
  *
- * Eingesetzt beim Bauen aus der `package.json` — die einzige Stelle, an der
- * sie gepflegt wird. Hochgezaehlt wird sie mit `npm run bump`.
+ * Filled in at build time from `package.json` — the one place it is kept.
+ * `npm run bump` counts it up.
  *
- * Diese Datei ist die **einzige**, die den eingesetzten Wert anfasst. Der Rest
- * der App importiert eine ganz normale Konstante und muss von der Bau-Magie
- * nichts wissen.
+ * This file is the *only* one touching the injected value. The rest of the
+ * app imports a plain constant and need know nothing of build magic.
  */
 export const APP_VERSION: string = __APP_VERSION__;

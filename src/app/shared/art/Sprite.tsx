@@ -5,29 +5,28 @@ import { cx } from '../ui/cx.js';
 import styles from './Sprite.module.css';
 
 export interface SpriteProps {
-  /** Dateiname ohne Endung, so wie die Grafik in `art/` heisst. */
+  /** File name without extension, as the drawing is named in `art/`. */
   name: string;
   /**
-   * Art der Grafik, zugleich der Ordner unter `art/`. Sie gehoert zum
-   * Schluessel: `carpet` ist in der Wohnung sowohl Requisite als auch
-   * Bodenbelag.
+   * Kind of drawing, and so the folder under `art/`. It is part of the key:
+   * in the flat, `carpet` is both a prop and a floor.
    */
   kind?: ArtKind;
   /**
-   * Theme, dessen Grafikset bevorzugt wird. Ohne Angabe gilt nur `art/common`
-   * — richtig fuer Figuren und Bediensymbole, falsch fuer Requisiten.
+   * Theme whose drawings are preferred. Without it only `art/common` counts —
+   * right for characters and icons, wrong for props.
    */
   theme?: string;
   /**
-   * Grundflaeche in Feldern, `[Breite, Hoehe]`. Damit sucht der Sprite zuerst
-   * die Fassung fuer genau diese Flaeche (`bed_2x1`) und faellt auf die
-   * flaechenlose Datei (`bed`) zurueck — so genuegt einer Grafikerin eine
-   * Datei, wenn eine reicht.
+   * Footprint in cells, `[width, height]`. The sprite then looks for the
+   * version for exactly this footprint (`bed_2x1`) first and falls back to the
+   * file without one (`bed`) — so an artist needs only one file where one is
+   * enough.
    */
   footprint?: readonly [number, number];
-  /** Kantenlaenge in Pixeln, fuer quadratische Grafiken. */
+  /** Side in pixels, for square drawings. */
   size?: number;
-  /** Breite und Hoehe in Pixeln, wenn die Flaeche nicht quadratisch ist. */
+  /** Width and height in pixels when the area is not square. */
   width?: number;
   height?: number;
   className?: string;
@@ -36,15 +35,14 @@ export interface SpriteProps {
 }
 
 /**
- * Eine Grafik aus `art/`.
+ * A drawing from `art/`.
  *
- * Als Bild eingebunden, nicht als eingebettetes SVG: so liegt jede Grafik
- * genau einmal im Speicher, auch wenn dieselbe Requisite zehnmal auf dem Brett
- * steht, und die Datei wird unveraendert benutzt — genau so, wie eine Grafikerin
- * sie abgeliefert hat.
+ * Included as an image, not inline SVG: so each drawing is in memory once,
+ * even when the same prop stands on the board ten times, and the file is used
+ * unchanged — exactly as the artist delivered it.
  *
- * Fehlt eine Grafik, bleibt die Flaeche leer statt das Layout zu zerreissen.
- * Dass keine fehlt, prueft `tests/art.test.ts`.
+ * A missing drawing leaves the area empty instead of breaking the layout.
+ * `tests/art.test.ts` checks that none is missing.
  */
 export function Sprite(props: SpriteProps): ReactElement {
   const { name, kind = 'objects', theme, footprint, size = 32, className, title, style } = props;

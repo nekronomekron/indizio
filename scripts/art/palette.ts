@@ -1,9 +1,9 @@
 /**
- * Farbwelt der Vektorgrafik.
+ * The colours of the vector art.
  *
- * Flache Flaechen, je Material ein Grundton und ein dunklerer Ton fuer Tiefe,
- * keine Konturen, keine Verlaeufe. Das haelt die Formen bei jeder Groesse klar
- * und macht Objekte auf einen Blick unterscheidbar.
+ * Flat areas, per material a base colour and a darker one for depth, no
+ * outlines, no gradients. That keeps shapes clear at any size and makes
+ * objects distinguishable at a glance.
  */
 export const C = {
   wood: '#c08e57',
