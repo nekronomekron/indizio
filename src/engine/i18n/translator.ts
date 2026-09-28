@@ -54,9 +54,7 @@ function createInstance(options: ClueTranslatorOptions): I18nInstance {
       fallbackLng: 'en',
       defaultNS: NAMESPACE,
       ns: [NAMESPACE],
-      resources: Object.fromEntries(
-        LOCALES.map((locale) => [locale, { [NAMESPACE]: RESOURCES[locale] }]),
-      ),
+      resources: Object.fromEntries(LOCALES.map((locale) => [locale, { [NAMESPACE]: RESOURCES[locale] }])),
       initImmediate: false,
       interpolation: { escapeValue: false },
     });
@@ -107,8 +105,7 @@ export function createClueTranslator(options: ClueTranslatorOptions = {}): ClueT
   const instance = createInstance(options);
   let locale: Locale = options.locale ?? 'de';
 
-  const translate: Translate = (key, values) =>
-    instance.getFixedT(locale, NAMESPACE)(key, values ?? {});
+  const translate: Translate = (key, values) => instance.getFixedT(locale, NAMESPACE)(key, values ?? {});
 
   const object = (key: string, form: string): string => wordForm(translate, `object.${key}.${form}`);
   const roomIn = (scene: ClueScene, roomId: number): string => {
@@ -137,9 +134,10 @@ export function createClueTranslator(options: ClueTranslatorOptions = {}): ClueT
       case 'ON_OBJECT':
         return translate('clue.ON_OBJECT', {
           pronoun,
-          verb: object(clue.objectKey, 'verb') === `object.${clue.objectKey}.verb`
-            ? translate('common.was')
-            : object(clue.objectKey, 'verb'),
+          verb:
+            object(clue.objectKey, 'verb') === `object.${clue.objectKey}.verb`
+              ? translate('common.was')
+              : object(clue.objectKey, 'verb'),
           place: object(clue.objectKey, 'on'),
         });
 
@@ -199,7 +197,10 @@ export function createClueTranslator(options: ClueTranslatorOptions = {}): ClueT
       case 'ALONE_WITH':
         return translate('clue.ALONE_WITH', {
           pronoun,
-          names: joinNames(clue.otherIds.map((id) => suspectName(scene, id)), translate('common.and')),
+          names: joinNames(
+            clue.otherIds.map((id) => suspectName(scene, id)),
+            translate('common.and'),
+          ),
         });
     }
   }

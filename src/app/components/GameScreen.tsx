@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useState } from 'react';
+import { useEffect, useMemo, useReducer, useState, type ReactElement } from 'react';
 import { boardLayout, hintFor } from '@engine';
 import type { Cell, PuzzleCore } from '@engine';
 import { createClueTranslator, type Locale } from '@engine/i18n';
@@ -14,7 +14,6 @@ import { Solved } from './Solved.js';
 import { SuspectCard } from './SuspectCard.js';
 import { Toolbar } from './Toolbar.js';
 import { boardCellPx } from '../render/tiles.js';
-
 
 function formatTime(ms: number): string {
   const total = Math.floor(ms / 1000);
@@ -54,7 +53,15 @@ function openSession(core: PuzzleCore): GameSession {
   };
 }
 
-export function GameScreen({ core, locale, holdMs, vibrate, names, onBack, onSettings }: GameScreenProps) {
+export function GameScreen({
+  core,
+  locale,
+  holdMs,
+  vibrate,
+  names,
+  onBack,
+  onSettings,
+}: GameScreenProps): ReactElement {
   const translator = useMemo(() => createClueTranslator({ locale }), [locale]);
   const layout = useMemo(() => boardLayout(core), [core]);
   const [session, dispatch] = useReducer(gameReducer, core, openSession);
@@ -154,12 +161,16 @@ export function GameScreen({ core, locale, holdMs, vibrate, names, onBack, onSet
   const onCheck = () => {
     const correct = core.solution.every((cell, id) => state.placements[id] === cell);
     dispatch({ type: 'check', correct });
-    if (correct) recordProgress(core.seed, { solved: true, bestMs: state.elapsedMs, hintsUsed: state.hintsUsed });
+    if (correct)
+      recordProgress(core.seed, { solved: true, bestMs: state.elapsedMs, hintsUsed: state.hintsUsed });
   };
 
   const onHint = () => {
     const hint = hintFor(core, state.placements);
-    if (!hint) { dispatch({ type: 'hint', cell: -1, text: t(locale, 'noHintLeft') }); return; }
+    if (!hint) {
+      dispatch({ type: 'hint', cell: -1, text: t(locale, 'noHintLeft') });
+      return;
+    }
     const name = core.suspects[hint.suspectId]!.name;
     const clue = clues.byOwner[hint.suspectId] ?? '';
     dispatch({
@@ -170,8 +181,12 @@ export function GameScreen({ core, locale, holdMs, vibrate, names, onBack, onSet
   };
 
   const labels = {
-    mark: t(locale, 'mark'), erase: t(locale, 'erase'), undo: t(locale, 'undo'),
-    hint: t(locale, 'hint'), confirm: t(locale, 'confirm'), confirmHint: t(locale, 'confirmHint'),
+    mark: t(locale, 'mark'),
+    erase: t(locale, 'erase'),
+    undo: t(locale, 'undo'),
+    hint: t(locale, 'hint'),
+    confirm: t(locale, 'confirm'),
+    confirmHint: t(locale, 'confirmHint'),
   };
 
   return (
@@ -182,10 +197,19 @@ export function GameScreen({ core, locale, holdMs, vibrate, names, onBack, onSet
         <button type="button" className="ghost back" onClick={onBack} aria-label={t(locale, 'back')}>
           &larr; <span className="back-label">{t(locale, 'back')}</span>
         </button>
-        <h1>{t(locale, core.themeKey)} <span className="dim">{core.size}&times;{core.size}</span></h1>
+        <h1>
+          {t(locale, core.themeKey)}{' '}
+          <span className="dim">
+            {core.size}&times;{core.size}
+          </span>
+        </h1>
         <div className="head-actions">
-          <button type="button" className="ghost" onClick={() => setShowRules(true)}>{t(locale, 'rules')}</button>
-          <button type="button" className="ghost" onClick={onSettings}>{t(locale, 'settings')}</button>
+          <button type="button" className="ghost" onClick={() => setShowRules(true)}>
+            {t(locale, 'rules')}
+          </button>
+          <button type="button" className="ghost" onClick={onSettings}>
+            {t(locale, 'settings')}
+          </button>
           <span className="timer">{formatTime(state.elapsedMs)}</span>
         </div>
       </header>
@@ -209,7 +233,9 @@ export function GameScreen({ core, locale, holdMs, vibrate, names, onBack, onSet
           </div>
           {clues.globals.length > 0 && (
             <div className="globals">
-              {clues.globals.map((text) => <p key={text}>{text}</p>)}
+              {clues.globals.map((text) => (
+                <p key={text}>{text}</p>
+              ))}
             </div>
           )}
         </section>
@@ -243,7 +269,9 @@ export function GameScreen({ core, locale, holdMs, vibrate, names, onBack, onSet
           <div role="status" aria-live="polite">
             {state.hintText && <p className="hint-box">{state.hintText}</p>}
             {state.verdict === 'wrong' && (
-              <p className="verdict wrong"><strong>{t(locale, 'wrongTitle')}.</strong> {t(locale, 'wrong')}</p>
+              <p className="verdict wrong">
+                <strong>{t(locale, 'wrongTitle')}.</strong> {t(locale, 'wrong')}
+              </p>
             )}
           </div>
           <Toolbar
@@ -261,12 +289,24 @@ export function GameScreen({ core, locale, holdMs, vibrate, names, onBack, onSet
       </div>
 
       {showTutorial && (
-        <Tutorial locale={locale} onDone={() => { markTutorialSeen(); setShowTutorial(false); }} />
+        <Tutorial
+          locale={locale}
+          onDone={() => {
+            markTutorialSeen();
+            setShowTutorial(false);
+          }}
+        />
       )}
       {showRules && <RulesDialog locale={locale} onClose={() => setShowRules(false)} />}
 
       {state.verdict === 'solved' && (
-        <Solved core={core} locale={locale} elapsedMs={state.elapsedMs} hintsUsed={state.hintsUsed} onBack={onBack} />
+        <Solved
+          core={core}
+          locale={locale}
+          elapsedMs={state.elapsedMs}
+          hintsUsed={state.hintsUsed}
+          onBack={onBack}
+        />
       )}
     </div>
   );

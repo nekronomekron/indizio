@@ -30,9 +30,28 @@
 
 // --- Data model -----------------------------------------------------------
 export type {
-  Assignment, Axis, Bounds, Cell, Clue, ClueEntry, ClueType, DifficultyKey,
-  DifficultyProof, Direction, Gender, PlacementKind, Puzzle, PuzzleCore, PuzzleMeta, Room,
-  RoomId, RuleLevel, Scene, SceneObject, Suspect, SuspectId,
+  Assignment,
+  Axis,
+  Bounds,
+  Cell,
+  Clue,
+  ClueEntry,
+  ClueType,
+  DifficultyKey,
+  DifficultyProof,
+  Direction,
+  Gender,
+  PlacementKind,
+  Puzzle,
+  PuzzleCore,
+  PuzzleMeta,
+  Room,
+  RoomId,
+  RuleLevel,
+  Scene,
+  SceneObject,
+  Suspect,
+  SuspectId,
 } from './core/types.js';
 export { CLUE_TYPES } from './core/types.js';
 
@@ -41,43 +60,78 @@ export { GenerationError, generatePuzzle, type GenerateOptions } from './generat
 
 // --- Seeds ----------------------------------------------------------------
 export {
-  DAILY_START, GENERATOR_VERSION, MAX_GRID_SIZE, MIN_GRID_SIZE, SeedError,
-  dailyDifficulty, dailySeed, daysInMonth, formatSeed, isValidSeed, makeSeed, parseSeed, weekdayOf,
-  type CalendarDate, type ParseSeedOptions, type SeedParts,
+  DAILY_START,
+  GENERATOR_VERSION,
+  MAX_GRID_SIZE,
+  MIN_GRID_SIZE,
+  SeedError,
+  dailyDifficulty,
+  dailySeed,
+  daysInMonth,
+  formatSeed,
+  isValidSeed,
+  makeSeed,
+  parseSeed,
+  weekdayOf,
+  type CalendarDate,
+  type ParseSeedOptions,
+  type SeedParts,
 } from './core/seed.js';
 
 // --- Working with a puzzle ------------------------------------------------
 export {
-  boardLayout, checkSolution, hintFor, solvePuzzle, toScene, verifyPuzzle,
-  type BoardLayout, type SolveOutcome, type VerificationReport, type VerifyOptions,
+  boardLayout,
+  checkSolution,
+  hintFor,
+  solvePuzzle,
+  toScene,
+  verifyPuzzle,
+  type BoardLayout,
+  type SolveOutcome,
+  type VerificationReport,
+  type VerifyOptions,
 } from './api.js';
 export type { Hint } from './solving/hint.js';
 export type { Reason } from './solving/candidates.js';
 
 // --- Interchange format ---------------------------------------------------
 export {
-  PUZZLE_FORMAT, PuzzleFormatError, SCHEMA_VERSION,
-  parsePuzzle, stringifyPuzzle, toDocument, type PuzzleDocument,
+  PUZZLE_FORMAT,
+  PuzzleFormatError,
+  SCHEMA_VERSION,
+  parsePuzzle,
+  stringifyPuzzle,
+  toDocument,
+  type PuzzleDocument,
 } from './io/document.js';
 
 // --- Difficulty -----------------------------------------------------------
 export {
-  DIFFICULTY_BANDS, DIFFICULTY_ORDER, INDIRECT_CLUE_TYPES, SIZES_BY_DIFFICULTY,
-  difficultyOfSize, meetsBand, vocabularyFor, type DifficultyBand,
+  DIFFICULTY_BANDS,
+  DIFFICULTY_ORDER,
+  INDIRECT_CLUE_TYPES,
+  SIZES_BY_DIFFICULTY,
+  difficultyOfSize,
+  meetsBand,
+  vocabularyFor,
+  type DifficultyBand,
 } from './core/difficulty.js';
 
 // --- Verification tooling -------------------------------------------------
-export {
-  solveByReference, type ReferenceOptions, type ReferenceResult,
-} from './solving/reference.js';
-export {
-  findClueRestrictionViolations, type ClueRestrictionViolation,
-} from './clues/restrictions.js';
+export { solveByReference, type ReferenceOptions, type ReferenceResult } from './solving/reference.js';
+export { findClueRestrictionViolations, type ClueRestrictionViolation } from './clues/restrictions.js';
 
 // --- Content: replaceable, not baked in -----------------------------------
 export {
-  THEMES, THEME_KEYS, findTheme, themeProblems,
-  type FixedPlacement, type Placement, type Theme, type ThemeObject, type TiledPlacement,
+  THEMES,
+  THEME_KEYS,
+  findTheme,
+  themeProblems,
+  type FixedPlacement,
+  type Placement,
+  type Theme,
+  type ThemeObject,
+  type TiledPlacement,
 } from './content/themes/index.js';
 export { NAME_POOL, PORTRAIT_KEYS, type NameEntry } from './content/names.js';
 

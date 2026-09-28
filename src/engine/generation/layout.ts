@@ -95,8 +95,9 @@ function splitIntoRectangles(rng: Rng, size: number, count: number): Bounds[] {
         ? chosen.bounds.maxRow - chosen.bounds.minRow + 1
         : chosen.bounds.maxColumn - chosen.bounds.minColumn + 1;
 
-    const centred = [...chosen.options]
-      .sort((a, b) => Math.abs(a.at - span(a) / 2) - Math.abs(b.at - span(b) / 2));
+    const centred = [...chosen.options].sort(
+      (a, b) => Math.abs(a.at - span(a) / 2) - Math.abs(b.at - span(b) / 2),
+    );
     const option = centred[rng.nextInt(Math.min(2, centred.length))]!;
 
     const pieces = applySplit(chosen.bounds, option);
@@ -118,7 +119,10 @@ class RoomShapes {
   readonly cellsPerRoom: Set<Cell>[];
   private readonly ownerOfCell: Int32Array;
 
-  constructor(rectangles: readonly Bounds[], private readonly size: number) {
+  constructor(
+    rectangles: readonly Bounds[],
+    private readonly size: number,
+  ) {
     this.ownerOfCell = new Int32Array(size * size).fill(-1);
     this.cellsPerRoom = rectangles.map((bounds, room) => {
       const cells = new Set<Cell>();
@@ -306,7 +310,12 @@ export function generateRooms(
     else shapes = new RoomShapes(splitIntoRectangles(rng, size, count), size);
   }
 
-  biteBoundaries(rng, shapes, size, Math.round((options.biteRoundsPerEdge ?? DEFAULT_BITE_ROUNDS_PER_EDGE) * size));
+  biteBoundaries(
+    rng,
+    shapes,
+    size,
+    Math.round((options.biteRoundsPerEdge ?? DEFAULT_BITE_ROUNDS_PER_EDGE) * size),
+  );
 
   const populated = shapes.cellsPerRoom.filter((cells) => cells.size > 0);
   const names = rng.shuffled(nameKeys).slice(0, populated.length);

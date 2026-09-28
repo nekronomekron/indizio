@@ -1,13 +1,17 @@
 import { propagateClues } from '../solving/propagate.js';
 import { enumerateCardClues, enumerateSceneClues } from '../clues/enumerate.js';
 import { buildOccupancy } from '../clues/occupancy.js';
-import {
-  DIFFICULTY_BANDS, INDIRECT_CLUE_TYPES, meetsBand, vocabularyFor,
-} from '../core/difficulty.js';
+import { DIFFICULTY_BANDS, INDIRECT_CLUE_TYPES, meetsBand, vocabularyFor } from '../core/difficulty.js';
 import type { SceneIndex } from '../core/grid.js';
 import type { Rng } from '../core/rng.js';
 import type {
-  Assignment, Clue, ClueEntry, DifficultyKey, DifficultyProof, Suspect, SuspectId,
+  Assignment,
+  Clue,
+  ClueEntry,
+  DifficultyKey,
+  DifficultyProof,
+  Suspect,
+  SuspectId,
 } from '../core/types.js';
 import { type CandidateState, RoomView, createInitialState } from '../solving/candidates.js';
 import { measureSpread, solve, type SolveResult } from '../solving/solve.js';
@@ -44,17 +48,17 @@ export interface ClueSearchDiagnostics {
 
 export type ClueSearchOutcome =
   | {
-    ok: true;
-    clues: ClueEntry[];
-    solveResult: SolveResult;
-    proof: DifficultyProof;
-    diagnostics: ClueSearchDiagnostics;
-  }
+      ok: true;
+      clues: ClueEntry[];
+      solveResult: SolveResult;
+      proof: DifficultyProof;
+      diagnostics: ClueSearchDiagnostics;
+    }
   | {
-    ok: false;
-    reason: 'noCluesAvailable' | 'notSolvable' | 'tierNotMet';
-    diagnostics: ClueSearchDiagnostics;
-  };
+      ok: false;
+      reason: 'noCluesAvailable' | 'notSolvable' | 'tierNotMet';
+      diagnostics: ClueSearchDiagnostics;
+    };
 
 export function countIndirectClues(clues: readonly ClueEntry[]): number {
   return clues.filter((entry) => entry.ownerId !== null && INDIRECT_CLUE_TYPES.has(entry.clue.type)).length;
@@ -78,12 +82,7 @@ export function buildProof(
  * subject when it is the only clue in play. Comparable across clue types,
  * which is what lets the search reason about "stronger" and "weaker".
  */
-function scoreClue(
-  index: SceneIndex,
-  suspects: readonly Suspect[],
-  ownerId: SuspectId,
-  clue: Clue,
-): number {
+function scoreClue(index: SceneIndex, suspects: readonly Suspect[], ownerId: SuspectId, clue: Clue): number {
   const state: CandidateState = createInitialState(index, suspects.length);
   const rooms = new RoomView(index, state);
   const before = state.countFor(ownerId);
@@ -357,10 +356,10 @@ class ClueSearch {
         if (this.isVictim(suspect)) continue;
         const pool = this.pools[suspect] ?? [];
         const original = this.chosen[suspect] ?? 0;
-        if (INDIRECT_CLUE_TYPES.has((pool[original]!).clue.type)) continue;
+        if (INDIRECT_CLUE_TYPES.has(pool[original]!.clue.type)) continue;
 
         for (let candidate = pool.length - 1; candidate >= 0 && !this.outOfBudget(); candidate--) {
-          if (!INDIRECT_CLUE_TYPES.has((pool[candidate]!).clue.type)) continue;
+          if (!INDIRECT_CLUE_TYPES.has(pool[candidate]!.clue.type)) continue;
           this.chosen[suspect] = candidate;
           const attempt = this.run();
           if (attempt.status === 'solved') {

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, type ReactElement } from 'react';
 import { columnOf, rowOf } from '@engine';
 
 export interface BoardLinesProps {
@@ -49,7 +49,8 @@ export function labelRun(cell: number, roomOfCell: Int32Array, size: number): nu
   const room = roomOfCell[cell];
   let run = 1;
   // Spalte 0 heißt: die nächste Zelle liegt schon in der nächsten Zeile.
-  while (cell + run < size * size && columnOf(cell + run, size) !== 0 && roomOfCell[cell + run] === room) run++;
+  while (cell + run < size * size && columnOf(cell + run, size) !== 0 && roomOfCell[cell + run] === room)
+    run++;
   return run;
 }
 
@@ -70,7 +71,7 @@ export function labelRun(cell: number, roomOfCell: Int32Array, size: number): nu
  * genau die angegebene — bei Kachelschatten wäre sie an Raumgrenzen doppelt so
  * dick wie am Brettrand.
  */
-export function BoardLines({ size, cellPx, roomOfCell, hoverRoom }: BoardLinesProps) {
+export function BoardLines({ size, cellPx, roomOfCell, hoverRoom }: BoardLinesProps): ReactElement {
   const boardPx = size * cellPx;
   const thick = wallWidth(cellPx);
   const thin = gridWidth(cellPx);
@@ -122,10 +123,14 @@ export function BoardLines({ size, cellPx, roomOfCell, hoverRoom }: BoardLinesPr
       const bottom = r === size - 1 ? boardPx - half : y + cellPx;
       const left = c === 0 ? half : x;
       const right = c === size - 1 ? boardPx - half : x + cellPx;
-      if (r === 0 || roomOfCell[cell - size] !== hoverRoom) segments.push('M' + String(x) + ' ' + String(top) + 'h' + String(cellPx));
-      if (r === size - 1 || roomOfCell[cell + size] !== hoverRoom) segments.push('M' + String(x) + ' ' + String(bottom) + 'h' + String(cellPx));
-      if (c === 0 || roomOfCell[cell - 1] !== hoverRoom) segments.push('M' + String(left) + ' ' + String(y) + 'v' + String(cellPx));
-      if (c === size - 1 || roomOfCell[cell + 1] !== hoverRoom) segments.push('M' + String(right) + ' ' + String(y) + 'v' + String(cellPx));
+      if (r === 0 || roomOfCell[cell - size] !== hoverRoom)
+        segments.push('M' + String(x) + ' ' + String(top) + 'h' + String(cellPx));
+      if (r === size - 1 || roomOfCell[cell + size] !== hoverRoom)
+        segments.push('M' + String(x) + ' ' + String(bottom) + 'h' + String(cellPx));
+      if (c === 0 || roomOfCell[cell - 1] !== hoverRoom)
+        segments.push('M' + String(left) + ' ' + String(y) + 'v' + String(cellPx));
+      if (c === size - 1 || roomOfCell[cell + 1] !== hoverRoom)
+        segments.push('M' + String(right) + ' ' + String(y) + 'v' + String(cellPx));
     }
     return segments.join('');
   }, [hoverRoom, roomOfCell, size, cellPx, thick, boardPx]);

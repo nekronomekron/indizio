@@ -11,8 +11,13 @@ import type { ClueType, DifficultyKey, DifficultyProof } from './types.js';
  * assumed.
  */
 
-export const DIFFICULTY_ORDER = ['veryEasy', 'easy', 'medium', 'hard', 'expert'] as const satisfies
-  readonly DifficultyKey[];
+export const DIFFICULTY_ORDER = [
+  'veryEasy',
+  'easy',
+  'medium',
+  'hard',
+  'expert',
+] as const satisfies readonly DifficultyKey[];
 
 export const SIZES_BY_DIFFICULTY: Record<DifficultyKey, readonly number[]> = {
   veryEasy: [5, 6],
@@ -35,8 +40,14 @@ export function difficultyOfSize(size: number): DifficultyKey {
  * combination work rather than lookup, which is what makes a puzzle feel hard.
  */
 export const INDIRECT_CLUE_TYPES: ReadonlySet<ClueType> = new Set<ClueType>([
-  'SAME_ROOM_AS', 'DIRECTION_OF_SUSPECT', 'DIRECTION_OF_OBJECT', 'CORNER',
-  'ALIGNED_WITH_OBJECT', 'DIAGONAL_OF', 'ALONE_WITH', 'ALONE',
+  'SAME_ROOM_AS',
+  'DIRECTION_OF_SUSPECT',
+  'DIRECTION_OF_OBJECT',
+  'CORNER',
+  'ALIGNED_WITH_OBJECT',
+  'DIAGONAL_OF',
+  'ALONE_WITH',
+  'ALONE',
 ]);
 
 /** Clue vocabulary unlocked per tier, cumulative. */
@@ -77,7 +88,5 @@ export const DIFFICULTY_BANDS: Record<DifficultyKey, DifficultyBand> = {
 /** Does a solved puzzle meet the thresholds of the tier it claims? */
 export function meetsBand(difficulty: DifficultyKey, size: number, proof: DifficultyProof): boolean {
   const band = DIFFICULTY_BANDS[difficulty];
-  return band.sizes.includes(size)
-    && proof.spread >= band.minSpread
-    && proof.indirect >= band.minIndirect;
+  return band.sizes.includes(size) && proof.spread >= band.minSpread && proof.indirect >= band.minIndirect;
 }

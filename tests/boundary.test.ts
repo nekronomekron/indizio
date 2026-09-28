@@ -85,7 +85,10 @@ describe('Grenze der Engine', () => {
       for (const match of source.matchAll(IMPORT)) {
         const specifier = match[1] ?? '';
         if (!TOWARDS_ENGINE.test(specifier)) continue;
-        if (DOORS.includes(specifier)) { users++; continue; }
+        if (DOORS.includes(specifier)) {
+          users++;
+          continue;
+        }
         violations.push(path + ' -> ' + specifier);
       }
     }

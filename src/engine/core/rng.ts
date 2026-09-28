@@ -36,8 +36,7 @@ function createSplitMix32(seed: number): () => number {
   };
 }
 
-const rotateLeft = (value: number, bits: number): number =>
-  ((value << bits) | (value >>> (32 - bits))) >>> 0;
+const rotateLeft = (value: number, bits: number): number => ((value << bits) | (value >>> (32 - bits))) >>> 0;
 
 export class Rng {
   private stateA: number;

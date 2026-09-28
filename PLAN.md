@@ -4,7 +4,8 @@
 > [Murdoku](https://murdoku.com), mit prozedural generierten Tatorten,
 > seed-reproduzierbaren Rätseln und Pixel-Art im 16×16-Raster.
 
-**Stand:** Plan v14 — verlegte Objekte in freier Form mit festem
+**Stand:** Plan v15 — Umbau von Struktur, i18n, Qualität und Sprache (§14, in
+Arbeit). Davor v14: verlegte Objekte in freier Form mit festem
 Viertelkachel-Schema (§13). Davor v13: Engine im Projekt statt in einem
 Paket, Kalender statt kuratiertem Katalog, Zufallsfall nach Stufe, Spiel ohne
 Maus bedienbar.
@@ -1442,3 +1443,39 @@ in Schritt 5 — die eingefrorenen Prüfsummen (§11) melden es.
 - **Ringe** bei `compactness` 0; eine Bahn um ein Hindernis entsteht nur über
   höhere Kompaktheit.
 - Verlegte Formen **über Raumgrenzen** hinweg.
+
+---
+
+## 14. Umbau: Struktur, i18n, Qualität, Englisch
+
+Das Spiel ist noch nicht veröffentlicht; nichts muss rückwärtskompatibel
+bleiben. Ziel des Umbaus: eine einfache, einheitliche Struktur, die sich leicht
+warten lässt und in der ein neues Theme ein Ordner ist. Die Entscheidungen
+wurden in einer Befragung am 28.09.2026 getroffen.
+
+### 14.1 Entscheidungen
+
+| # | Entscheidung | Begründung |
+|---|---|---|
+| U1 | Die Grenze Engine ↔ App bleibt (§8.1.1) | Hält die Engine testbar und worker-tauglich; das Problem ist nicht die Grenze, sondern ein über fünf Stellen verteiltes Theme |
+| U2 | Ein Theme = ein Ordner `src/engine/content/themes/<key>/` mit `theme.ts` (Räume samt Bodenbelag) und eigenen Sprachdateien; `FLOOR_BY_ROOM` in der App entfällt | Ein neues Theme ist ein Ordner und eine Zeile Registrierung; ein Test prüft jedes Theme auf Vollständigkeit |
+| U3 | react-i18next, **eine** i18next-Instanz, die auch die Engine nutzt; Namespaces `ui`, `help`, `puzzle` und je Theme; Ressourcen als TypeScript mit geprüften Schlüsseln; Startsprache aus der Browsersprache | Ein Tippfehler im Schlüssel wird zum Compilerfehler; kein `locale`-Prop mehr durch jede Komponente |
+| U4 | Alles auf Englisch: Code, Tests, Skripte, CSS, Lint-Meldungen **und alle Dokumente** einschließlich PLAN.md und VALIDATION.md | Eine Sprache für alles, was nicht Spieltext ist |
+| U5 | App nach Features gegliedert (`features/game`, `features/calendar`, `features/settings`, `features/help`, `shared/…`), funktional statt klassenbasiert; ein Feature nutzt `shared/`, nie ein anderes Feature — per Lint-Regel | Alles zu einem Feature liegt beieinander; Klassen nur, wo sie Zustand sinnvoll kapseln |
+| U6 | Strenges Linten für alles (`strictTypeChecked`, `stylisticTypeChecked`, `react`, `react-hooks`, `jsx-a11y`), Prettier, `CODING_GUIDELINES.md` | Was ein Werkzeug prüfen kann, steht nicht nur im Dokument |
+| U7 | Daten von außen prüft **valibot** (nur in der App); zwischengespeicherte Rätsel prüft `parsePuzzle`; Ungültiges wird verworfen und durch den Standard ersetzt | Schema = Typ, beides kann nicht auseinanderlaufen; die Engine bleibt abhängigkeitsfrei |
+| U8 | Engine-Fehler tragen einen festen **Code**, die App übersetzt ihn; Worker mit Zeitgrenze und `messageerror`; Error Boundary um App und Spielbildschirm; technische Details eingeklappt; kein Fehler-Tracking | Verständliche Meldung statt rohem Text oder weißer Seite |
+| U9 | CSS Modules neben den Komponenten, gemeinsame Werte als Tokens in `shared/styles/tokens.css`; kein Tailwind | Kollisionen wie die doppelte Klasse `.tile` sind mechanisch ausgeschlossen; ein Stilsystem statt zwei |
+| U10 | Die Rätsel bleiben **Byte für Byte gleich**; die eingefrorenen Prüfsummen sind das Sicherheitsnetz; `GENERATOR_VERSION` bleibt 4 | Keine Rückwärtskompatibilität heißt nicht, dass sich Verhalten unbemerkt ändern darf |
+| U11 | Ein Branch von `main`, ein Commit je Phase, jede Phase für sich grün (`verify`, `test:deep`), am Ende ein PR | Phasen verschieben Dateien, die die nächste wieder anfasst |
+
+### 14.2 Phasen
+
+1. **Werkzeuge:** Prettier, strenge Lint-Regeln für die App, `CODING_GUIDELINES.md`.
+2. **Gliederung:** App nach Features ordnen — reines Verschieben, keine Logik.
+3. **i18n:** react-i18next, eine Instanz, geprüfte Schlüssel, Browsersprache.
+4. **Themes:** ein Ordner je Theme mit Belag und Sprachdateien, Vollständigkeitstest.
+5. **Robustheit:** valibot, `parsePuzzle` für den Zwischenspeicher, Fehlercodes,
+   Error Boundaries, Worker-Zeitgrenze.
+6. **CSS:** CSS Modules und Tokens.
+7. **Englisch:** restlicher Code, Tests, Skripte und alle Dokumente.

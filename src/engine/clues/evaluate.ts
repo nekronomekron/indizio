@@ -21,10 +21,14 @@ export function touchingInstances(index: SceneIndex, cell: Cell, objectKey: stri
 /** Row 0 is north, column 0 is west. */
 function pointsToward(direction: Direction, from: Cell, to: Cell, size: number): boolean {
   switch (direction) {
-    case 'west': return columnOf(from, size) < columnOf(to, size);
-    case 'east': return columnOf(from, size) > columnOf(to, size);
-    case 'north': return rowOf(from, size) < rowOf(to, size);
-    case 'south': return rowOf(from, size) > rowOf(to, size);
+    case 'west':
+      return columnOf(from, size) < columnOf(to, size);
+    case 'east':
+      return columnOf(from, size) > columnOf(to, size);
+    case 'north':
+      return rowOf(from, size) < rowOf(to, size);
+    case 'south':
+      return rowOf(from, size) > rowOf(to, size);
   }
 }
 
@@ -58,8 +62,9 @@ export function evaluateClue(
 
   switch (clue.type) {
     case 'ON_OBJECT':
-      return (index.objectsOfCell[cell] ?? [])
-        .some((object) => object.key === clue.objectKey && object.walkable);
+      return (index.objectsOfCell[cell] ?? []).some(
+        (object) => object.key === clue.objectKey && object.walkable,
+      );
 
     case 'IN_ROOM':
       return room === clue.roomId;
@@ -99,9 +104,8 @@ export function evaluateClue(
         // An instance the subject stands on would make the clue trivially true.
         if (object.cells.includes(cell)) continue;
         for (const covered of object.cells) {
-          const aligned = clue.axis === 'row'
-            ? rowOf(covered, size) === row
-            : columnOf(covered, size) === column;
+          const aligned =
+            clue.axis === 'row' ? rowOf(covered, size) === row : columnOf(covered, size) === column;
           if (aligned) return true;
         }
       }
@@ -143,8 +147,12 @@ export function allCluesTrue(
  * is why they are worth naming as a group.
  */
 export const UNARY_CLUE_TYPES: ReadonlySet<ClueType> = new Set<ClueType>([
-  'ON_OBJECT', 'IN_ROOM', 'ADJACENT_OBJECT', 'CORNER',
-  'ALIGNED_WITH_OBJECT', 'DIRECTION_OF_OBJECT',
+  'ON_OBJECT',
+  'IN_ROOM',
+  'ADJACENT_OBJECT',
+  'CORNER',
+  'ALIGNED_WITH_OBJECT',
+  'DIRECTION_OF_OBJECT',
 ]);
 
 export function isUnaryClue(clue: Clue): boolean {
@@ -170,8 +178,9 @@ export function unaryHolds(index: SceneIndex, clue: Clue, cell: Cell): boolean {
     case 'CORNER':
       return index.corner[cell] === 1;
     case 'ALIGNED_WITH_OBJECT':
-      return (clue.axis === 'row' ? index.alignedByRow : index.alignedByColumn)
-        .get(clue.objectKey)?.[cell] === 1;
+      return (
+        (clue.axis === 'row' ? index.alignedByRow : index.alignedByColumn).get(clue.objectKey)?.[cell] === 1
+      );
     case 'DIRECTION_OF_OBJECT':
       return index.directionOf.get(clue.objectKey)?.[clue.direction][cell] === 1;
     default:

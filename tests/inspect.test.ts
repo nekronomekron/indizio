@@ -38,8 +38,7 @@ describe('Beschreibung eines Feldes', () => {
    * Erklärung dazu.
    */
   it('erklärt ein gesperrtes Feld mit dem Gegenstand darauf', () => {
-    expect(describeCell(facts({ object: 'Werkbank', blocked: true })))
-      .toBe('Werkstatt · Werkbank · belegt');
+    expect(describeCell(facts({ object: 'Werkbank', blocked: true }))).toBe('Werkstatt · Werkbank · belegt');
   });
 
   it('nennt eine Sperre auch ohne Gegenstand', () => {
@@ -55,11 +54,11 @@ describe('Beschreibung eines Feldes', () => {
 
 describe('Ort der Sprechblase', () => {
   const CELL = 40;
-  const SIZE = 5;          // Brett: 200 Bildpunkte
+  const SIZE = 5; // Brett: 200 Bildpunkte
   const WIDTH = 60;
 
   it('hängt mittig über dem Feld', () => {
-    const spot = tipSpot(2 * SIZE + 2, SIZE, CELL, WIDTH);   // Reihe 2, Spalte 2
+    const spot = tipSpot(2 * SIZE + 2, SIZE, CELL, WIDTH); // Reihe 2, Spalte 2
     expect(spot.below).toBe(false);
     // Feldmitte 100, halbe Blase 30.
     expect(spot.left).toBe(70);

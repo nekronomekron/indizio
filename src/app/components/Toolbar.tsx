@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, type ReactElement } from 'react';
 import { Sprite } from '../render/Sprite.js';
 import type { Tool } from '../state/game.js';
 
@@ -14,7 +14,7 @@ export interface ToolbarProps {
   labels: Record<string, string>;
 }
 
-export function Toolbar(props: ToolbarProps) {
+export function Toolbar(props: ToolbarProps): ReactElement {
   const { tool, canUndo, canCheck, onTool, onUndo, onClearAll, onHint, onCheck, labels } = props;
   const holdTimer = useRef<number | null>(null);
   const cleared = useRef(false);
@@ -39,7 +39,7 @@ export function Toolbar(props: ToolbarProps) {
           type="button"
           className={'tool' + (tool === 'mark' ? ' active' : '')}
           onClick={() => onTool(tool === 'mark' ? 'place' : 'mark')}
-          title={labels.mark}
+          title={labels['mark']}
         >
           <Sprite kind="icons" name="ui-x" size={24} />
         </button>
@@ -48,22 +48,25 @@ export function Toolbar(props: ToolbarProps) {
           className={'tool' + (tool === 'erase' ? ' active' : '')}
           onPointerDown={startEraserHold}
           onPointerUp={endEraserHold}
-          onPointerLeave={() => { if (holdTimer.current !== null) window.clearTimeout(holdTimer.current); holdTimer.current = null; }}
-          title={labels.erase}
+          onPointerLeave={() => {
+            if (holdTimer.current !== null) window.clearTimeout(holdTimer.current);
+            holdTimer.current = null;
+          }}
+          title={labels['erase']}
         >
           <Sprite kind="icons" name="ui-eraser" size={24} />
         </button>
-        <button type="button" className="tool" onClick={onUndo} disabled={!canUndo} title={labels.undo}>
+        <button type="button" className="tool" onClick={onUndo} disabled={!canUndo} title={labels['undo']}>
           <Sprite kind="icons" name="ui-undo" size={24} />
         </button>
-        <button type="button" className="tool" onClick={onHint} title={labels.hint}>
+        <button type="button" className="tool" onClick={onHint} title={labels['hint']}>
           <Sprite kind="icons" name="ui-hint" size={24} />
         </button>
       </div>
       <button type="button" className="confirm" onClick={onCheck} disabled={!canCheck}>
         <Sprite kind="icons" name="ui-check" size={20} />
-        <span>{labels.confirm}</span>
-        {!canCheck && <small>{labels.confirmHint}</small>}
+        <span>{labels['confirm']}</span>
+        {!canCheck && <small>{labels['confirmHint']}</small>}
       </button>
     </div>
   );

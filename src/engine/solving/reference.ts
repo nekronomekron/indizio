@@ -53,7 +53,10 @@ interface Search {
   withinBudget: boolean;
 }
 
-function splitByOwner(clues: readonly ClueEntry[], suspectCount: number): {
+function splitByOwner(
+  clues: readonly ClueEntry[],
+  suspectCount: number,
+): {
   cluesByOwner: Clue[][];
   sceneClues: Clue[];
 } {
@@ -80,8 +83,9 @@ function candidateCells(
   for (const cell of index.walkableCells) {
     if (options.pin?.suspectId === suspect && options.pin.cell !== cell) continue;
     if (options.forbid?.suspectId === suspect && options.forbid.cell === cell) continue;
-    const satisfiesUnary = (cluesByOwner[suspect] ?? [])
-      .every((clue) => !isUnaryClue(clue) || unaryHolds(index, clue, cell));
+    const satisfiesUnary = (cluesByOwner[suspect] ?? []).every(
+      (clue) => !isUnaryClue(clue) || unaryHolds(index, clue, cell),
+    );
     if (satisfiesUnary) cells.push(cell);
   }
   return cells;
@@ -139,10 +143,13 @@ function stillPossible(search: Search): boolean {
           const otherCell = placedAt[clue.otherId] ?? -1;
           if (otherCell < 0) break;
           const holds =
-            clue.direction === 'west' ? ownCell % size < otherCell % size
-            : clue.direction === 'east' ? ownCell % size > otherCell % size
-            : clue.direction === 'north' ? Math.floor(ownCell / size) < Math.floor(otherCell / size)
-            : Math.floor(ownCell / size) > Math.floor(otherCell / size);
+            clue.direction === 'west'
+              ? ownCell % size < otherCell % size
+              : clue.direction === 'east'
+                ? ownCell % size > otherCell % size
+                : clue.direction === 'north'
+                  ? Math.floor(ownCell / size) < Math.floor(otherCell / size)
+                  : Math.floor(ownCell / size) > Math.floor(otherCell / size);
           if (!holds) return false;
           break;
         }
@@ -177,7 +184,8 @@ export function solveByReference(
 
   const { cluesByOwner, sceneClues } = splitByOwner(clues, suspectCount);
   const candidates = Array.from({ length: suspectCount }, (_, suspect) =>
-    candidateCells(index, cluesByOwner, suspect, options));
+    candidateCells(index, cluesByOwner, suspect, options),
+  );
 
   const search: Search = {
     index,
@@ -185,8 +193,9 @@ export function solveByReference(
     cluesByOwner,
     sceneClues,
     candidates,
-    order: Array.from({ length: suspectCount }, (_, i) => i)
-      .sort((a, b) => (candidates[a]?.length ?? 0) - (candidates[b]?.length ?? 0)),
+    order: Array.from({ length: suspectCount }, (_, i) => i).sort(
+      (a, b) => (candidates[a]?.length ?? 0) - (candidates[b]?.length ?? 0),
+    ),
     placedAt: new Int32Array(suspectCount).fill(-1),
     usedRows: new Uint8Array(size),
     usedColumns: new Uint8Array(size),

@@ -136,7 +136,10 @@ class Furnishing {
   place(object: ThemeObject, cells: Cell[], room: Room, asAnchor: boolean): void {
     if (object.placement.kind === 'tiled') {
       let mask = this.tiledCellsByKey.get(object.key);
-      if (!mask) { mask = new Uint8Array(this.size * this.size); this.tiledCellsByKey.set(object.key, mask); }
+      if (!mask) {
+        mask = new Uint8Array(this.size * this.size);
+        this.tiledCellsByKey.set(object.key, mask);
+      }
       for (const cell of cells) mask[cell] = 1;
     }
     for (const cell of cells) {
@@ -193,12 +196,19 @@ class Furnishing {
    * direction a neighbour grew in is favoured by `straightness`. Returns null
    * if the room does not leave room for `minCells`.
    */
-  growShape(object: ThemeObject, placement: TiledPlacement, room: Room, start: Cell, anchorCell: Cell | null): Cell[] | null {
+  growShape(
+    object: ThemeObject,
+    placement: TiledPlacement,
+    room: Room,
+    start: Cell,
+    anchorCell: Cell | null,
+  ): Cell[] | null {
     if (!this.mayLay(object, room, start, anchorCell)) return null;
 
     let target = this.rng.nextIntBetween(placement.minCells, placement.maxCells);
     if (!object.walkable) {
-      const budget = Math.floor(room.cells.length * MAX_BLOCKED_SHARE) - (this.blockedPerRoom.get(room.id) ?? 0);
+      const budget =
+        Math.floor(room.cells.length * MAX_BLOCKED_SHARE) - (this.blockedPerRoom.get(room.id) ?? 0);
       target = Math.min(target, budget);
     }
     if (target < placement.minCells) return null;
@@ -276,10 +286,12 @@ class Furnishing {
   /** Object kinds allowed in this room, rarest first — that keeps clues sharp. */
   candidatesFor(room: Room, walkable: boolean | null): ThemeObject[] {
     return this.theme.objects
-      .filter((object) =>
-        object.rooms.includes(room.nameKey)
-        && (walkable === null || object.walkable === walkable)
-        && (this.usedPerKey.get(object.key) ?? 0) < object.maxPerScene)
+      .filter(
+        (object) =>
+          object.rooms.includes(room.nameKey) &&
+          (walkable === null || object.walkable === walkable) &&
+          (this.usedPerKey.get(object.key) ?? 0) < object.maxPerScene,
+      )
       .sort((a, b) => (this.usedPerKey.get(a.key) ?? 0) - (this.usedPerKey.get(b.key) ?? 0));
   }
 
@@ -293,12 +305,11 @@ class Furnishing {
         this.place(object, shape, room, true);
         return true;
       }
-      const bySize = this.rng
-        .shuffled(object.placement.footprints)
-        .sort((a, b) => a[0] * a[1] - b[0] * b[1]);
+      const bySize = this.rng.shuffled(object.placement.footprints).sort((a, b) => a[0] * a[1] - b[0] * b[1]);
       for (const [width, height] of bySize) {
-        const positions = this.positionsFor(room, width, height, cell)
-          .filter((cells) => this.canPlace(cells, true, room));
+        const positions = this.positionsFor(room, width, height, cell).filter((cells) =>
+          this.canPlace(cells, true, room),
+        );
         if (positions.length === 0) continue;
         this.place(object, this.rng.pick(positions), room, true);
         return true;
@@ -309,11 +320,14 @@ class Furnishing {
 
   /** Otherwise put a blocking object right beside it, in the same room. */
   anchorBeside(cell: Cell, room: Room): boolean {
-    const freeNeighbours = this.rng.shuffled(orthogonalNeighbours(cell, this.size))
-      .filter((neighbour) =>
-        this.roomOfCell[neighbour] === room.id
-        && !this.solutionCells.has(neighbour)
-        && this.occupied[neighbour] === 0);
+    const freeNeighbours = this.rng
+      .shuffled(orthogonalNeighbours(cell, this.size))
+      .filter(
+        (neighbour) =>
+          this.roomOfCell[neighbour] === room.id &&
+          !this.solutionCells.has(neighbour) &&
+          this.occupied[neighbour] === 0,
+      );
 
     for (const spot of freeNeighbours) {
       for (const object of this.candidatesFor(room, false)) {
@@ -347,8 +361,9 @@ class Furnishing {
         continue;
       }
       const [width, height] = this.rng.pick(object.placement.footprints);
-      const positions = this.positionsFor(room, width, height, null)
-        .filter((cells) => this.canPlace(cells, object.walkable, room));
+      const positions = this.positionsFor(room, width, height, null).filter((cells) =>
+        this.canPlace(cells, object.walkable, room),
+      );
       if (positions.length === 0) continue;
       this.place(object, this.rng.pick(positions), room, false);
     }

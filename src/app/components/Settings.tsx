@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import { t } from '../i18n.js';
 import type { Settings } from '../storage/store.js';
 import type { Locale } from '../types.js';
@@ -13,12 +14,17 @@ import type { Locale } from '../types.js';
  * Derselbe Dialogaufbau wie die Spielanleitung, damit es ein Muster bleibt und
  * kein zweites.
  */
-export function SettingsDialog({ settings, locale, onChange, onClose }: {
+export function SettingsDialog({
+  settings,
+  locale,
+  onChange,
+  onClose,
+}: {
   settings: Settings;
   locale: Locale;
   onChange: (next: Settings) => void;
   onClose: () => void;
-}) {
+}): ReactElement {
   return (
     <div className="overlay" role="dialog" aria-modal="true" aria-label={t(locale, 'settings')}>
       <div className="panel settings-panel">
@@ -70,7 +76,9 @@ export function SettingsDialog({ settings, locale, onChange, onClose }: {
         </label>
 
         <div className="actions">
-          <button type="button" className="primary" onClick={onClose}>{t(locale, 'close')}</button>
+          <button type="button" className="primary" onClick={onClose}>
+            {t(locale, 'close')}
+          </button>
         </div>
       </div>
     </div>

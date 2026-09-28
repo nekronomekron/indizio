@@ -6,7 +6,7 @@ export interface GameState {
   /** Kantenlaenge des Gitters - fuer Zeilen- und Spaltenlogik. */
   size: number;
   /** Zelle je Verdaechtigem, null wenn nicht platziert. */
-  placements: Array<Cell | null>;
+  placements: (Cell | null)[];
   /** Bleistiftnotizen: Verdaechtigen-Ids je Zelle. */
   notes: Record<number, number[]>;
   /** Als unmoeglich markierte Zellen. */
@@ -78,10 +78,14 @@ function without<T>(list: readonly T[], value: T): T[] {
   return list.filter((x) => x !== value);
 }
 
+/** A copy of the record without one key. */
+function omitKey<V>(record: Readonly<Record<number, V>>, key: number): Record<number, V> {
+  return Object.fromEntries(Object.entries(record).filter(([entry]) => Number(entry) !== key));
+}
+
 /** Alles von dieser Zelle entfernen: Platzierung, Notizen, X. */
 function clearCell(state: GameState, cell: Cell): GameState {
-  const notes = { ...state.notes };
-  delete notes[cell];
+  const notes = omitKey(state.notes, cell);
   return {
     ...state,
     placements: state.placements.map((c) => (c === cell ? null : c)),
@@ -167,9 +171,8 @@ export function gameReducer(session: GameSession, action: GameAction): GameSessi
       const next = current.includes(state.selected)
         ? without(current, state.selected)
         : [...current, state.selected].sort((a, b) => a - b);
-      const notes = { ...state.notes };
-      if (next.length === 0) delete notes[action.cell];
-      else notes[action.cell] = next;
+      const notes =
+        next.length === 0 ? omitKey(state.notes, action.cell) : { ...state.notes, [action.cell]: next };
       return push({ ...state, notes, verdict: 'none' });
     }
 

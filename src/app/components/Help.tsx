@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, type ReactElement } from 'react';
 import { HELP } from '../help.js';
 import { t } from '../i18n.js';
 import { Sprite } from '../render/Sprite.js';
 import type { Locale } from '../types.js';
 
 /** Sechsschrittiges Tutorial, beim ersten Fall automatisch. */
-export function Tutorial({ locale, onDone }: { locale: Locale; onDone: () => void }) {
+export function Tutorial({ locale, onDone }: { locale: Locale; onDone: () => void }): ReactElement {
   const help = HELP[locale];
   const [step, setStep] = useState(0);
   const current = help.tutorial[step]!;
@@ -15,10 +15,19 @@ export function Tutorial({ locale, onDone }: { locale: Locale; onDone: () => voi
     <div className="overlay" role="dialog" aria-modal="true" aria-label={current.title}>
       <div className="panel tutorial">
         <div className="tutorial-top">
-          <span className="step-count">{String(step + 1).padStart(2, '0')} / {String(help.tutorial.length).padStart(2, '0')}</span>
-          <button type="button" className="ghost" onClick={onDone}>{help.skip}</button>
+          <span className="step-count">
+            {String(step + 1).padStart(2, '0')} / {String(help.tutorial.length).padStart(2, '0')}
+          </span>
+          <button type="button" className="ghost" onClick={onDone}>
+            {help.skip}
+          </button>
         </div>
-        <Sprite name={current.icon} kind={current.iconKind} theme={current.iconTheme} size={64} />
+        <Sprite
+          name={current.icon}
+          size={64}
+          {...(current.iconKind && { kind: current.iconKind })}
+          {...(current.iconTheme && { theme: current.iconTheme })}
+        />
         <h2>{current.title}</h2>
         <p>{current.body}</p>
         <div className="tutorial-dots" aria-hidden="true">
@@ -27,7 +36,11 @@ export function Tutorial({ locale, onDone }: { locale: Locale; onDone: () => voi
           ))}
         </div>
         <div className="actions">
-          {step > 0 && <button type="button" onClick={() => setStep(step - 1)}>{help.prev}</button>}
+          {step > 0 && (
+            <button type="button" onClick={() => setStep(step - 1)}>
+              {help.prev}
+            </button>
+          )}
           <button type="button" className="primary" onClick={() => (last ? onDone() : setStep(step + 1))}>
             {last ? help.start : help.next}
           </button>
@@ -40,7 +53,7 @@ export function Tutorial({ locale, onDone }: { locale: Locale; onDone: () => voi
 type Tab = 'rules' | 'keywords' | 'techniques' | 'faq';
 
 /** Dauerhaft erreichbare Regelseite mit vier Abschnitten. */
-export function RulesDialog({ locale, onClose }: { locale: Locale; onClose: () => void }) {
+export function RulesDialog({ locale, onClose }: { locale: Locale; onClose: () => void }): ReactElement {
   const help = HELP[locale];
   const [tab, setTab] = useState<Tab>('rules');
 
@@ -49,7 +62,9 @@ export function RulesDialog({ locale, onClose }: { locale: Locale; onClose: () =
       <div className="panel rules-panel">
         <div className="rules-head">
           <h2>{help.tabs[tab]}</h2>
-          <button type="button" className="ghost" onClick={onClose}>{t(locale, 'close')}</button>
+          <button type="button" className="ghost" onClick={onClose}>
+            {t(locale, 'close')}
+          </button>
         </div>
         <div className="tabs" role="tablist">
           {(['rules', 'keywords', 'techniques', 'faq'] as Tab[]).map((key) => (
@@ -71,11 +86,16 @@ export function RulesDialog({ locale, onClose }: { locale: Locale; onClose: () =
             <>
               <p className="lead">{help.goal}</p>
               <ul className="bullets">
-                {help.rules.map((rule) => <li key={rule}>{rule}</li>)}
+                {help.rules.map((rule) => (
+                  <li key={rule}>{rule}</li>
+                ))}
               </ul>
               <dl className="terms">
                 {help.controls.map((item) => (
-                  <div key={item.term}><dt>{item.term}</dt><dd>{item.text}</dd></div>
+                  <div key={item.term}>
+                    <dt>{item.term}</dt>
+                    <dd>{item.text}</dd>
+                  </div>
                 ))}
               </dl>
             </>
@@ -83,21 +103,30 @@ export function RulesDialog({ locale, onClose }: { locale: Locale; onClose: () =
           {tab === 'keywords' && (
             <dl className="terms">
               {help.keywords.items.map((item) => (
-                <div key={item.term}><dt>{item.term}</dt><dd>{item.text}</dd></div>
+                <div key={item.term}>
+                  <dt>{item.term}</dt>
+                  <dd>{item.text}</dd>
+                </div>
               ))}
             </dl>
           )}
           {tab === 'techniques' && (
             <dl className="terms">
               {help.techniques.items.map((item) => (
-                <div key={item.term}><dt>{item.term}</dt><dd>{item.text}</dd></div>
+                <div key={item.term}>
+                  <dt>{item.term}</dt>
+                  <dd>{item.text}</dd>
+                </div>
               ))}
             </dl>
           )}
           {tab === 'faq' && (
             <dl className="terms">
               {help.faq.map((item) => (
-                <div key={item.term}><dt>{item.term}</dt><dd>{item.text}</dd></div>
+                <div key={item.term}>
+                  <dt>{item.term}</dt>
+                  <dd>{item.text}</dd>
+                </div>
               ))}
             </dl>
           )}

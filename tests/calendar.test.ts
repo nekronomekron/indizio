@@ -3,8 +3,15 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { DAILY_START, THEME_KEYS, dailyDifficulty, dailySeed, parseSeed } from '@engine';
 import {
-  FIRST_MONTH, compareDate, compareMonth, columnOfDate, isPlayable, monthGrid, monthOf,
-  sameDate, shiftMonth,
+  FIRST_MONTH,
+  compareDate,
+  compareMonth,
+  columnOfDate,
+  isPlayable,
+  monthGrid,
+  monthOf,
+  sameDate,
+  shiftMonth,
 } from '../src/app/calendar.js';
 import { Dashboard } from '../src/app/components/Dashboard.js';
 import { moveCursor } from '../src/app/keys.js';
@@ -17,19 +24,19 @@ import { redrawFor } from '../src/app/random.js';
  * gibt.
  */
 
-const HEUTE = { year: 2026, month: 9, day: 27 };   // ein Sonntag
+const HEUTE = { year: 2026, month: 9, day: 27 }; // ein Sonntag
 
 describe('Monatsgitter', () => {
   it('beginnt die Woche am Montag', () => {
     // Der 1.9.2026 ist ein Dienstag, steht also in der zweiten Spalte.
     expect(columnOfDate({ year: 2026, month: 9, day: 1 })).toBe(1);
-    expect(columnOfDate({ year: 2026, month: 9, day: 27 })).toBe(6);   // Sonntag, letzte Spalte
+    expect(columnOfDate({ year: 2026, month: 9, day: 27 })).toBe(6); // Sonntag, letzte Spalte
   });
 
   it('füllt vorn auf und hinten auf ganze Wochen', () => {
     const cells = monthGrid({ year: 2026, month: 9 });
     expect(cells.length % 7).toBe(0);
-    expect(cells.slice(0, 1)).toEqual([null]);            // ein Platzhalter vor dem Dienstag
+    expect(cells.slice(0, 1)).toEqual([null]); // ein Platzhalter vor dem Dienstag
     expect(cells[1]).toEqual({ year: 2026, month: 9, day: 1 });
     expect(cells.filter((cell) => cell !== null)).toHaveLength(30);
   });
@@ -85,12 +92,14 @@ describe('Die gezeichnete Startseite', () => {
    * Funktionen allein nicht prüfen. `localStorage` fehlt in dieser Umgebung —
    * der Speicher fängt das ab, und genau das soll hier mitgeprüft sein.
    */
-  const markup = renderToStaticMarkup(createElement(Dashboard, {
-    locale: 'de' as const,
-    onOpen: () => undefined,
-    onDraw: () => undefined,
-    onSettings: () => undefined,
-  }));
+  const markup = renderToStaticMarkup(
+    createElement(Dashboard, {
+      locale: 'de' as const,
+      onOpen: () => undefined,
+      onDraw: () => undefined,
+      onSettings: () => undefined,
+    }),
+  );
 
   it('kommt ohne Browser-Speicher zurecht', () => {
     expect(markup).toContain('Indizio');
@@ -173,7 +182,7 @@ describe('Tastaturrahmen im Gitter', () => {
   const GROESSE = 6;
 
   it('bewegt sich in alle vier Richtungen', () => {
-    const mitte = 14;   // Zeile 2, Spalte 2
+    const mitte = 14; // Zeile 2, Spalte 2
     expect(moveCursor(mitte, 'ArrowLeft', GROESSE)).toBe(13);
     expect(moveCursor(mitte, 'ArrowRight', GROESSE)).toBe(15);
     expect(moveCursor(mitte, 'ArrowUp', GROESSE)).toBe(8);
@@ -183,9 +192,9 @@ describe('Tastaturrahmen im Gitter', () => {
   it('bleibt an jedem Rand stehen, statt umzubrechen', () => {
     expect(moveCursor(0, 'ArrowLeft', GROESSE)).toBe(0);
     expect(moveCursor(0, 'ArrowUp', GROESSE)).toBe(0);
-    expect(moveCursor(5, 'ArrowRight', GROESSE)).toBe(5);       // Ende der ersten Zeile
-    expect(moveCursor(6, 'ArrowLeft', GROESSE)).toBe(6);        // Anfang der zweiten
-    expect(moveCursor(35, 'ArrowRight', GROESSE)).toBe(35);     // untere rechte Ecke
+    expect(moveCursor(5, 'ArrowRight', GROESSE)).toBe(5); // Ende der ersten Zeile
+    expect(moveCursor(6, 'ArrowLeft', GROESSE)).toBe(6); // Anfang der zweiten
+    expect(moveCursor(35, 'ArrowRight', GROESSE)).toBe(35); // untere rechte Ecke
     expect(moveCursor(35, 'ArrowDown', GROESSE)).toBe(35);
   });
 

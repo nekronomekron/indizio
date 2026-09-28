@@ -109,7 +109,8 @@ function attemptGeneration(
   // one false clue would be unsolvable in a way no player could diagnose.
   const occupancy = buildOccupancy(index, roles.solution);
   if (!allCluesTrue(index, occupancy, search.clues)) return null;
-  if (findClueRestrictionViolations(index, roles.suspects, roles.solution, search.clues).length > 0) return null;
+  if (findClueRestrictionViolations(index, roles.suspects, roles.solution, search.clues).length > 0)
+    return null;
 
   const verification = solve(index, roles.suspects, search.clues);
   if (verification.status !== 'solved') return null;

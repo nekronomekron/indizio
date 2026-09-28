@@ -19,12 +19,19 @@ export function moveCursor(at: Cell, key: string, size: number): Cell | null {
   const column = columnOf(at, size);
 
   switch (key) {
-    case 'ArrowLeft': return column > 0 ? at - 1 : at;
-    case 'ArrowRight': return column < size - 1 ? at + 1 : at;
-    case 'ArrowUp': return row > 0 ? at - size : at;
-    case 'ArrowDown': return row < size - 1 ? at + size : at;
-    case 'Home': return at - column;
-    case 'End': return at - column + size - 1;
-    default: return null;
+    case 'ArrowLeft':
+      return column > 0 ? at - 1 : at;
+    case 'ArrowRight':
+      return column < size - 1 ? at + 1 : at;
+    case 'ArrowUp':
+      return row > 0 ? at - size : at;
+    case 'ArrowDown':
+      return row < size - 1 ? at + size : at;
+    case 'Home':
+      return at - column;
+    case 'End':
+      return at - column + size - 1;
+    default:
+      return null;
   }
 }

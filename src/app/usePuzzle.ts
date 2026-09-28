@@ -53,7 +53,9 @@ export function usePuzzle(seed: string | null, options: PuzzleOptions = {}): Puz
   // Immer die zuletzt übergebene Fassung, ohne sie in die Abhängigkeiten des
   // Effekts zu nehmen — sonst startete jeder Durchlauf den Worker neu.
   const replace = useRef(options.replaceOnFailure);
-  useEffect(() => { replace.current = options.replaceOnFailure; });
+  useEffect(() => {
+    replace.current = options.replaceOnFailure;
+  });
 
   const cached = useMemo(
     () => (seed !== null && !isOutdated(seed) ? loadPuzzle(seed, GENERATOR_VERSION) : null),
@@ -82,7 +84,9 @@ export function usePuzzle(seed: string | null, options: PuzzleOptions = {}): Puz
     };
     worker.postMessage({ seed });
 
-    return () => { worker.terminate(); };
+    return () => {
+      worker.terminate();
+    };
   }, [seed, cached]);
 
   if (seed === null) return { state: 'loading' };

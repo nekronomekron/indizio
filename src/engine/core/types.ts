@@ -113,9 +113,20 @@ export type ClueType = Clue['type'];
 
 /** Every clue type, in one place — the single source of truth. */
 export const CLUE_TYPES = [
-  'ON_OBJECT', 'IN_ROOM', 'ADJACENT_OBJECT', 'ALONE', 'SAME_ROOM_AS',
-  'DIRECTION_OF_SUSPECT', 'DIRECTION_OF_OBJECT', 'CORNER', 'ALIGNED_WITH_OBJECT',
-  'DIAGONAL_OF', 'ALONE_WITH', 'VICTIM', 'EMPTY_ROOM', 'ROOM_COUNT',
+  'ON_OBJECT',
+  'IN_ROOM',
+  'ADJACENT_OBJECT',
+  'ALONE',
+  'SAME_ROOM_AS',
+  'DIRECTION_OF_SUSPECT',
+  'DIRECTION_OF_OBJECT',
+  'CORNER',
+  'ALIGNED_WITH_OBJECT',
+  'DIAGONAL_OF',
+  'ALONE_WITH',
+  'VICTIM',
+  'EMPTY_ROOM',
+  'ROOM_COUNT',
 ] as const satisfies readonly ClueType[];
 
 /** A clue with its bearer. `ownerId === null` means a scene-wide clue. */

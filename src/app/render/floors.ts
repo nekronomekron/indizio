@@ -11,13 +11,20 @@
  */
 
 export type FloorMaterial =
-  | 'wood' | 'tile' | 'stone' | 'concrete' | 'carpet'
-  | 'grass' | 'soil' | 'gravel' | 'sand' | 'water';
+  'wood' | 'tile' | 'stone' | 'concrete' | 'carpet' | 'grass' | 'soil' | 'gravel' | 'sand' | 'water';
 
 /** Alle Belaege, fuer Uebersichten, Tests und den Erzeuger der Grafiken. */
 export const FLOOR_MATERIALS: readonly FloorMaterial[] = [
-  'wood', 'tile', 'stone', 'concrete', 'carpet',
-  'grass', 'soil', 'gravel', 'sand', 'water',
+  'wood',
+  'tile',
+  'stone',
+  'concrete',
+  'carpet',
+  'grass',
+  'soil',
+  'gravel',
+  'sand',
+  'water',
 ];
 
 /** Belag, auf den ein fremdes Theme zurueckfaellt. */

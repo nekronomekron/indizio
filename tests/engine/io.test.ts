@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
-  PUZZLE_FORMAT, PuzzleFormatError, SCHEMA_VERSION,
-  generatePuzzle, makeSeed, parsePuzzle, stringifyPuzzle, toDocument, verifyPuzzle,
+  PUZZLE_FORMAT,
+  PuzzleFormatError,
+  SCHEMA_VERSION,
+  generatePuzzle,
+  makeSeed,
+  parsePuzzle,
+  stringifyPuzzle,
+  toDocument,
+  verifyPuzzle,
 } from '../../src/engine/index.js';
 import type { PuzzleCore } from '../../src/engine/index.js';
 
@@ -85,32 +92,83 @@ describe('reading', () => {
   });
 
   it('rejects a foreign or future document', () => {
-    expect(() => parsePuzzle(JSON.stringify({ format: 'something-else', schemaVersion: 1, core })))
-      .toThrow(/format must be/);
-    expect(() => parsePuzzle(JSON.stringify({ format: PUZZLE_FORMAT, schemaVersion: 99, core })))
-      .toThrow(/newer than supported/);
+    expect(() => parsePuzzle(JSON.stringify({ format: 'something-else', schemaVersion: 1, core }))).toThrow(
+      /format must be/,
+    );
+    expect(() => parsePuzzle(JSON.stringify({ format: PUZZLE_FORMAT, schemaVersion: 99, core }))).toThrow(
+      /newer than supported/,
+    );
   });
 
   it.each([
-    ['a room split in two', (draft: PuzzleCore) => {
-      const room = draft.rooms[0]!;
-      const other = draft.rooms[1]!;
-      // Hand one distant cell over, leaving the room disconnected.
-      const moved = other.cells.pop()!;
-      room.cells.push(moved);
-    }, /disconnected/],
-    ['a cell in no room', (draft: PuzzleCore) => { draft.rooms[0]!.cells.pop(); }, /belongs to no room/],
-    ['two people in one row', (draft: PuzzleCore) => {
-      draft.solution[1] = (draft.solution[0]! + 1) % draft.size + Math.floor(draft.solution[0]! / draft.size) * draft.size;
-    }, /row|column/],
-    ['a suspect without a name', (draft: PuzzleCore) => { draft.suspects[0]!.name = ''; }, /has no name/],
-    ['no victim at all', (draft: PuzzleCore) => { for (const s of draft.suspects) s.isVictim = false; }, /exactly one victim/],
-    ['two victims', (draft: PuzzleCore) => { for (const s of draft.suspects) s.isVictim = true; }, /exactly one victim/],
-    ['an unknown clue type', (draft: PuzzleCore) => {
-      (draft.clues[0]!.clue as { type: string }).type = 'NOT_A_CLUE';
-    }, /unknown clue type/],
-    ['a card without a clue', (draft: PuzzleCore) => { draft.clues.shift(); }, /has 0 clues/],
-    ['a murderer out of range', (draft: PuzzleCore) => { draft.murdererId = 99; }, /murdererId/],
+    [
+      'a room split in two',
+      (draft: PuzzleCore) => {
+        const room = draft.rooms[0]!;
+        const other = draft.rooms[1]!;
+        // Hand one distant cell over, leaving the room disconnected.
+        const moved = other.cells.pop()!;
+        room.cells.push(moved);
+      },
+      /disconnected/,
+    ],
+    [
+      'a cell in no room',
+      (draft: PuzzleCore) => {
+        draft.rooms[0]!.cells.pop();
+      },
+      /belongs to no room/,
+    ],
+    [
+      'two people in one row',
+      (draft: PuzzleCore) => {
+        draft.solution[1] =
+          ((draft.solution[0]! + 1) % draft.size) + Math.floor(draft.solution[0]! / draft.size) * draft.size;
+      },
+      /row|column/,
+    ],
+    [
+      'a suspect without a name',
+      (draft: PuzzleCore) => {
+        draft.suspects[0]!.name = '';
+      },
+      /has no name/,
+    ],
+    [
+      'no victim at all',
+      (draft: PuzzleCore) => {
+        for (const s of draft.suspects) s.isVictim = false;
+      },
+      /exactly one victim/,
+    ],
+    [
+      'two victims',
+      (draft: PuzzleCore) => {
+        for (const s of draft.suspects) s.isVictim = true;
+      },
+      /exactly one victim/,
+    ],
+    [
+      'an unknown clue type',
+      (draft: PuzzleCore) => {
+        (draft.clues[0]!.clue as { type: string }).type = 'NOT_A_CLUE';
+      },
+      /unknown clue type/,
+    ],
+    [
+      'a card without a clue',
+      (draft: PuzzleCore) => {
+        draft.clues.shift();
+      },
+      /has 0 clues/,
+    ],
+    [
+      'a murderer out of range',
+      (draft: PuzzleCore) => {
+        draft.murdererId = 99;
+      },
+      /murdererId/,
+    ],
   ])('rejects %s', (_name, mutate, pattern) => {
     expect(() => parsePuzzle(damaged(mutate))).toThrow(pattern);
   });
@@ -131,7 +189,14 @@ describe('reading', () => {
   it('carries laid shapes through unchanged', () => {
     const text = damaged((draft) => {
       const { roomId, cells } = lShapeIn(draft);
-      draft.objects.push({ id: draft.objects.length, key: 'rug', walkable: true, placement: 'tiled', roomId, cells });
+      draft.objects.push({
+        id: draft.objects.length,
+        key: 'rug',
+        walkable: true,
+        placement: 'tiled',
+        roomId,
+        cells,
+      });
     });
     const readBack = parsePuzzle(text);
     expect(readBack.objects.at(-1)!.placement).toBe('tiled');
@@ -139,30 +204,78 @@ describe('reading', () => {
   });
 
   it.each([
-    ['an unknown placement', (draft: PuzzleCore) => {
-      (draft.objects[0] as { placement: string }).placement = 'woven';
-    }, /unknown placement/],
-    ['a fixed object that is no rectangle', (draft: PuzzleCore) => {
-      const { roomId, cells } = lShapeIn(draft);
-      draft.objects.push({ id: draft.objects.length, key: 'rug', walkable: true, placement: 'fixed', roomId, cells });
-    }, /not a rectangle/],
-    ['an object in two pieces', (draft: PuzzleCore) => {
-      const { roomId, cells } = lShapeIn(draft);
-      draft.objects.push({ id: draft.objects.length, key: 'rug', walkable: true, placement: 'tiled', roomId, cells: [cells[1]!, cells[2]!] });
-    }, /disconnected/],
-    ['an object reaching into another room', (draft: PuzzleCore) => {
-      const object = draft.objects[0]!;
-      const foreign = draft.rooms.find((room) => room.id !== object.roomId)!;
-      object.placement = 'tiled';
-      object.cells = [...object.cells, foreign.cells[0]!];
-    }, /outside room/],
-    ['two laid objects of one kind touching', (draft: PuzzleCore) => {
-      const { roomId, cells } = lShapeIn(draft);
-      draft.objects.push(
-        { id: draft.objects.length, key: 'rug', walkable: true, placement: 'tiled', roomId, cells: [cells[0]!] },
-        { id: draft.objects.length + 1, key: 'rug', walkable: true, placement: 'tiled', roomId, cells: [cells[1]!] },
-      );
-    }, /touch each other/],
+    [
+      'an unknown placement',
+      (draft: PuzzleCore) => {
+        (draft.objects[0] as { placement: string }).placement = 'woven';
+      },
+      /unknown placement/,
+    ],
+    [
+      'a fixed object that is no rectangle',
+      (draft: PuzzleCore) => {
+        const { roomId, cells } = lShapeIn(draft);
+        draft.objects.push({
+          id: draft.objects.length,
+          key: 'rug',
+          walkable: true,
+          placement: 'fixed',
+          roomId,
+          cells,
+        });
+      },
+      /not a rectangle/,
+    ],
+    [
+      'an object in two pieces',
+      (draft: PuzzleCore) => {
+        const { roomId, cells } = lShapeIn(draft);
+        draft.objects.push({
+          id: draft.objects.length,
+          key: 'rug',
+          walkable: true,
+          placement: 'tiled',
+          roomId,
+          cells: [cells[1]!, cells[2]!],
+        });
+      },
+      /disconnected/,
+    ],
+    [
+      'an object reaching into another room',
+      (draft: PuzzleCore) => {
+        const object = draft.objects[0]!;
+        const foreign = draft.rooms.find((room) => room.id !== object.roomId)!;
+        object.placement = 'tiled';
+        object.cells = [...object.cells, foreign.cells[0]!];
+      },
+      /outside room/,
+    ],
+    [
+      'two laid objects of one kind touching',
+      (draft: PuzzleCore) => {
+        const { roomId, cells } = lShapeIn(draft);
+        draft.objects.push(
+          {
+            id: draft.objects.length,
+            key: 'rug',
+            walkable: true,
+            placement: 'tiled',
+            roomId,
+            cells: [cells[0]!],
+          },
+          {
+            id: draft.objects.length + 1,
+            key: 'rug',
+            walkable: true,
+            placement: 'tiled',
+            roomId,
+            cells: [cells[1]!],
+          },
+        );
+      },
+      /touch each other/,
+    ],
   ])('rejects %s', (_name, mutate, pattern) => {
     expect(() => parsePuzzle(damaged(mutate))).toThrow(pattern);
   });
@@ -171,8 +284,22 @@ describe('reading', () => {
     const text = damaged((draft) => {
       const { roomId, cells } = lShapeIn(draft);
       draft.objects.push(
-        { id: draft.objects.length, key: 'rug', walkable: true, placement: 'tiled', roomId, cells: [cells[0]!] },
-        { id: draft.objects.length + 1, key: 'mat', walkable: true, placement: 'tiled', roomId, cells: [cells[1]!] },
+        {
+          id: draft.objects.length,
+          key: 'rug',
+          walkable: true,
+          placement: 'tiled',
+          roomId,
+          cells: [cells[0]!],
+        },
+        {
+          id: draft.objects.length + 1,
+          key: 'mat',
+          walkable: true,
+          placement: 'tiled',
+          roomId,
+          cells: [cells[1]!],
+        },
       );
     });
     expect(() => parsePuzzle(text)).not.toThrow();

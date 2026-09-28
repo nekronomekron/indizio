@@ -58,9 +58,10 @@ export function findClueRestrictionViolations(
     // set assembled elsewhere.
     if (clue.type === 'ADJACENT_OBJECT') {
       const cell = assignment[ownerId];
-      const standsOn = cell === undefined
-        ? false
-        : (index.objectsOfCell[cell] ?? []).some((object) => object.key === clue.objectKey);
+      const standsOn =
+        cell === undefined
+          ? false
+          : (index.objectsOfCell[cell] ?? []).some((object) => object.key === clue.objectKey);
       if (standsOn) {
         violations.push({
           kind: 'standsOnNamedObject',

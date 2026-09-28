@@ -35,8 +35,21 @@ function rectangle(fromRow: number, toRow: number): Cell[] {
   return cells;
 }
 
-function object(id: number, key: string, walkable: boolean, roomId: number, cells: [number, number][]): SceneObject {
-  return { id, key, walkable, placement: 'fixed', roomId, cells: cells.map(([row, column]) => cellAt(row, column, SIZE)) };
+function object(
+  id: number,
+  key: string,
+  walkable: boolean,
+  roomId: number,
+  cells: [number, number][],
+): SceneObject {
+  return {
+    id,
+    key,
+    walkable,
+    placement: 'fixed',
+    roomId,
+    cells: cells.map(([row, column]) => cellAt(row, column, SIZE)),
+  };
 }
 
 export interface Fixture {
@@ -54,7 +67,10 @@ export function buildFixture(): Fixture {
     themeKey: 'test',
     rooms: [room(0, 'workshop', rectangle(0, 2)), room(1, 'storage', rectangle(3, 4))],
     objects: [
-      object(0, 'shelf', false, 0, [[0, 0], [0, 1]]),
+      object(0, 'shelf', false, 0, [
+        [0, 0],
+        [0, 1],
+      ]),
       object(1, 'chair', true, 0, [[1, 2]]),
       object(2, 'tree', false, 1, [[4, 4]]),
     ],
@@ -62,8 +78,11 @@ export function buildFixture(): Fixture {
 
   // Rows 0-4 occupied in columns 3, 2, 4, 0, 1 — one per row and column.
   const solution: Assignment = [
-    cellAt(0, 3, SIZE), cellAt(1, 2, SIZE), cellAt(2, 4, SIZE),
-    cellAt(3, 0, SIZE), cellAt(4, 1, SIZE),
+    cellAt(0, 3, SIZE),
+    cellAt(1, 2, SIZE),
+    cellAt(2, 4, SIZE),
+    cellAt(3, 0, SIZE),
+    cellAt(4, 1, SIZE),
   ];
 
   const suspects: Suspect[] = Array.from({ length: 5 }, (_, id) => ({

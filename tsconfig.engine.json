@@ -1,29 +1,9 @@
 {
-  // Die Engine bleibt strenger eingestellt als die App - und das ist der Sinn
-  // der Sache. `noUncheckedIndexedAccess` und `exactOptionalPropertyTypes` sind
-  // in dichtem Zahlencode ueber typisierten Feldern das, was Fehler findet;
-  // in einer Oberflaeche aus JSX kosten sie vor allem Laerm. Deshalb zwei
-  // Konfigurationen statt eines Kompromisses, der beiden schadet.
+  // The engine: no DOM, no Node — it runs unchanged in a browser, a worker and
+  // a test.
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2022"],
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "isolatedModules": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "allowImportingTsExtensions": true,
-    "noEmit": true,
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
-    "noImplicitOverride": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "verbatimModuleSyntax": true,
-    "forceConsistentCasingInFileNames": true
+    "lib": ["ES2022"]
   },
   "include": ["src/engine", "tests/engine"]
 }

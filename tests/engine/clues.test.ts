@@ -19,8 +19,7 @@ const ALL_TYPES: ReadonlySet<ClueType> = new Set(CLUE_TYPES);
 const fixture = buildFixture();
 const { index, occupancy, solution, suspects, cell } = fixture;
 
-const holds = (ownerId: number | null, clue: Clue): boolean =>
-  evaluateClue(index, occupancy, ownerId, clue);
+const holds = (ownerId: number | null, clue: Clue): boolean => evaluateClue(index, occupancy, ownerId, clue);
 
 describe('scene index', () => {
   it('blocks only cells covered by non-walkable objects', () => {
@@ -39,10 +38,11 @@ describe('scene index', () => {
     expect(index.corner[cell(0, 2)]).toBe(0); // on an edge, but not a corner
   });
 
-  it('keeps the touch set inside the cell\'s own room', () => {
+  it("keeps the touch set inside the cell's own room", () => {
     // (2,0) is the bottom edge of the upper room; (3,0) belongs to the lower one.
-    expect([...touchSet(index, cell(2, 0))].sort((a, b) => a - b))
-      .toEqual([cell(1, 0), cell(2, 0), cell(2, 1)].sort((a, b) => a - b));
+    expect([...touchSet(index, cell(2, 0))].sort((a, b) => a - b)).toEqual(
+      [cell(1, 0), cell(2, 0), cell(2, 1)].sort((a, b) => a - b),
+    );
   });
 });
 
@@ -104,7 +104,7 @@ describe('clue semantics', () => {
     expect(holds(1, { type: 'ALIGNED_WITH_OBJECT', axis: 'row', objectKey: 'chair' })).toBe(false);
   });
 
-  it('VICTIM: exactly two people in the victim\'s room', () => {
+  it("VICTIM: exactly two people in the victim's room", () => {
     expect(holds(4, { type: 'VICTIM' })).toBe(true);
     expect(holds(0, { type: 'VICTIM' })).toBe(false); // upper room holds three
   });
@@ -140,7 +140,7 @@ describe('clue enumeration', () => {
     }
   });
 
-  it('never names the victim in another card\'s room statement', () => {
+  it("never names the victim in another card's room statement", () => {
     for (let suspect = 0; suspect < suspects.length; suspect++) {
       for (const clue of enumerateCardClues(index, suspects, occupancy, suspect, ALL_TYPES)) {
         if (clue.type === 'SAME_ROOM_AS') expect(clue.otherId).not.toBe(4);
@@ -174,10 +174,12 @@ describe('clue enumeration', () => {
 
 describe('clue restrictions', () => {
   it('accepts a clean set', () => {
-    expect(findClueRestrictionViolations(index, suspects, solution, [
-      { ownerId: 0, clue: { type: 'IN_ROOM', roomId: 0 } },
-      { ownerId: 4, clue: { type: 'VICTIM' } },
-    ])).toEqual([]);
+    expect(
+      findClueRestrictionViolations(index, suspects, solution, [
+        { ownerId: 0, clue: { type: 'IN_ROOM', roomId: 0 } },
+        { ownerId: 4, clue: { type: 'VICTIM' } },
+      ]),
+    ).toEqual([]);
   });
 
   it('spots an ambiguous object reference', () => {

@@ -1,8 +1,6 @@
 import { boundsOf, isConnected, orthogonalNeighbours } from '../core/grid.js';
 import { CLUE_TYPES } from '../core/types.js';
-import type {
-  ClueEntry, DifficultyKey, PuzzleCore, Room, SceneObject, Suspect,
-} from '../core/types.js';
+import type { ClueEntry, DifficultyKey, PuzzleCore, Room, SceneObject, Suspect } from '../core/types.js';
 
 /**
  * The interchange format.
@@ -223,7 +221,8 @@ function validateObjectShapes(
     if (object.placement === 'fixed') {
       const bounds = boundsOf(cells, size);
       const area = (bounds.maxRow - bounds.minRow + 1) * (bounds.maxColumn - bounds.minColumn + 1);
-      if (area !== new Set(cells).size) problems.push(`fixed object ${object.key} #${object.id} is not a rectangle`);
+      if (area !== new Set(cells).size)
+        problems.push(`fixed object ${object.key} #${object.id} is not a rectangle`);
       continue;
     }
     for (const cell of cells) laidOwner.set(cell, object);
@@ -268,21 +267,27 @@ function validateObjects(
     if (typeof entry.walkable !== 'boolean') problems.push(`object ${entry.key} has no walkable flag`);
     // Absent before schema 3; everything then was a rectangle.
     if ((entry.placement as unknown) === undefined) entry.placement = 'fixed';
-    else if (!PLACEMENTS.includes(entry.placement)) problems.push(`object ${entry.key} has an unknown placement`);
+    else if (!PLACEMENTS.includes(entry.placement))
+      problems.push(`object ${entry.key} has an unknown placement`);
     if (!roomIds.has(entry.roomId)) problems.push(`object ${entry.key} names an unknown room`);
     if (!isIntegerArray(entry.cells) || entry.cells.length === 0) {
       problems.push(`object ${entry.key} has no cells`);
       continue;
     }
     for (const cell of entry.cells) {
-      if (cell < 0 || cell >= cellCount) problems.push(`object ${entry.key}: cell ${cell} is outside the grid`);
+      if (cell < 0 || cell >= cellCount)
+        problems.push(`object ${entry.key}: cell ${cell} is outside the grid`);
       else if (!entry.walkable) blocked[cell] = 1;
     }
   }
 
-  const wellFormed = (objects as unknown[]).filter((entry): entry is SceneObject =>
-    isRecord(entry) && isIntegerArray(entry['cells']) && entry['cells'].length > 0
-    && PLACEMENTS.includes(entry['placement'] as string));
+  const wellFormed = (objects as unknown[]).filter(
+    (entry): entry is SceneObject =>
+      isRecord(entry) &&
+      isIntegerArray(entry['cells']) &&
+      entry['cells'].length > 0 &&
+      PLACEMENTS.includes(entry['placement'] as string),
+  );
   validateObjectShapes(wellFormed, size, roomOfCell, problems);
   return blocked;
 }

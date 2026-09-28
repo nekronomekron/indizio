@@ -121,8 +121,9 @@ export function verifyPuzzle(core: PuzzleCore, options: VerifyOptions = {}): Ver
   if (!cluesTrue) problems.push('at least one clue is false for the stated solution');
 
   const outcome = solve(index, core.suspects, core.clues);
-  const deducible = outcome.status === 'solved'
-    && outcome.assignment?.every((cell, suspect) => cell === core.solution[suspect]) === true;
+  const deducible =
+    outcome.status === 'solved' &&
+    outcome.assignment?.every((cell, suspect) => cell === core.solution[suspect]) === true;
   if (!deducible) problems.push('not solvable without case analysis');
 
   const victim = core.suspects.find((suspect) => suspect.isVictim);
@@ -132,10 +133,9 @@ export function verifyPuzzle(core: PuzzleCore, options: VerifyOptions = {}): Ver
   } else {
     const room = index.roomOfCell[core.solution[victim.id] ?? 0] ?? -1;
     const occupants = occupancy.occupantsByRoom.get(room) ?? [];
-    victimRoomValid = occupants.length === 2
-      && occupants.includes(core.murdererId)
-      && core.murdererId !== victim.id;
-    if (!victimRoomValid) problems.push('the victim\'s room does not hold exactly victim and murderer');
+    victimRoomValid =
+      occupants.length === 2 && occupants.includes(core.murdererId) && core.murdererId !== victim.id;
+    if (!victimRoomValid) problems.push("the victim's room does not hold exactly victim and murderer");
   }
 
   const restrictions = findClueRestrictionViolations(index, core.suspects, core.solution, core.clues);

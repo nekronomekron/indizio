@@ -61,7 +61,10 @@ for (const [path, svg] of Object.entries(FILES)) {
   if (parts[0] === 'themes') {
     const theme = parts[1]!;
     let set = byTheme.get(theme);
-    if (!set) { set = new Map(); byTheme.set(theme, set); }
+    if (!set) {
+      set = new Map();
+      byTheme.set(theme, set);
+    }
     set.set(key, url);
   } else {
     common.set(key, url);

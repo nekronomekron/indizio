@@ -14,7 +14,7 @@ import { join, relative, sep } from 'node:path';
  */
 
 const ART = join(process.cwd(), 'art');
-const BOX = 72;   // Kantenlaenge der Bildkachel; CELL laesst Platz fuer den Namen
+const BOX = 72; // Kantenlaenge der Bildkachel; CELL laesst Platz fuer den Namen
 const CELL = 92;
 const COLUMNS = 10;
 
@@ -28,7 +28,11 @@ function files(directory: string): string[] {
   return out;
 }
 
-interface Art { inner: string; width: number; height: number }
+interface Art {
+  inner: string;
+  width: number;
+  height: number;
+}
 
 /**
  * Inhalt und Zeichenflaeche einer Datei.
@@ -63,7 +67,9 @@ const parts: string[] = [];
 let y = 30;
 
 for (const [folder, list] of [...groups].sort(([a], [b]) => a.localeCompare(b))) {
-  parts.push(`<text x="14" y="${String(y)}" font-family="system-ui" font-size="13" font-weight="600" fill="#ece9f5">${folder}</text>`);
+  parts.push(
+    `<text x="14" y="${String(y)}" font-family="system-ui" font-size="13" font-weight="600" fill="#ece9f5">${folder}</text>`,
+  );
   y += 14;
 
   list.sort().forEach((file, i) => {
@@ -80,9 +86,9 @@ for (const [folder, list] of [...groups].sort(([a], [b]) => a.localeCompare(b)))
     const topInset = top + 6 + (BOX - art.height * scale) / 2;
 
     parts.push(
-      `<rect x="${String(x)}" y="${String(top)}" width="${String(BOX)}" height="${String(BOX)}" rx="6" fill="#2a2438"/>`
-      + `<g transform="translate(${left.toFixed(1)} ${topInset.toFixed(1)}) scale(${scale.toFixed(3)})">${art.inner}</g>`
-      + `<text x="${String(x + BOX / 2)}" y="${String(top + 86)}" text-anchor="middle" font-family="system-ui" font-size="9" fill="#b9b4c8">${name}</text>`,
+      `<rect x="${String(x)}" y="${String(top)}" width="${String(BOX)}" height="${String(BOX)}" rx="6" fill="#2a2438"/>` +
+        `<g transform="translate(${left.toFixed(1)} ${topInset.toFixed(1)}) scale(${scale.toFixed(3)})">${art.inner}</g>` +
+        `<text x="${String(x + BOX / 2)}" y="${String(top + 86)}" text-anchor="middle" font-family="system-ui" font-size="9" fill="#b9b4c8">${name}</text>`,
     );
   });
 

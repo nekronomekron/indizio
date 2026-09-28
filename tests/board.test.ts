@@ -26,7 +26,10 @@ describe('Hervorhebung beim Darüberfahren', () => {
     const roomOfCell = new Int32Array(size * size);
     const html = renderToStaticMarkup(createElement(BoardLines, { size, cellPx, roomOfCell, hoverRoom: 0 }));
     const d = /class="line-hover" d="([^"]+)"/.exec(html)![1]!;
-    const points = [...d.matchAll(/M([\d.]+) ([\d.]+)/g)].map((match) => [Number(match[1]), Number(match[2])]);
+    const points = [...d.matchAll(/M([\d.]+) ([\d.]+)/g)].map((match) => [
+      Number(match[1]),
+      Number(match[2]),
+    ]);
     expect(points.length).toBeGreaterThan(0);
     for (const [x, y] of points) {
       expect(x).toBeGreaterThanOrEqual(0);
@@ -44,12 +47,7 @@ describe('Breite des Raumnamens', () => {
   // 4×4, zwei Räume: 0 links (Spalten 0–1), 1 rechts (Spalten 2–3), dazu ein
   // Gang aus Raum 2 in der letzten Zeile über die ganze Breite.
   const size = 4;
-  const roomOfCell = Int32Array.from([
-    0, 0, 1, 1,
-    0, 0, 1, 1,
-    0, 0, 1, 1,
-    2, 2, 2, 2,
-  ]);
+  const roomOfCell = Int32Array.from([0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 2, 2, 2, 2]);
 
   it('reicht bis zur nächsten Wand in der Zeile', () => {
     expect(labelRun(0, roomOfCell, size)).toBe(2);
@@ -66,12 +64,7 @@ describe('Breite des Raumnamens', () => {
   });
 
   it('ist in einem Gang ein einziges Feld breit', () => {
-    const corridor = Int32Array.from([
-      0, 1, 2, 2,
-      0, 1, 2, 2,
-      0, 1, 2, 2,
-      0, 1, 2, 2,
-    ]);
+    const corridor = Int32Array.from([0, 1, 2, 2, 0, 1, 2, 2, 0, 1, 2, 2, 0, 1, 2, 2]);
     expect(labelRun(1, corridor, size)).toBe(1);
   });
 });

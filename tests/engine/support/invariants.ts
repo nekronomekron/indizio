@@ -1,9 +1,19 @@
 import { expect } from 'vitest';
 import {
-  DIFFICULTY_BANDS, findTheme, parsePuzzle, stringifyPuzzle, toScene, verifyPuzzle,
+  DIFFICULTY_BANDS,
+  findTheme,
+  parsePuzzle,
+  stringifyPuzzle,
+  toScene,
+  verifyPuzzle,
 } from '../../../src/engine/index.js';
 import type { PuzzleCore } from '../../../src/engine/index.js';
-import { boundsOf, buildSceneIndex, isConnected, orthogonalNeighbours } from '../../../src/engine/core/grid.js';
+import {
+  boundsOf,
+  buildSceneIndex,
+  isConnected,
+  orthogonalNeighbours,
+} from '../../../src/engine/core/grid.js';
 import { createClueTranslator, LOCALES } from '../../../src/engine/i18n/index.js';
 
 /**
@@ -130,8 +140,9 @@ export function expectRendersInEveryLanguage(core: PuzzleCore): void {
       const text = translator.render(core, entry);
       expect(text.length, `${locale}/${entry.clue.type} is empty`).toBeGreaterThan(5);
       expect(text, `${locale}/${entry.clue.type} has an unresolved placeholder`).not.toContain('{{');
-      expect(text, `${locale}/${entry.clue.type} leaks a key`)
-        .not.toMatch(/\b(clue|object|room|common)(\.[a-zA-Z_]+){2,}/);
+      expect(text, `${locale}/${entry.clue.type} leaks a key`).not.toMatch(
+        /\b(clue|object|room|common)(\.[a-zA-Z_]+){2,}/,
+      );
     }
   }
 }

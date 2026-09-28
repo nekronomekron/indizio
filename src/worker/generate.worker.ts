@@ -1,10 +1,10 @@
 import { generatePuzzle, GenerationError } from '@engine';
 import type { PuzzleCore } from '@engine';
 
-export interface GenerateRequest { seed: string }
-export type GenerateResponse =
-  | { ok: true; core: PuzzleCore; ms: number }
-  | { ok: false; error: string };
+export interface GenerateRequest {
+  seed: string;
+}
+export type GenerateResponse = { ok: true; core: PuzzleCore; ms: number } | { ok: false; error: string };
 
 self.onmessage = (event: MessageEvent<GenerateRequest>) => {
   const { seed } = event.data;

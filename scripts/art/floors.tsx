@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ReactNode, ReactElement } from 'react';
 import type { FloorMaterial } from '../../src/app/render/floors.js';
 
 /**
@@ -182,7 +182,7 @@ const MATERIALS: Record<FloorMaterial, Material> = {
 };
 
 /** Eine Bodenkachel als Vektorgrafik, im 24er-Raster wie alle anderen Formen. */
-export function FloorTile({ material }: { material: FloorMaterial }) {
+export function FloorTile({ material }: { material: FloorMaterial }): ReactElement {
   const def = MATERIALS[material];
   return (
     <>

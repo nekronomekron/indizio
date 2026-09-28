@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, type ReactElement } from 'react';
 import type { CalendarDate, DifficultyKey } from '@engine';
 import type { Locale } from '@engine/i18n';
 import { compareMonth, monthGrid, sameDate, type YearMonth } from '../calendar.js';
@@ -11,7 +11,9 @@ export type DayState =
   | 'before'
   /** Noch nicht dran. Die Stufe steht schon fest und darf sichtbar sein. */
   | 'future'
-  | 'open' | 'started' | 'solved';
+  | 'open'
+  | 'started'
+  | 'solved';
 
 export interface CalendarProps {
   locale: Locale;
@@ -36,21 +38,27 @@ export interface CalendarProps {
  */
 function useLabels(locale: Locale, at: YearMonth) {
   return useMemo(() => {
-    const month = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric', timeZone: 'UTC' })
-      .format(new Date(Date.UTC(at.year, at.month - 1, 1)));
+    const month = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(
+      new Date(Date.UTC(at.year, at.month - 1, 1)),
+    );
     // Der 1.1.2024 war ein Montag — von dort aus sieben Tage, und die Woche
     // steht in der Reihenfolge, in der sie hier auch angezeigt wird.
     const weekdays = Array.from({ length: 7 }, (_, index) =>
-      new Intl.DateTimeFormat(locale, { weekday: 'short', timeZone: 'UTC' })
-        .format(new Date(Date.UTC(2024, 0, 1 + index))));
+      new Intl.DateTimeFormat(locale, { weekday: 'short', timeZone: 'UTC' }).format(
+        new Date(Date.UTC(2024, 0, 1 + index)),
+      ),
+    );
     const dayName = new Intl.DateTimeFormat(locale, {
-      day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      timeZone: 'UTC',
     });
     return { month, weekdays, dayName };
   }, [locale, at.year, at.month]);
 }
 
-export function Calendar(props: CalendarProps) {
+export function Calendar(props: CalendarProps): ReactElement {
   const { locale, at, today, first, stateOf, difficultyOf, onPick, onShift, onToday } = props;
   const labels = useLabels(locale, at);
   const cells = useMemo(() => monthGrid(at), [at]);
@@ -67,7 +75,9 @@ export function Calendar(props: CalendarProps) {
           onClick={() => onShift(-1)}
           disabled={atFirst}
           aria-label={t(locale, 'prevMonth')}
-        >&larr;</button>
+        >
+          &larr;
+        </button>
 
         <h2>{labels.month}</h2>
 
@@ -83,12 +93,16 @@ export function Calendar(props: CalendarProps) {
             onClick={() => onShift(1)}
             disabled={atCurrent}
             aria-label={t(locale, 'nextMonth')}
-          >&rarr;</button>
+          >
+            &rarr;
+          </button>
         </div>
       </header>
 
       <div className="calendar-weekdays" aria-hidden="true">
-        {labels.weekdays.map((name) => <span key={name}>{name}</span>)}
+        {labels.weekdays.map((name) => (
+          <span key={name}>{name}</span>
+        ))}
       </div>
 
       <div className="calendar-grid" role="grid">
@@ -108,7 +122,9 @@ export function Calendar(props: CalendarProps) {
             labels.dayName.format(new Date(Date.UTC(date.year, date.month - 1, date.day))),
             state === 'before' ? '' : t(locale, difficulty),
             state === 'solved' ? t(locale, 'solvedLabel') : state === 'started' ? t(locale, 'started') : '',
-          ].filter(Boolean).join(', ');
+          ]
+            .filter(Boolean)
+            .join(', ');
 
           return (
             <button
@@ -125,10 +141,14 @@ export function Calendar(props: CalendarProps) {
               {/* Zustand doppelt: als Füllfarbe der Zelle und als großes Symbol,
                   damit er auch ohne Farbwahrnehmung auf einen Blick lesbar ist. */}
               {state === 'solved' && (
-                <span className="day-mark" aria-hidden="true"><Sprite kind="icons" name="ui-check" size={24} /></span>
+                <span className="day-mark" aria-hidden="true">
+                  <Sprite kind="icons" name="ui-check" size={24} />
+                </span>
               )}
               {state === 'started' && (
-                <span className="day-mark" aria-hidden="true"><Sprite kind="icons" name="ui-note" size={24} /></span>
+                <span className="day-mark" aria-hidden="true">
+                  <Sprite kind="icons" name="ui-note" size={24} />
+                </span>
               )}
             </button>
           );

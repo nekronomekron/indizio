@@ -4,8 +4,13 @@ import { describe, expect, it } from 'vitest';
 import type { SceneObject } from '@engine';
 import { TiledObject } from '../src/app/render/TiledObject.js';
 import {
-  SHEET_HEIGHT, SHEET_WIDTH, boardCellPx, quarterCase, quarterTiles,
-  type Corner, type QuarterCase,
+  SHEET_HEIGHT,
+  SHEET_WIDTH,
+  boardCellPx,
+  quarterCase,
+  quarterTiles,
+  type Corner,
+  type QuarterCase,
 } from '../src/app/render/tiles.js';
 
 /**
@@ -18,15 +23,28 @@ import {
 /** Zu welcher Seite ein Viertel offen ist — dort laeuft die Zeichnung bis an die Kante. */
 function openTowards(kind: QuarterCase): { vertical: boolean; horizontal: boolean } {
   switch (kind) {
-    case 'outer': return { vertical: false, horizontal: false };
-    case 'horizontal': return { vertical: false, horizontal: true };
-    case 'vertical': return { vertical: true, horizontal: false };
+    case 'outer':
+      return { vertical: false, horizontal: false };
+    case 'horizontal':
+      return { vertical: false, horizontal: true };
+    case 'vertical':
+      return { vertical: true, horizontal: false };
     case 'inner':
-    case 'fill': return { vertical: true, horizontal: true };
+    case 'fill':
+      return { vertical: true, horizontal: true };
   }
 }
 
-const OFFSETS = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]] as const;
+const OFFSETS = [
+  [-1, -1],
+  [-1, 0],
+  [-1, 1],
+  [0, -1],
+  [0, 1],
+  [1, -1],
+  [1, 0],
+  [1, 1],
+] as const;
 
 describe('Viertelwahl', () => {
   it('ordnet die fuenf Faelle wie im Plan zu', () => {
@@ -65,7 +83,10 @@ describe('Viertelwahl', () => {
         expect(open.horizontal, `mask ${mask} ${quarter.corner} waagerecht`).toBe(has(0, horizontal));
       }
       expect(tile.edges).toEqual({
-        north: !has(-1, 0), east: !has(0, 1), south: !has(1, 0), west: !has(0, -1),
+        north: !has(-1, 0),
+        east: !has(0, 1),
+        south: !has(1, 0),
+        west: !has(0, -1),
       });
     }
   });
@@ -74,7 +95,9 @@ describe('Viertelwahl', () => {
     const seen = new Map<string, string>();
     for (let mask = 0; mask < 256; mask++) {
       const cells = [4];
-      OFFSETS.forEach(([row, column], bit) => { if (mask & (1 << bit)) cells.push((1 + row) * 3 + (1 + column)); });
+      OFFSETS.forEach(([row, column], bit) => {
+        if (mask & (1 << bit)) cells.push((1 + row) * 3 + (1 + column));
+      });
       for (const quarter of quarterTiles(cells, 3).find((entry) => entry.cell === 4)!.quarters) {
         const source = `${quarter.x},${quarter.y}`;
         const meaning = `${quarter.corner}/${quarter.case}`;
@@ -122,10 +145,19 @@ describe('Zellgroesse', () => {
 });
 
 describe('Darstellung', () => {
-  const rug: SceneObject = { id: 0, key: 'carpet', walkable: true, placement: 'tiled', roomId: 0, cells: [0, 1, 6] };
+  const rug: SceneObject = {
+    id: 0,
+    key: 'carpet',
+    walkable: true,
+    placement: 'tiled',
+    roomId: 0,
+    cells: [0, 1, 6],
+  };
 
   it('zeichnet je Zelle vier Viertel aus dem Blatt', () => {
-    const html = renderToStaticMarkup(createElement(TiledObject, { object: rug, size: 5, cellPx: 48, theme: 'flat' }));
+    const html = renderToStaticMarkup(
+      createElement(TiledObject, { object: rug, size: 5, cellPx: 48, theme: 'flat' }),
+    );
     expect(html.match(/class="object tile walkable"/g)).toHaveLength(3);
     expect(html.match(/class="tile-quarter"/g)).toHaveLength(12);
     expect(html).toContain('background-size:96px 144px');
@@ -134,7 +166,9 @@ describe('Darstellung', () => {
   });
 
   it('rahmt nur die Aussenkanten', () => {
-    const html = renderToStaticMarkup(createElement(TiledObject, { object: rug, size: 5, cellPx: 48, theme: 'flat' }));
+    const html = renderToStaticMarkup(
+      createElement(TiledObject, { object: rug, size: 5, cellPx: 48, theme: 'flat' }),
+    );
     // Zelle 0 hat Nachbarn im Osten (1) und im Sueden (5 gehoert nicht dazu,
     // 6 liegt diagonal): Rand nur im Norden, Westen und Sueden.
     const first = /<div[^>]*left:0;top:0;[^>]*>/.exec(html)![0];
@@ -145,9 +179,14 @@ describe('Darstellung', () => {
   });
 
   it('zeichnet ohne Blatt nur die Toenung, statt zu brechen', () => {
-    const html = renderToStaticMarkup(createElement(TiledObject, {
-      object: { ...rug, key: 'unbekannt' }, size: 5, cellPx: 48, theme: 'flat',
-    }));
+    const html = renderToStaticMarkup(
+      createElement(TiledObject, {
+        object: { ...rug, key: 'unbekannt' },
+        size: 5,
+        cellPx: 48,
+        theme: 'flat',
+      }),
+    );
     expect(html.match(/class="object tile walkable"/g)).toHaveLength(3);
     expect(html).not.toContain('tile-quarter');
   });

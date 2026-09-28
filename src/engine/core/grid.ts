@@ -129,11 +129,9 @@ function markCorners(roomOfCell: Int32Array, size: number, cellCount: number): U
     const row = rowOf(cell, size);
     const column = columnOf(cell, size);
     const verticalWall =
-      row === 0 || roomOfCell[cell - size] !== room ||
-      row === size - 1 || roomOfCell[cell + size] !== room;
+      row === 0 || roomOfCell[cell - size] !== room || row === size - 1 || roomOfCell[cell + size] !== room;
     const horizontalWall =
-      column === 0 || roomOfCell[cell - 1] !== room ||
-      column === size - 1 || roomOfCell[cell + 1] !== room;
+      column === 0 || roomOfCell[cell - 1] !== room || column === size - 1 || roomOfCell[cell + 1] !== room;
     if (verticalWall && horizontalWall) corner[cell] = 1;
   }
   return corner;
@@ -183,7 +181,11 @@ function buildObjectMasks(
   return { standsOn, touchingCount, alignedByRow, alignedByColumn };
 }
 
-function buildDirectionMasks(cells: readonly Cell[], size: number, cellCount: number): Record<Direction, Uint8Array> {
+function buildDirectionMasks(
+  cells: readonly Cell[],
+  size: number,
+  cellCount: number,
+): Record<Direction, Uint8Array> {
   const masks: Record<Direction, Uint8Array> = {
     north: new Uint8Array(cellCount),
     east: new Uint8Array(cellCount),

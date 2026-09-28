@@ -1,0 +1,11 @@
+dist/
+coverage/
+node_modules/
+package-lock.json
+# Drawings are files handed over by artists; they are not reformatted.
+art/
+public/
+# Frozen reference data: reformatting it would change nothing but the diff.
+tests/engine/reference/
+# Prose is wrapped by hand; Prettier would reflow tables and lists.
+*.md

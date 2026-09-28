@@ -42,11 +42,13 @@ const SAMPLES: Record<ClueType, Clue> = {
  */
 function looksLikeASentence(text: string): boolean {
   const leftoverKey = /\b(clue|object|room|common)(\.[a-zA-Z_]+){2,}/;
-  return text.length > 5
-    && /[.!?]$/.test(text)
-    && !text.includes('{{')
-    && !text.includes('undefined')
-    && !leftoverKey.test(text);
+  return (
+    text.length > 5 &&
+    /[.!?]$/.test(text) &&
+    !text.includes('{{') &&
+    !text.includes('undefined') &&
+    !leftoverKey.test(text)
+  );
 }
 
 describe('clue rendering', () => {
@@ -69,10 +71,12 @@ describe('clue rendering', () => {
 
       it('picks singular and plural apart', () => {
         const one = translator.render(scene, {
-          ownerId: 0, clue: { type: 'ADJACENT_OBJECT', objectKey: 'chair', count: 1 },
+          ownerId: 0,
+          clue: { type: 'ADJACENT_OBJECT', objectKey: 'chair', count: 1 },
         });
         const many = translator.render(scene, {
-          ownerId: 0, clue: { type: 'ADJACENT_OBJECT', objectKey: 'chair', count: 3 },
+          ownerId: 0,
+          clue: { type: 'ADJACENT_OBJECT', objectKey: 'chair', count: 3 },
         });
         expect(one).not.toBe(many);
         expect(many).toContain('3');
@@ -92,7 +96,10 @@ describe('clue rendering', () => {
         expect(name).not.toBe('object.shelf.bare');
         // Der Satzteil aus einem Hinweis traegt die Praeposition mit; der Name
         // allein darf sie nicht haben.
-        const inClue = translator.render(scene, { ownerId: 0, clue: { type: 'ON_OBJECT', objectKey: 'shelf' } });
+        const inClue = translator.render(scene, {
+          ownerId: 0,
+          clue: { type: 'ON_OBJECT', objectKey: 'shelf' },
+        });
         expect(inClue).not.toBe(name);
         expect(inClue).toContain(name);
       });
@@ -118,10 +125,24 @@ describe('clue rendering', () => {
     const translator = createClueTranslator({
       locale: 'en',
       additionalResources: {
-        en: { object: { spaceship: { on: 'in a spaceship', dative: 'a spaceship', plural: 'spaceships', nominative: 'a spaceship', bare: 'spaceship', from: 'the spaceship' } } },
+        en: {
+          object: {
+            spaceship: {
+              on: 'in a spaceship',
+              dative: 'a spaceship',
+              plural: 'spaceships',
+              nominative: 'a spaceship',
+              bare: 'spaceship',
+              from: 'the spaceship',
+            },
+          },
+        },
       },
     });
-    const text = translator.render(scene, { ownerId: 0, clue: { type: 'ON_OBJECT', objectKey: 'spaceship' } });
+    const text = translator.render(scene, {
+      ownerId: 0,
+      clue: { type: 'ON_OBJECT', objectKey: 'spaceship' },
+    });
     expect(text).toContain('spaceship');
   });
 });
@@ -149,7 +170,8 @@ describe('resource completeness', () => {
     for (const theme of THEMES) {
       for (const object of theme.objects) {
         const name = translator.objectName(object.key);
-        if (name === `object.${object.key}.bare` || name.length === 0) missing.push(`${theme.key}/${object.key}`);
+        if (name === `object.${object.key}.bare` || name.length === 0)
+          missing.push(`${theme.key}/${object.key}`);
       }
     }
     expect(missing).toEqual([]);

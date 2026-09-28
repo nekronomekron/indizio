@@ -28,7 +28,7 @@ export function today(): CalendarDate {
 
 /** Negativ, wenn `a` früher liegt. Vergleicht drei Zahlen, nicht Millisekunden. */
 export function compareDate(a: CalendarDate, b: CalendarDate): number {
-  return (a.year - b.year) || (a.month - b.month) || (a.day - b.day);
+  return a.year - b.year || a.month - b.month || a.day - b.day;
 }
 
 export function sameDate(a: CalendarDate, b: CalendarDate): boolean {
@@ -50,7 +50,7 @@ export function shiftMonth(at: YearMonth, delta: number): YearMonth {
 }
 
 export function compareMonth(a: YearMonth, b: YearMonth): number {
-  return (a.year - b.year) || (a.month - b.month);
+  return a.year - b.year || a.month - b.month;
 }
 
 /**

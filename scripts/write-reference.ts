@@ -2,7 +2,14 @@ import { createHash } from 'node:crypto';
 import { existsSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { DIFFICULTY_ORDER, SIZES_BY_DIFFICULTY, THEME_KEYS, generatePuzzle, makeSeed, stringifyPuzzle } from '@engine';
+import {
+  DIFFICULTY_ORDER,
+  SIZES_BY_DIFFICULTY,
+  THEME_KEYS,
+  generatePuzzle,
+  makeSeed,
+  stringifyPuzzle,
+} from '@engine';
 import type { DifficultyKey } from '@engine';
 
 /**
@@ -40,7 +47,9 @@ if (!existsSync(target)) {
 }
 writeFileSync(join(target, 'checksums.json'), JSON.stringify(checksums, null, 2) + '\n');
 samples.forEach((sample, index) => {
-  writeFileSync(join(target, `sample-${index === 0 ? 'veryEasy' : 'expert'}.json`),
-    JSON.stringify(JSON.parse(sample), null, 2) + '\n');
+  writeFileSync(
+    join(target, `sample-${index === 0 ? 'veryEasy' : 'expert'}.json`),
+    JSON.stringify(JSON.parse(sample), null, 2) + '\n',
+  );
 });
 console.log('checksums:', checksums.length, '| samples:', samples.length, '->', target);

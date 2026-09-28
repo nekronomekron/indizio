@@ -23,19 +23,25 @@ const PROGRESS_KEY = PREFIX + 'progress';
 const SETTINGS_KEY = PREFIX + 'settings';
 
 /** localStorage kann fehlen oder werfen (privates Fenster, blockierte Daten). */
-function readJson<T>(key: string): T | null {
+function readJson(key: string): unknown {
   try {
     const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : null;
-  } catch { return null; }
+    return raw ? (JSON.parse(raw) as unknown) : null;
+  } catch {
+    return null;
+  }
 }
 
 function writeJson(key: string, value: unknown): void {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* Speicher nicht verfuegbar */ }
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* Speicher nicht verfuegbar */
+  }
 }
 
 export function loadSave(seed: string): GameState | null {
-  return readJson<GameState>(SAVE_PREFIX + seed);
+  return readJson(SAVE_PREFIX + seed) as GameState | null;
 }
 
 export function saveGame(seed: string, state: GameState): void {
@@ -43,7 +49,11 @@ export function saveGame(seed: string, state: GameState): void {
 }
 
 export function dropSave(seed: string): void {
-  try { localStorage.removeItem(SAVE_PREFIX + seed); } catch { /* egal */ }
+  try {
+    localStorage.removeItem(SAVE_PREFIX + seed);
+  } catch {
+    /* egal */
+  }
 }
 
 /**
@@ -54,7 +64,11 @@ export function dropSave(seed: string): void {
  * Spielstand einlesen und wieder wegwerfen, nur um einen Punkt zu zeichnen.
  */
 export function hasSave(seed: string): boolean {
-  try { return localStorage.getItem(SAVE_PREFIX + seed) !== null; } catch { return false; }
+  try {
+    return localStorage.getItem(SAVE_PREFIX + seed) !== null;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -73,7 +87,9 @@ export function sweepOldStorage(): void {
     }
     // Erst sammeln, dann löschen: das Entfernen verschiebt die Indizes.
     for (const key of stale) localStorage.removeItem(key);
-  } catch { /* Speicher nicht verfuegbar */ }
+  } catch {
+    /* Speicher nicht verfuegbar */
+  }
 }
 
 /**
@@ -82,8 +98,8 @@ export function sweepOldStorage(): void {
  * nicht erneut Sekunden kostet (PLAN.md 8.4).
  */
 export function loadPuzzle(seed: string, generatorVersion: number): PuzzleCore | null {
-  const cached = readJson<PuzzleCore>(PUZZLE_PREFIX + seed);
-  if (!cached || cached.generatorVersion !== generatorVersion) return null;
+  const cached = readJson(PUZZLE_PREFIX + seed) as PuzzleCore | null;
+  if (cached?.generatorVersion !== generatorVersion) return null;
   return cached;
 }
 
@@ -101,7 +117,7 @@ export interface ProgressEntry {
 export type Progress = Record<string, ProgressEntry>;
 
 export function loadProgress(): Progress {
-  return readJson<Progress>(PROGRESS_KEY) ?? {};
+  return (readJson(PROGRESS_KEY) as Progress | null) ?? {};
 }
 
 export function recordProgress(seed: string, entry: Partial<ProgressEntry>): Progress {
@@ -133,7 +149,7 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = { locale: 'de', holdMs: 350, vibrate: true, names: true };
 
 export function loadSettings(): Settings {
-  return { ...DEFAULT_SETTINGS, ...(readJson<Partial<Settings>>(SETTINGS_KEY) ?? {}) };
+  return { ...DEFAULT_SETTINGS, ...((readJson(SETTINGS_KEY) as Partial<Settings> | null) ?? {}) };
 }
 
 export function saveSettings(settings: Settings): void {
@@ -143,9 +159,17 @@ export function saveSettings(settings: Settings): void {
 const TUTORIAL_KEY = 'indizio:' + VERSION + ':tutorialSeen';
 
 export function tutorialSeen(): boolean {
-  try { return localStorage.getItem(TUTORIAL_KEY) === '1'; } catch { return true; }
+  try {
+    return localStorage.getItem(TUTORIAL_KEY) === '1';
+  } catch {
+    return true;
+  }
 }
 
 export function markTutorialSeen(): void {
-  try { localStorage.setItem(TUTORIAL_KEY, '1'); } catch { /* egal */ }
+  try {
+    localStorage.setItem(TUTORIAL_KEY, '1');
+  } catch {
+    /* egal */
+  }
 }

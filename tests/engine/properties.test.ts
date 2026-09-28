@@ -40,8 +40,7 @@ describe('every generated puzzle', () => {
   it('comes out identical from the same seed', () => {
     fc.assert(
       fc.property(smallSeedArbitrary, (seed) => {
-        expect(stringifyPuzzle(generatePuzzle(seed).core))
-          .toBe(stringifyPuzzle(generatePuzzle(seed).core));
+        expect(stringifyPuzzle(generatePuzzle(seed).core)).toBe(stringifyPuzzle(generatePuzzle(seed).core));
       }),
       { numRuns: FAST_RUNS },
     );

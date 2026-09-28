@@ -32,5 +32,6 @@ export function seedsAcrossTiers(count: number, salt = 0): TieredSeed[] {
 /** Seeds on the smallest grids — fast enough for the quick tier. */
 export function smallSeeds(count: number, salt = 0): string[] {
   return Array.from({ length: count }, (_, index) =>
-    makeSeed(THEME_KEYS[index % THEME_KEYS.length]!, index % 2 === 0 ? 5 : 6, 0x9a11 + salt + index * 7919));
+    makeSeed(THEME_KEYS[index % THEME_KEYS.length]!, index % 2 === 0 ? 5 : 6, 0x9a11 + salt + index * 7919),
+  );
 }

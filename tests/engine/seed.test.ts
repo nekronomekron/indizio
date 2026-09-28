@@ -1,8 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import {
-  DIFFICULTY_ORDER, GENERATOR_VERSION, MAX_GRID_SIZE, MIN_GRID_SIZE, SIZES_BY_DIFFICULTY,
-  SeedError, THEME_KEYS, dailyDifficulty, dailySeed, difficultyOfSize, formatSeed, isValidSeed,
-  makeSeed, parseSeed, weekdayOf,
+  DIFFICULTY_ORDER,
+  GENERATOR_VERSION,
+  MAX_GRID_SIZE,
+  MIN_GRID_SIZE,
+  SIZES_BY_DIFFICULTY,
+  SeedError,
+  THEME_KEYS,
+  dailyDifficulty,
+  dailySeed,
+  difficultyOfSize,
+  formatSeed,
+  isValidSeed,
+  makeSeed,
+  parseSeed,
+  weekdayOf,
 } from '../../src/engine/index.js';
 
 /**
@@ -36,9 +48,15 @@ describe('seed encoding', () => {
 
   it('rejects anything malformed', () => {
     const bad = [
-      '', 'nonsense', 'v2-garage-6-vl', 'v2-garage-6-vl-abc-extra',
-      'x2-garage-6-vl-abc', 'v2-garage-99-vl-abc', 'v2-garage-6-zz-abc',
-      `v2-garage-${MIN_GRID_SIZE - 1}-vl-abc`, `v2-garage-${MAX_GRID_SIZE + 1}-x-abc`,
+      '',
+      'nonsense',
+      'v2-garage-6-vl',
+      'v2-garage-6-vl-abc-extra',
+      'x2-garage-6-vl-abc',
+      'v2-garage-99-vl-abc',
+      'v2-garage-6-zz-abc',
+      `v2-garage-${MIN_GRID_SIZE - 1}-vl-abc`,
+      `v2-garage-${MAX_GRID_SIZE + 1}-x-abc`,
     ];
     for (const seed of bad) {
       expect(isValidSeed(seed), `should reject ${seed}`).toBe(false);
@@ -78,7 +96,7 @@ describe('daily seed', () => {
     for (const wrong of [
       { year: 2026, month: 13, day: 1 },
       { year: 2026, month: 0, day: 1 },
-      { year: 2026, month: 2, day: 29 },   // 2026 is no leap year
+      { year: 2026, month: 2, day: 29 }, // 2026 is no leap year
       { year: 2026, month: 4, day: 31 },
       { year: 2026, month: 1, day: 0 },
     ]) {
@@ -97,11 +115,11 @@ describe('the weekly rhythm', () => {
    * record, not of the same formula asked twice.
    */
   it('names the weekday of known dates', () => {
-    expect(weekdayOf({ year: 2026, month: 1, day: 1 })).toBe(4);    // Thursday
-    expect(weekdayOf({ year: 2000, month: 1, day: 1 })).toBe(6);    // Saturday, a leap year
-    expect(weekdayOf({ year: 1900, month: 3, day: 1 })).toBe(4);    // Thursday, no leap year
-    expect(weekdayOf({ year: 2028, month: 2, day: 29 })).toBe(2);   // Tuesday, the leap day
-    expect(weekdayOf({ year: 2026, month: 9, day: 27 })).toBe(0);   // Sunday
+    expect(weekdayOf({ year: 2026, month: 1, day: 1 })).toBe(4); // Thursday
+    expect(weekdayOf({ year: 2000, month: 1, day: 1 })).toBe(6); // Saturday, a leap year
+    expect(weekdayOf({ year: 1900, month: 3, day: 1 })).toBe(4); // Thursday, no leap year
+    expect(weekdayOf({ year: 2028, month: 2, day: 29 })).toBe(2); // Tuesday, the leap day
+    expect(weekdayOf({ year: 2026, month: 9, day: 27 })).toBe(0); // Sunday
   });
 
   it('agrees with the platform for a whole year', () => {
@@ -119,14 +137,17 @@ describe('the weekly rhythm', () => {
   it('gives each weekday its tier, and Sunday the long one', () => {
     // 2026-09-27 is a Sunday; the week after it walks Monday to Saturday.
     const week = [
-      ['expert', 27], ['veryEasy', 28], ['easy', 29], ['easy', 30],
+      ['expert', 27],
+      ['veryEasy', 28],
+      ['easy', 29],
+      ['easy', 30],
     ] as const;
     for (const [tier, day] of week) {
       expect(dailyDifficulty({ year: 2026, month: 9, day }), String(day)).toBe(tier);
     }
-    expect(dailyDifficulty({ year: 2026, month: 10, day: 1 })).toBe('medium');   // Thursday
-    expect(dailyDifficulty({ year: 2026, month: 10, day: 2 })).toBe('medium');   // Friday
-    expect(dailyDifficulty({ year: 2026, month: 10, day: 3 })).toBe('hard');     // Saturday
+    expect(dailyDifficulty({ year: 2026, month: 10, day: 1 })).toBe('medium'); // Thursday
+    expect(dailyDifficulty({ year: 2026, month: 10, day: 2 })).toBe('medium'); // Friday
+    expect(dailyDifficulty({ year: 2026, month: 10, day: 3 })).toBe('hard'); // Saturday
   });
 
   it('gives the day a grid size that matches its tier', () => {

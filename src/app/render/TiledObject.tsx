@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, type ReactElement } from 'react';
 import type { SceneObject } from '@engine';
 import { artUrl } from './art.js';
 import { SHEET_UNIT, quarterTiles, type OpenEdges } from './tiles.js';
@@ -28,7 +28,7 @@ function edgeShadow(edges: OpenEdges): string {
  * Box gelegt, wie bei festen Requisiten, faerbte sie bei einer L-Form die
  * Luecke mit ein.
  */
-export function TiledObject({ object, size, cellPx, theme }: TiledObjectProps) {
+export function TiledObject({ object, size, cellPx, theme }: TiledObjectProps): ReactElement {
   const tiles = useMemo(() => quarterTiles(object.cells, size), [object.cells, size]);
   const url = artUrl('tiles', object.key, theme);
   const half = cellPx / 2;
@@ -49,21 +49,22 @@ export function TiledObject({ object, size, cellPx, theme }: TiledObjectProps) {
             boxShadow: edgeShadow(tile.edges),
           }}
         >
-          {url !== undefined && tile.quarters.map((quarter) => (
-            <span
-              key={quarter.corner}
-              className="tile-quarter"
-              style={{
-                left: quarter.corner.endsWith('e') ? half : 0,
-                top: quarter.corner.startsWith('s') ? half : 0,
-                width: half,
-                height: half,
-                backgroundImage: `url("${url}")`,
-                backgroundSize: `${String(2 * cellPx)}px ${String(3 * cellPx)}px`,
-                backgroundPosition: `${String(-quarter.x * scale)}px ${String(-quarter.y * scale)}px`,
-              }}
-            />
-          ))}
+          {url !== undefined &&
+            tile.quarters.map((quarter) => (
+              <span
+                key={quarter.corner}
+                className="tile-quarter"
+                style={{
+                  left: quarter.corner.endsWith('e') ? half : 0,
+                  top: quarter.corner.startsWith('s') ? half : 0,
+                  width: half,
+                  height: half,
+                  backgroundImage: `url("${url}")`,
+                  backgroundSize: `${String(2 * cellPx)}px ${String(3 * cellPx)}px`,
+                  backgroundPosition: `${String(-quarter.x * scale)}px ${String(-quarter.y * scale)}px`,
+                }}
+              />
+            ))}
         </div>
       ))}
     </>

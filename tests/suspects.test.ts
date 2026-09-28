@@ -40,7 +40,10 @@ describe('Buchstaben der Verdaechtigen', () => {
     for (const size of [5, 6, 7, 8, 9, 10]) {
       const { core } = generatePuzzle(makeSeed('garage', size, 4711 + size));
       const letters = suspectLetters(core.suspects);
-      expect(letters.every((letter) => letter.length === 1), String(size)).toBe(true);
+      expect(
+        letters.every((letter) => letter.length === 1),
+        String(size),
+      ).toBe(true);
       expect(new Set(letters).size, String(size)).toBe(core.suspects.length);
     }
   });

@@ -71,7 +71,11 @@ export function parseSeed(seed: string, options: ParseSeedOptions = {}): SeedPar
   const segments = seed.trim().toLowerCase().split('-');
   if (segments.length !== 5) throw new SeedError(`Malformed seed: ${seed}`);
   const [versionText, themeKey, sizeText, difficultyCode, randomText] = segments as [
-    string, string, string, string, string,
+    string,
+    string,
+    string,
+    string,
+    string,
   ];
 
   if (!/^v\d+$/.test(versionText)) throw new SeedError(`Malformed version in seed: ${seed}`);
@@ -91,7 +95,8 @@ export function parseSeed(seed: string, options: ParseSeedOptions = {}): SeedPar
   if (!difficulty) throw new SeedError(`Unknown difficulty in seed: ${difficultyCode}`);
 
   const random = Number.parseInt(randomText, 36);
-  if (!Number.isFinite(random) || random < 0) throw new SeedError(`Malformed random word in seed: ${randomText}`);
+  if (!Number.isFinite(random) || random < 0)
+    throw new SeedError(`Malformed random word in seed: ${randomText}`);
 
   return { version, themeKey, size, difficulty, random: random >>> 0 };
 }
@@ -159,9 +164,14 @@ export function daysInMonth(year: number, month: number): number {
 
 function assertDate(date: CalendarDate): void {
   const { year, month, day } = date;
-  const valid = Number.isInteger(year) && Number.isInteger(month) && Number.isInteger(day)
-    && month >= 1 && month <= 12
-    && day >= 1 && day <= daysInMonth(year, month);
+  const valid =
+    Number.isInteger(year) &&
+    Number.isInteger(month) &&
+    Number.isInteger(day) &&
+    month >= 1 &&
+    month <= 12 &&
+    day >= 1 &&
+    day <= daysInMonth(year, month);
   if (!valid) throw new SeedError(`Not a calendar date: ${year}-${month}-${day}`);
 }
 
@@ -191,13 +201,13 @@ export function weekdayOf(date: CalendarDate): number {
  * it asks for.
  */
 const DAILY_RHYTHM: readonly DifficultyKey[] = [
-  'expert',    // Sunday
-  'veryEasy',  // Monday
+  'expert', // Sunday
+  'veryEasy', // Monday
   'easy',
   'easy',
   'medium',
   'medium',
-  'hard',      // Saturday
+  'hard', // Saturday
 ];
 
 /** What a given day asks of the player. */

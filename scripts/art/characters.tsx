@@ -27,7 +27,7 @@ const HAUT = ['#f0cfae', '#dcae83', '#b9835a', '#8d5f3c'];
 const HAAR = ['#3a3450', '#6d492a', '#c99a4e', '#8b8898', '#a8503a'];
 
 /** Kopfformen: reine Silhouette, nie ein Gesicht. */
-const KOPFFORMEN: Array<(haar: string) => ReactNode> = [
+const KOPFFORMEN: ((haar: string) => ReactNode)[] = [
   // kurz und rund
   (h) => <path d="M6.4 9.6a5.6 5.6 0 0 1 11.2 0Z" fill={h} />,
   // flacher Schnitt

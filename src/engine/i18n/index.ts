@@ -10,8 +10,12 @@
  * `@engine` would put i18next in every bundle that touches a puzzle.
  */
 export {
-  LOCALES, createClueTranslator,
-  type ClueScene, type ClueTranslator, type ClueTranslatorOptions, type Locale,
+  LOCALES,
+  createClueTranslator,
+  type ClueScene,
+  type ClueTranslator,
+  type ClueTranslatorOptions,
+  type Locale,
 } from './translator.js';
 export { de } from './resources/de.js';
 export { en } from './resources/en.js';

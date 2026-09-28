@@ -180,7 +180,10 @@ export class RoomView {
   private roomsPerSuspect: Set<RoomId>[] = [];
   private seenRevision = -1;
 
-  constructor(private readonly index: SceneIndex, private readonly state: CandidateState) {}
+  constructor(
+    private readonly index: SceneIndex,
+    private readonly state: CandidateState,
+  ) {}
 
   private refresh(): void {
     if (this.seenRevision === this.state.revision) return;

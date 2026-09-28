@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import { artUrl } from './art.js';
 import type { ArtKind } from './art.js';
 
@@ -43,13 +44,14 @@ export interface SpriteProps {
  * Fehlt eine Grafik, bleibt die Flaeche leer statt das Layout zu zerreissen.
  * Dass keine fehlt, prueft `tests/art.test.ts`.
  */
-export function Sprite(props: SpriteProps) {
+export function Sprite(props: SpriteProps): ReactElement {
   const { name, kind = 'objects', theme, footprint, size = 32, className, title, style } = props;
   const width = props.width ?? size;
   const height = props.height ?? size;
 
   const url = footprint
-    ? artUrl(kind, `${name}_${String(footprint[0])}x${String(footprint[1])}`, theme) ?? artUrl(kind, name, theme)
+    ? (artUrl(kind, `${name}_${String(footprint[0])}x${String(footprint[1])}`, theme) ??
+      artUrl(kind, name, theme))
     : artUrl(kind, name, theme);
 
   if (url === undefined) return <span className={className} style={{ width, height, ...style }} />;

@@ -40,8 +40,9 @@ function withoutComments(source: string): string {
 }
 
 const files = sourceFiles();
-const contents = new Map(files.map((path) =>
-  [relative(SOURCE_ROOT, path).replaceAll('\\', '/'), readFileSync(path, 'utf8')]));
+const contents = new Map(
+  files.map((path) => [relative(SOURCE_ROOT, path).replaceAll('\\', '/'), readFileSync(path, 'utf8')]),
+);
 
 /** The same files with comments stripped, for checks about what the code does. */
 const codeOnly = new Map([...contents].map(([path, source]) => [path, withoutComments(source)]));
@@ -51,8 +52,12 @@ const codeOnly = new Map([...contents].map(([path, source]) => [path, withoutCom
  * where a path like `./io/document.js` would otherwise read as DOM access.
  * Imports are covered by the layering check instead.
  */
-const bodyOnly = new Map([...codeOnly].map(([path, source]) =>
-  [path, source.replace(/^\s*(import|export)[\s\S]*?from\s+'[^']+';/gm, '')]));
+const bodyOnly = new Map(
+  [...codeOnly].map(([path, source]) => [
+    path,
+    source.replace(/^\s*(import|export)[\s\S]*?from\s+'[^']+';/gm, ''),
+  ]),
+);
 
 /** Layers, in dependency order. A layer may import from itself and anything above it. */
 const LAYERS = ['core', 'clues', 'solving', 'content', 'generation', 'io', 'i18n'] as const;
@@ -159,10 +164,32 @@ describe('language', () => {
    * a negative.
    */
   const GERMAN_MARKERS = [
-    'ae', 'oe', 'ue', // transliterated umlauts, as previously used in identifiers
-    'raum', 'zelle', 'hinweis', 'loesung', 'verdaecht', 'moerder', 'opfer',
-    'gitter', 'regel', 'pruef', 'aufzaehl', 'schluessel', 'anzahl', 'weil',
-    'nicht', 'jede', 'eine', 'kein', 'wird', 'muss', 'dass', 'oder', 'und',
+    'ae',
+    'oe',
+    'ue', // transliterated umlauts, as previously used in identifiers
+    'raum',
+    'zelle',
+    'hinweis',
+    'loesung',
+    'verdaecht',
+    'moerder',
+    'opfer',
+    'gitter',
+    'regel',
+    'pruef',
+    'aufzaehl',
+    'schluessel',
+    'anzahl',
+    'weil',
+    'nicht',
+    'jede',
+    'eine',
+    'kein',
+    'wird',
+    'muss',
+    'dass',
+    'oder',
+    'und',
   ];
 
   it('is written in English throughout', () => {

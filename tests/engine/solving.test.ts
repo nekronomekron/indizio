@@ -47,10 +47,7 @@ describe('deductive solver', () => {
   });
 
   it('detects a contradiction', () => {
-    const broken: ClueEntry[] = [
-      ...everyTrueClue(),
-      { ownerId: 0, clue: { type: 'IN_ROOM', roomId: 1 } },
-    ];
+    const broken: ClueEntry[] = [...everyTrueClue(), { ownerId: 0, clue: { type: 'IN_ROOM', roomId: 1 } }];
     expect(solve(index, suspects, broken).status).toBe('contradiction');
   });
 
@@ -145,8 +142,15 @@ describe('hints', () => {
   it('ignores wrong placements entirely', () => {
     // A hint must not become a way to find out whether something is wrong.
     const clues = everyTrueClue();
-    const fromEmpty = nextHint(index, suspects, clues, suspects.map(() => null));
-    const wrongBoard = suspects.map((_, id) => (id % 2 === 0 ? ((solution[id] ?? 0) + 3) % index.cellCount : null));
+    const fromEmpty = nextHint(
+      index,
+      suspects,
+      clues,
+      suspects.map(() => null),
+    );
+    const wrongBoard = suspects.map((_, id) =>
+      id % 2 === 0 ? ((solution[id] ?? 0) + 3) % index.cellCount : null,
+    );
     const fromWrong = nextHint(index, suspects, clues, wrongBoard);
     expect(fromWrong?.suspectId).toBe(fromEmpty?.suspectId);
     expect(fromWrong?.cell).toBe(fromEmpty?.cell);

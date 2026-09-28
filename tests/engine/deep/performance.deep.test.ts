@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { DIFFICULTY_ORDER, SIZES_BY_DIFFICULTY, THEME_KEYS, generatePuzzle, makeSeed } from '../../../src/engine/index.js';
+import {
+  DIFFICULTY_ORDER,
+  SIZES_BY_DIFFICULTY,
+  THEME_KEYS,
+  generatePuzzle,
+  makeSeed,
+} from '../../../src/engine/index.js';
 import type { DifficultyKey } from '../../../src/engine/index.js';
 
 /**

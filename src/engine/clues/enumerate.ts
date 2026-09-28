@@ -102,8 +102,11 @@ function enumerateRelationClues(
     if (otherId === ownerId) continue;
 
     // Naming the victim in a room statement would hand over the murderer.
-    if (allowed.has('SAME_ROOM_AS') && otherId !== victimId
-      && roomOfSuspect(occupancy, otherId) === ownRoom) {
+    if (
+      allowed.has('SAME_ROOM_AS') &&
+      otherId !== victimId &&
+      roomOfSuspect(occupancy, otherId) === ownRoom
+    ) {
       clues.push({ type: 'SAME_ROOM_AS', otherId });
     }
 

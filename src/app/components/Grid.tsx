@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { columnOf, rowOf } from '@engine';
 import type { Cell, PuzzleCore } from '@engine';
 import { Sprite } from '../render/Sprite.js';
@@ -15,7 +15,10 @@ const TIP_DELAY = 250;
 
 /** Was die Blase gerade zeigt, und wer sie aufgerufen hat. */
 type TipSource = 'mouse' | 'touch' | 'keys';
-interface Tip { cell: Cell; source: TipSource }
+interface Tip {
+  cell: Cell;
+  source: TipSource;
+}
 
 export interface GridProps {
   core: PuzzleCore;
@@ -53,11 +56,29 @@ export interface GridProps {
   letters: readonly string[];
 }
 
-export function Grid(props: GridProps) {
+export function Grid(props: GridProps): ReactElement {
   const {
-    core, state, cellPx, holdMs, vibrate, roomLabels, objectLabels, suspectNames, names,
-    occupiedLabel, roomOfCell, blocked, letters,
-    onPlace, onTap, onPaint, onMark, onNote, onClear, onCycle, keyboardLabel,
+    core,
+    state,
+    cellPx,
+    holdMs,
+    vibrate,
+    roomLabels,
+    objectLabels,
+    suspectNames,
+    names,
+    occupiedLabel,
+    roomOfCell,
+    blocked,
+    letters,
+    onPlace,
+    onTap,
+    onPaint,
+    onMark,
+    onNote,
+    onClear,
+    onCycle,
+    keyboardLabel,
   } = props;
   const size = core.size;
   const boardPx = size * cellPx;
@@ -127,7 +148,10 @@ export function Grid(props: GridProps) {
    */
   const showTipSoon = (cell: Cell | null) => {
     if (!names) return;
-    if (cell === null) { hideTip(); return; }
+    if (cell === null) {
+      hideTip();
+      return;
+    }
     if (pendingTip.current === cell) return;
     hideTip();
     pendingTip.current = cell;
@@ -164,11 +188,14 @@ export function Grid(props: GridProps) {
     }
   }, []);
 
-  useEffect(() => () => {
-    if (holdTimer.current !== null) window.clearTimeout(holdTimer.current);
-    if (deniedTimer.current !== null) window.clearTimeout(deniedTimer.current);
-    if (tipTimer.current !== null) window.clearTimeout(tipTimer.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (holdTimer.current !== null) window.clearTimeout(holdTimer.current);
+      if (deniedTimer.current !== null) window.clearTimeout(deniedTimer.current);
+      if (tipTimer.current !== null) window.clearTimeout(tipTimer.current);
+    },
+    [],
+  );
 
   const resetPointer = () => {
     pointerDown.current = false;
@@ -188,8 +215,11 @@ export function Grid(props: GridProps) {
     if (event.pointerType !== 'mouse') showTip(cell, 'touch');
     else if (!isBlocked(cell)) hideTip();
 
-    if (isBlocked(cell)) { refuse(cell); return; }
-    event.currentTarget.setPointerCapture?.(event.pointerId);
+    if (isBlocked(cell)) {
+      refuse(cell);
+      return;
+    }
+    event.currentTarget.setPointerCapture(event.pointerId);
     pointerDown.current = true;
     held.current = false;
     dragStarted.current = false;
@@ -199,7 +229,8 @@ export function Grid(props: GridProps) {
     holdTimer.current = window.setTimeout(() => {
       held.current = true;
       holdTimer.current = null;
-      if (vibrate && navigator.vibrate) navigator.vibrate(12);
+      // Safari has no vibrate(), whatever the DOM types claim.
+      if (vibrate && 'vibrate' in navigator) navigator.vibrate(12);
       onPlace(cell);
     }, holdMs);
   };
@@ -210,7 +241,8 @@ export function Grid(props: GridProps) {
     // Raumhervorhebung folgt der Maus, auch ohne gedrückte Taste.
     if (event.pointerType === 'mouse') {
       setHoverRoom(cell === null ? null : roomOfCell[cell]!);
-      if (pointerDown.current) hideTip(); else showTipSoon(cell);
+      if (pointerDown.current) hideTip();
+      else showTipSoon(cell);
     } else if (pointerDown.current && cell !== null) {
       // Beim Ziehen liest man mit, über welchen Raum der Strich läuft.
       showTip(cell, 'touch');
@@ -231,7 +263,10 @@ export function Grid(props: GridProps) {
   };
 
   const handleUp = (event: React.PointerEvent) => {
-    if (!pointerDown.current) { resetPointer(); return; }
+    if (!pointerDown.current) {
+      resetPointer();
+      return;
+    }
     const cell = cellFromPoint(event.clientX, event.clientY) ?? downCell.current;
     const wasHeld = held.current;
     const dragged = dragStarted.current;
@@ -260,7 +295,7 @@ export function Grid(props: GridProps) {
    * 10×10 schlimmer als gar keine Tastaturbedienung.
    */
   const firstFreeCell = (): Cell => {
-    const own = state.selected === null ? null : state.placements[state.selected] ?? null;
+    const own = state.selected === null ? null : (state.placements[state.selected] ?? null);
     if (own !== null) return own;
     for (let cell = 0; cell < size * size; cell++) if (!isBlocked(cell)) return cell;
     return 0;
@@ -276,16 +311,36 @@ export function Grid(props: GridProps) {
     switch (event.key) {
       case 'Enter':
       case ' ':
-        if (isBlocked(at)) refuse(at); else onPlace(at);
+        if (isBlocked(at)) refuse(at);
+        else onPlace(at);
         handled = true;
         break;
-      case 'n': case 'N': if (!isBlocked(at)) onNote(at); handled = true; break;
-      case 'x': case 'X': if (!isBlocked(at)) onMark(at); handled = true; break;
-      case 'Delete': case 'Backspace': onClear(at); handled = true; break;
-      case ',': onCycle(-1); handled = true; break;
-      case '.': onCycle(1); handled = true; break;
+      case 'n':
+      case 'N':
+        if (!isBlocked(at)) onNote(at);
+        handled = true;
+        break;
+      case 'x':
+      case 'X':
+        if (!isBlocked(at)) onMark(at);
+        handled = true;
+        break;
+      case 'Delete':
+      case 'Backspace':
+        onClear(at);
+        handled = true;
+        break;
+      case ',':
+        onCycle(-1);
+        handled = true;
+        break;
+      case '.':
+        onCycle(1);
+        handled = true;
+        break;
 
-      default: break;
+      default:
+        break;
     }
 
     // Nur fuer erkannte Tasten: sonst schluckte das Brett Tab, F5 und alles
@@ -317,7 +372,10 @@ export function Grid(props: GridProps) {
     core.rooms.forEach((room, i) => {
       const kind = floorFor(room.nameKey);
       material.set(room.id, kind);
-      image.set(room.id, artUrl('floors', kind, core.themeKey) ?? artUrl('floors', DEFAULT_FLOOR, core.themeKey));
+      image.set(
+        room.id,
+        artUrl('floors', kind, core.themeKey) ?? artUrl('floors', DEFAULT_FLOOR, core.themeKey),
+      );
       shade.set(room.id, 1 + ((i % 3) - 1) * 0.06);
     });
     return { material, image, shade };
@@ -328,10 +386,11 @@ export function Grid(props: GridProps) {
    * nur so breit werden, wie der Raum in dieser Zeile reicht.
    */
   const labelSpots = useMemo(
-    () => core.rooms.map((room) => {
-      const cell = Math.min(...room.cells);
-      return { room, cell, run: labelRun(cell, roomOfCell, size) };
-    }),
+    () =>
+      core.rooms.map((room) => {
+        const cell = Math.min(...room.cells);
+        return { room, cell, run: labelRun(cell, roomOfCell, size) };
+      }),
     [core.rooms, roomOfCell, size],
   );
   const labelCells = useMemo(() => new Set(labelSpots.map((spot) => spot.cell)), [labelSpots]);
@@ -354,22 +413,29 @@ export function Grid(props: GridProps) {
 
   // Namen des Feldes unter Zeiger, Finger oder Rahmen. Ohne Hook: eine
   // Zeichenkette und ein Ort, beides zu billig für einen Zwischenspeicher.
-  const tipCell = names ? tip?.cell ?? null : null;
+  const tipCell = names ? (tip?.cell ?? null) : null;
   const tipObject = tipCell === null ? undefined : objectOfCell.get(tipCell);
   const tipPerson = tipCell === null ? -1 : state.placements.findIndex((c) => c === tipCell);
-  const tipText = tipCell === null ? '' : describeCell({
-    room: roomLabels[roomOfCell[tipCell]!] ?? '',
-    object: tipObject === undefined ? null : objectLabels[tipObject] ?? null,
-    person: tipPerson < 0 ? null : suspectNames[tipPerson] ?? null,
-    blocked: isBlocked(tipCell),
-    occupied: occupiedLabel,
-  });
-  const tipAt = tipCell === null || tipText.length === 0
-    ? null
-    : tipSpot(tipCell, size, cellPx, Math.min(boardPx, estimateTipWidth(tipText)));
+  const tipText =
+    tipCell === null
+      ? ''
+      : describeCell({
+          room: roomLabels[roomOfCell[tipCell]!] ?? '',
+          object: tipObject === undefined ? null : (objectLabels[tipObject] ?? null),
+          person: tipPerson < 0 ? null : (suspectNames[tipPerson] ?? null),
+          blocked: isBlocked(tipCell),
+          occupied: occupiedLabel,
+        });
+  const tipAt =
+    tipCell === null || tipText.length === 0
+      ? null
+      : tipSpot(tipCell, size, cellPx, Math.min(boardPx, estimateTipWidth(tipText)));
 
   return (
-    <div className="board" style={{ width: boardPx, height: boardPx, ['--wall-inset' as string]: String(inset) + 'px' }}>
+    <div
+      className="board"
+      style={{ width: boardPx, height: boardPx, ['--wall-inset' as string]: String(inset) + 'px' }}
+    >
       {/* Boden: eine Kachel je Zelle, damit jede Raumform trägt. */}
       <div className="floor" style={{ gridTemplateColumns: 'repeat(' + size + ', ' + cellPx + 'px)' }}>
         {Array.from({ length: size * size }, (_, cell) => {
@@ -387,7 +453,10 @@ export function Grid(props: GridProps) {
                 width: cellPx,
                 height: cellPx,
                 backgroundImage: image === undefined ? undefined : 'url("' + image + '")',
-                transform: flip.x === 1 && flip.y === 1 ? undefined : 'scale(' + String(flip.x) + ', ' + String(flip.y) + ')',
+                transform:
+                  flip.x === 1 && flip.y === 1
+                    ? undefined
+                    : 'scale(' + String(flip.x) + ', ' + String(flip.y) + ')',
                 ['--room-shade' as string]: floors.shade.get(room) ?? 1,
               }}
             />
@@ -442,6 +511,10 @@ export function Grid(props: GridProps) {
         );
       })}
 
+      {/* The board is one composite widget with its own keyboard model (PLAN.md
+          §8.3): role="application" is the honest description, which the a11y
+          plugin does not count as interactive. */}
+      {/* eslint-disable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */}
       <div
         className="cells"
         style={{ gridTemplateColumns: 'repeat(' + size + ', ' + cellPx + 'px)' }}
@@ -450,7 +523,10 @@ export function Grid(props: GridProps) {
         aria-label={keyboardLabel}
         onKeyDown={handleKey}
         onFocus={() => setFocused(true)}
-        onBlur={() => { setFocused(false); if (tip?.source === 'keys') hideTip(); }}
+        onBlur={() => {
+          setFocused(false);
+          if (tip?.source === 'keys') hideTip();
+        }}
         onPointerDown={handleDown}
         onPointerMove={handleMove}
         onPointerUp={handleUp}
@@ -466,17 +542,24 @@ export function Grid(props: GridProps) {
           // Desktop-Kurzweg: Doppelklick platziert, ohne halten zu müssen.
           const cell = cellFromPoint(event.clientX, event.clientY);
           if (cell === null) return;
-          if (isBlocked(cell)) { refuse(cell); return; }
+          if (isBlocked(cell)) {
+            refuse(cell);
+            return;
+          }
           onPlace(cell);
         }}
         onContextMenu={(event) => {
           event.preventDefault();
           const cell = cellFromPoint(event.clientX, event.clientY);
           if (cell === null) return;
-          if (isBlocked(cell)) { refuse(cell); return; }
+          if (isBlocked(cell)) {
+            refuse(cell);
+            return;
+          }
           onMark(cell);
         }}
       >
+        {/* eslint-enable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */}
         {Array.from({ length: size * size }, (_, cell) => {
           const placedId = state.placements.findIndex((c) => c === cell);
           const notes = state.notes[cell] ?? [];
@@ -496,7 +579,11 @@ export function Grid(props: GridProps) {
             >
               {placedId >= 0 && (
                 <span className="placed">
-                  <Sprite kind="characters" name={core.suspects[placedId]!.portraitKey} size={Math.round(cellPx * 0.86)} />
+                  <Sprite
+                    kind="characters"
+                    name={core.suspects[placedId]!.portraitKey}
+                    size={Math.round(cellPx * 0.86)}
+                  />
                   {/* Der Buchstabe der gewaehlten Person leuchtet auf - so
                       findet man sie auf dem Brett, ohne zu suchen. */}
                   <span className={'placed-letter' + (placedId === state.selected ? ' chosen' : '')}>
@@ -504,11 +591,16 @@ export function Grid(props: GridProps) {
                   </span>
                 </span>
               )}
-              {placedId < 0 && marked && <Sprite kind="icons" name="ui-x" size={Math.round(cellPx * 0.5)} className="mark" />}
+              {placedId < 0 && marked && (
+                <Sprite kind="icons" name="ui-x" size={Math.round(cellPx * 0.5)} className="mark" />
+              )}
               {/* Bleistiftnotizen sitzen links oben und stehen auch neben einem X.
                   Wo der Raumname steht, beginnen sie unter seinem Schild. */}
               {placedId < 0 && notes.length > 0 && (
-                <span className={'notes' + (labelCells.has(cell) ? ' below-label' : '')} style={{ fontSize: noteSize }}>
+                <span
+                  className={'notes' + (labelCells.has(cell) ? ' below-label' : '')}
+                  style={{ fontSize: noteSize }}
+                >
                   {notes.map((id) => (
                     <span key={id} className={'note' + (id === state.selected ? ' chosen' : '')}>
                       {letters[id] ?? '?'}

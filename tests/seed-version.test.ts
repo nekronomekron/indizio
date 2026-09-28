@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { DIFFICULTY_ORDER, GENERATOR_VERSION, THEME_KEYS, dailySeed, generatePuzzle, makeSeed } from '@engine';
+import {
+  DIFFICULTY_ORDER,
+  GENERATOR_VERSION,
+  THEME_KEYS,
+  dailySeed,
+  generatePuzzle,
+  makeSeed,
+} from '@engine';
 import { randomSeed } from '../src/app/random.js';
 import { UI } from '../src/app/i18n.js';
 
@@ -69,7 +76,7 @@ describe('Beispiel im Eingabefeld', () => {
   it('nennt einen Seed, den die App auch annimmt', () => {
     // Fest eingetippt stand dort `v1`, lange nachdem Version 2 lief.
     for (const locale of ['de', 'en'] as const) {
-      const beispiel = /v\d+-[a-z]+-\d+-[a-z]+-[a-z0-9]+/.exec(UI[locale].seedPlaceholder ?? '')?.[0];
+      const beispiel = /v\d+-[a-z]+-\d+-[a-z]+-[a-z0-9]+/.exec(UI[locale]['seedPlaceholder'] ?? '')?.[0];
       expect(beispiel, locale).toBeDefined();
       expect(versionOf(beispiel!), locale).toBe(GENERATOR_VERSION);
     }
@@ -79,14 +86,14 @@ describe('Beispiel im Eingabefeld', () => {
 describe('Texte zum alten Link', () => {
   it('liegen in beiden Sprachen vor', () => {
     for (const locale of ['de', 'en'] as const) {
-      expect(UI[locale].outdatedSeed, locale).toBeTruthy();
-      expect(UI[locale].outdatedSeedWhy, locale).toBeTruthy();
+      expect(UI[locale]['outdatedSeed'], locale).toBeTruthy();
+      expect(UI[locale]['outdatedSeedWhy'], locale).toBeTruthy();
     }
   });
 
   it('sagen nicht, die Erzeugung sei fehlgeschlagen', () => {
     // Der alte Text behauptete das und war damit schlicht falsch.
-    expect(UI.de.outdatedSeed).not.toContain('erzeugen');
-    expect(UI.en.outdatedSeed!.toLowerCase()).not.toContain('could not');
+    expect(UI.de['outdatedSeed']).not.toContain('erzeugen');
+    expect(UI.en['outdatedSeed']!.toLowerCase()).not.toContain('could not');
   });
 });

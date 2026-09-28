@@ -129,11 +129,13 @@ describe('Grafikdateien', () => {
       ...ICONS.map((key) => `common/icons/${key}.svg`),
       `common/floors/${DEFAULT_FLOOR}.svg`,
       ...THEMES.flatMap((theme) => [
-        ...theme.objects.flatMap((object) => object.placement.kind === 'tiled'
-          ? [`themes/${theme.key}/tiles/${object.key}.svg`]
-          : object.placement.footprints.map(
-            ([width, height]) => `themes/${theme.key}/objects/${object.key}_${width}x${height}.svg`,
-          )),
+        ...theme.objects.flatMap((object) =>
+          object.placement.kind === 'tiled'
+            ? [`themes/${theme.key}/tiles/${object.key}.svg`]
+            : object.placement.footprints.map(
+                ([width, height]) => `themes/${theme.key}/objects/${object.key}_${width}x${height}.svg`,
+              ),
+        ),
         ...theme.roomKeys.map((room) => `themes/${theme.key}/floors/${floorFor(room)}.svg`),
       ]),
     ]);
@@ -146,13 +148,16 @@ describe('Grafikdateien', () => {
     for (const file of FILES) {
       const text = readFileSync(join(ART, file), 'utf8');
       const box = /viewBox="0 0 (\d+) (\d+)"/.exec(text);
-      const ok = text.includes('<svg')
-        && text.includes('xmlns="http://www.w3.org/2000/svg"')
-        && box !== null
-        && Number(box[1]) % 24 === 0 && Number(box[1]) > 0
-        && Number(box[2]) % 24 === 0 && Number(box[2]) > 0
-        && text.trimEnd().endsWith('</svg>')
-        && text.length > 80;
+      const ok =
+        text.includes('<svg') &&
+        text.includes('xmlns="http://www.w3.org/2000/svg"') &&
+        box !== null &&
+        Number(box[1]) % 24 === 0 &&
+        Number(box[1]) > 0 &&
+        Number(box[2]) % 24 === 0 &&
+        Number(box[2]) > 0 &&
+        text.trimEnd().endsWith('</svg>') &&
+        text.length > 80;
       if (!ok) kaputt.push(file);
     }
     expect(kaputt).toEqual([]);

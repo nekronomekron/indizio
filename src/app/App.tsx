@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactElement } from 'react';
 import type { ReactNode } from 'react';
 import type { DifficultyKey } from '@engine';
 import { Dashboard } from './components/Dashboard.js';
@@ -23,7 +23,7 @@ function seedFromHash(): string | null {
  */
 const MAX_REDRAWS = 3;
 
-export function App() {
+export function App(): ReactElement {
   const [settings, setSettings] = useState(() => loadSettings());
   const [seed, setSeed] = useState<string | null>(() => seedFromHash());
   const [showSettings, setShowSettings] = useState(false);
@@ -34,8 +34,12 @@ export function App() {
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
-  const open = (next: string) => { window.location.hash = '#/p/' + next; };
-  const back = () => { window.location.hash = '#/'; };
+  const open = (next: string) => {
+    window.location.hash = '#/p/' + next;
+  };
+  const back = () => {
+    window.location.hash = '#/';
+  };
   const applySettings = (next: Settings) => {
     setSettings(next);
     saveSettings(next);
@@ -105,7 +109,9 @@ export function App() {
           <p>{t(settings.locale, outdated ? 'outdatedSeed' : 'generateError')}</p>
           {outdated && <small>{t(settings.locale, 'outdatedSeedWhy')}</small>}
           <code>{status.message}</code>
-          <button type="button" className="primary" onClick={back}>{t(settings.locale, 'back')}</button>
+          <button type="button" className="primary" onClick={back}>
+            {t(settings.locale, 'back')}
+          </button>
         </div>
       </div>
     );

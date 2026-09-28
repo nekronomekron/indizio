@@ -1,7 +1,13 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import {
-  GenerationError, Rng, THEMES, generatePuzzle, makeSeed, themeProblems, verifyPuzzle,
+  GenerationError,
+  Rng,
+  THEMES,
+  generatePuzzle,
+  makeSeed,
+  themeProblems,
+  verifyPuzzle,
 } from '../../src/engine/index.js';
 import type { Theme, ThemeObject, TiledPlacement } from '../../src/engine/index.js';
 import { boundsOf, isConnected, orthogonalNeighbours } from '../../src/engine/core/grid.js';
@@ -18,11 +24,25 @@ import { expectObjectShapes } from './support/invariants.js';
 const ROOMS = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
 
 function laid(key: string, walkable: boolean, placement: Omit<TiledPlacement, 'kind'>): ThemeObject {
-  return { key, walkable, placement: { kind: 'tiled', ...placement }, rooms: ROOMS, maxPerScene: 4, weight: 4 };
+  return {
+    key,
+    walkable,
+    placement: { kind: 'tiled', ...placement },
+    rooms: ROOMS,
+    maxPerScene: 4,
+    weight: 4,
+  };
 }
 
 function single(key: string, walkable: boolean): ThemeObject {
-  return { key, walkable, placement: { kind: 'fixed', footprints: [[1, 1]] }, rooms: ROOMS, maxPerScene: 6, weight: 1 };
+  return {
+    key,
+    walkable,
+    placement: { kind: 'fixed', footprints: [[1, 1]] },
+    rooms: ROOMS,
+    maxPerScene: 6,
+    weight: 1,
+  };
 }
 
 /** A theme made of laid objects only, plus the single squares every room needs. */
@@ -47,8 +67,12 @@ const placementArbitrary = fc
     compactness: fc.double({ min: 0, max: 1, noNaN: true }),
     straightness: fc.double({ min: 0, max: 1, noNaN: true }),
   })
-  .map(({ minCells, extra, compactness, straightness }) =>
-    ({ minCells, maxCells: minCells + extra, compactness, straightness }));
+  .map(({ minCells, extra, compactness, straightness }) => ({
+    minCells,
+    maxCells: minCells + extra,
+    compactness,
+    straightness,
+  }));
 
 describe('growing laid shapes', () => {
   it('only ever produces shapes the rules allow', () => {
@@ -69,13 +93,16 @@ describe('growing laid shapes', () => {
 
           const owner = new Map<number, { key: string; id: number }>();
           for (const object of objects) {
-            expect(object.placement).toBe(theme.objects.find((entry) => entry.key === object.key)!.placement.kind);
+            expect(object.placement).toBe(
+              theme.objects.find((entry) => entry.key === object.key)!.placement.kind,
+            );
             expect(isConnected(new Set(object.cells), size)).toBe(true);
             for (const cell of object.cells) {
               expect(roomOf.get(cell)).toBe(object.roomId);
               expect(owner.has(cell), 'objects never overlap').toBe(false);
               owner.set(cell, { key: object.key, id: object.id });
-              if (!object.walkable) expect(solutionCells.has(cell), 'nothing blocks a solution cell').toBe(false);
+              if (!object.walkable)
+                expect(solutionCells.has(cell), 'nothing blocks a solution cell').toBe(false);
             }
             if (object.placement !== 'tiled') continue;
             expect(object.cells.length).toBeGreaterThanOrEqual(placement.minCells);
@@ -115,7 +142,10 @@ describe('growing laid shapes', () => {
         for (const cell of object.cells) {
           const block = [cell, cell + 1, cell + size, cell + size + 1];
           const sameRow = cell % size !== size - 1;
-          expect(sameRow && block.every((entry) => cells.has(entry)), `${object.key} has a filled square`).toBe(false);
+          expect(
+            sameRow && block.every((entry) => cells.has(entry)),
+            `${object.key} has a filled square`,
+          ).toBe(false);
         }
       }
     }
@@ -146,9 +176,17 @@ describe('themes with laid objects', () => {
 
   it.each([
     ['minCells below 1', { minCells: 0, maxCells: 3, compactness: 0.5, straightness: 0.5 }, /minCells/],
-    ['maxCells below minCells', { minCells: 4, maxCells: 3, compactness: 0.5, straightness: 0.5 }, /maxCells/],
+    [
+      'maxCells below minCells',
+      { minCells: 4, maxCells: 3, compactness: 0.5, straightness: 0.5 },
+      /maxCells/,
+    ],
     ['compactness above 1', { minCells: 1, maxCells: 3, compactness: 1.5, straightness: 0.5 }, /compactness/],
-    ['straightness below 0', { minCells: 1, maxCells: 3, compactness: 0.5, straightness: -0.1 }, /straightness/],
+    [
+      'straightness below 0',
+      { minCells: 1, maxCells: 3, compactness: 0.5, straightness: -0.1 },
+      /straightness/,
+    ],
   ])('reject %s', (_name, placement, pattern) => {
     const theme = laidTheme(placement);
     expect(themeProblems(theme).join('; ')).toMatch(pattern);
@@ -156,7 +194,11 @@ describe('themes with laid objects', () => {
   });
 
   it('reject a fixed object without a footprint', () => {
-    const theme: Theme = { key: 'x', roomKeys: ROOMS, objects: [{ ...single('stool', true), placement: { kind: 'fixed', footprints: [] } }] };
+    const theme: Theme = {
+      key: 'x',
+      roomKeys: ROOMS,
+      objects: [{ ...single('stool', true), placement: { kind: 'fixed', footprints: [] } }],
+    };
     expect(themeProblems(theme)).toEqual(['x/stool has no footprint']);
   });
 

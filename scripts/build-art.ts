@@ -44,7 +44,12 @@ const MARKER = '<!-- indizio:placeholder -->';
 const ART = join(process.cwd(), 'art');
 const force = process.argv.includes('--force');
 
-interface Entry { path: string; markup: string; width?: number; height?: number }
+interface Entry {
+  path: string;
+  markup: string;
+  width?: number;
+  height?: number;
+}
 
 /** Kantenlaenge eines Feldes in der Zeichenflaeche. */
 const UNIT = 24;
@@ -99,7 +104,18 @@ function notched(x: number, y: number, size: number, notch: number): string {
   const r = x + size;
   const u = y + size;
   const points = [
-    [a, y], [b, y], [b, c], [r, c], [r, d], [b, d], [b, u], [a, u], [a, d], [x, d], [x, c], [a, c],
+    [a, y],
+    [b, y],
+    [b, c],
+    [r, c],
+    [r, d],
+    [b, d],
+    [b, u],
+    [a, u],
+    [a, d],
+    [x, d],
+    [x, c],
+    [a, c],
   ];
   return 'M' + points.map(([px, py]) => `${String(px)} ${String(py)}`).join('L') + 'Z';
 }
@@ -126,10 +142,12 @@ function tileSheet(icon: string): string {
   const border = 2;
   const band = 5;
   const single = placeholder(icon, 1, 1);
-  const corners = `<path d="${notched(24, 0, 24, border)}" fill="${tone}"/>`
-    + `<path d="${notched(24, 0, 24, band)}" fill="${inner}" fill-opacity="0.8"/>`;
-  const block = `<rect x="${String(border)}" y="${String(24 + border)}" width="${String(48 - border * 2)}" height="${String(48 - border * 2)}" rx="4" fill="${tone}"/>`
-    + `<rect x="${String(band)}" y="${String(24 + band)}" width="${String(48 - band * 2)}" height="${String(48 - band * 2)}" rx="2" fill="${inner}" fill-opacity="0.8"/>`;
+  const corners =
+    `<path d="${notched(24, 0, 24, border)}" fill="${tone}"/>` +
+    `<path d="${notched(24, 0, 24, band)}" fill="${inner}" fill-opacity="0.8"/>`;
+  const block =
+    `<rect x="${String(border)}" y="${String(24 + border)}" width="${String(48 - border * 2)}" height="${String(48 - border * 2)}" rx="4" fill="${tone}"/>` +
+    `<rect x="${String(band)}" y="${String(24 + band)}" width="${String(48 - band * 2)}" height="${String(48 - band * 2)}" rx="2" fill="${inner}" fill-opacity="0.8"/>`;
   return single + corners + block;
 }
 
@@ -227,7 +245,10 @@ const removed: string[] = [];
 function sweep(directory: string): void {
   for (const item of readdirSync(directory, { withFileTypes: true })) {
     const full = join(directory, item.name);
-    if (item.isDirectory()) { sweep(full); continue; }
+    if (item.isDirectory()) {
+      sweep(full);
+      continue;
+    }
     if (!item.name.endsWith('.svg') || wanted.has(full)) continue;
     // Auch hier gilt: nur eigene Platzhalter aufraeumen, nichts Fremdes.
     if (!readFileSync(full, 'utf8').includes(MARKER) && !force) continue;
@@ -237,6 +258,8 @@ function sweep(directory: string): void {
 }
 sweep(ART);
 
-console.log(`art/: ${String(written.length)} geschrieben, ${String(kept.length)} eigene behalten, ${String(removed.length)} verwaiste entfernt`);
+console.log(
+  `art/: ${String(written.length)} geschrieben, ${String(kept.length)} eigene behalten, ${String(removed.length)} verwaiste entfernt`,
+);
 if (kept.length > 0) console.log('  behalten:', kept.join(', '));
 if (removed.length > 0) console.log('  entfernt:', removed.join(', '));

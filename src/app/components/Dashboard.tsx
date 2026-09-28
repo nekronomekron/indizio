@@ -1,12 +1,24 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactElement } from 'react';
 import {
-  DAILY_START, DIFFICULTY_ORDER, SIZES_BY_DIFFICULTY, THEME_KEYS,
-  dailyDifficulty, dailySeed, isValidSeed, parseSeed,
+  DAILY_START,
+  DIFFICULTY_ORDER,
+  SIZES_BY_DIFFICULTY,
+  THEME_KEYS,
+  dailyDifficulty,
+  dailySeed,
+  isValidSeed,
+  parseSeed,
 } from '@engine';
 import type { CalendarDate, DifficultyKey } from '@engine';
 import type { Locale } from '../types.js';
 import {
-  FIRST_MONTH, compareDate, isPlayable, monthOf, shiftMonth, today, type YearMonth,
+  FIRST_MONTH,
+  compareDate,
+  isPlayable,
+  monthOf,
+  shiftMonth,
+  today,
+  type YearMonth,
 } from '../calendar.js';
 import { t } from '../i18n.js';
 import { Sprite } from '../render/Sprite.js';
@@ -22,13 +34,18 @@ import { RulesDialog } from './Help.js';
  * einen Knopf für heute, darunter den Monat zum Nachholen, und alles Weitere
  * tritt einen Schritt zurück.
  */
-export function Dashboard({ locale, onOpen, onDraw, onSettings }: {
+export function Dashboard({
+  locale,
+  onOpen,
+  onDraw,
+  onSettings,
+}: {
   locale: Locale;
   onOpen: (seed: string) => void;
   /** Losen gehoert in die App: nur sie weiss spaeter, dass sie neu wuerfeln darf. */
   onDraw: (difficulty: DifficultyKey) => void;
   onSettings: () => void;
-}) {
+}): ReactElement {
   // Einmal beim Öffnen bestimmt: wechselt der Tag, während jemand die Seite
   // offen hat, ist das beim nächsten Laden richtig — ein Kalender, der unter
   // den Händen umspringt, wäre die unangenehmere Überraschung.
@@ -60,7 +77,10 @@ export function Dashboard({ locale, onOpen, onDraw, onSettings }: {
 
   const openSeed = () => {
     const seed = seedInput.trim().toLowerCase();
-    if (!isValidSeed(seed)) { setSeedError(true); return; }
+    if (!isValidSeed(seed)) {
+      setSeedError(true);
+      return;
+    }
     setSeedError(false);
     onOpen(seed);
   };
@@ -73,9 +93,15 @@ export function Dashboard({ locale, onOpen, onDraw, onSettings }: {
           <p className="tagline">{t(locale, 'tagline')}</p>
         </div>
         <div className="head-actions">
-          <button type="button" className="ghost" onClick={() => setShowRules(true)}>{t(locale, 'rules')}</button>
-          <span className="counter">{solvedCount} {t(locale, 'solvedLabel')}</span>
-          <button type="button" className="ghost" onClick={onSettings}>{t(locale, 'settings')}</button>
+          <button type="button" className="ghost" onClick={() => setShowRules(true)}>
+            {t(locale, 'rules')}
+          </button>
+          <span className="counter">
+            {solvedCount} {t(locale, 'solvedLabel')}
+          </span>
+          <button type="button" className="ghost" onClick={onSettings}>
+            {t(locale, 'settings')}
+          </button>
         </div>
       </header>
 
@@ -88,8 +114,8 @@ export function Dashboard({ locale, onOpen, onDraw, onSettings }: {
         <span>
           <strong>{t(locale, todayDone ? 'todaySolved' : 'playToday')}</strong>
           <small>
-            {t(locale, todayParts.difficulty)} &middot; {todayParts.size}&times;{todayParts.size}
-            {' '}&middot; {t(locale, todayParts.themeKey)}
+            {t(locale, todayParts.difficulty)} &middot; {todayParts.size}&times;{todayParts.size} &middot;{' '}
+            {t(locale, todayParts.themeKey)}
           </small>
         </span>
       </button>
@@ -118,9 +144,10 @@ export function Dashboard({ locale, onOpen, onDraw, onSettings }: {
               // Größen, und ein Bereich über beide Achsen liest sich nicht.
               const sizes = SIZES_BY_DIFFICULTY[difficulty];
               const square = (size: number | undefined): string => `${String(size)}×${String(size)}`;
-              const span = sizes.length > 1
-                ? `${square(sizes[0])}–${square(sizes[sizes.length - 1])}`
-                : square(sizes[0]);
+              const span =
+                sizes.length > 1
+                  ? `${square(sizes[0])}–${square(sizes[sizes.length - 1])}`
+                  : square(sizes[0]);
               return (
                 <button
                   key={difficulty}
@@ -145,10 +172,17 @@ export function Dashboard({ locale, onOpen, onDraw, onSettings }: {
               value={seedInput}
               placeholder={t(locale, 'seedPlaceholder')}
               aria-label={t(locale, 'ownSeed')}
-              onChange={(e) => { setSeedInput(e.target.value); setSeedError(false); }}
-              onKeyDown={(e) => { if (e.key === 'Enter') openSeed(); }}
+              onChange={(e) => {
+                setSeedInput(e.target.value);
+                setSeedError(false);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') openSeed();
+              }}
             />
-            <button type="button" onClick={openSeed}>{t(locale, 'play')}</button>
+            <button type="button" onClick={openSeed}>
+              {t(locale, 'play')}
+            </button>
           </div>
           {seedError && <p className="error">{t(locale, 'seedInvalid')}</p>}
         </section>

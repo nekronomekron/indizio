@@ -1,8 +1,13 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import {
-  DIFFICULTY_BANDS, DIFFICULTY_ORDER, SIZES_BY_DIFFICULTY, THEME_KEYS,
-  generatePuzzle, makeSeed, stringifyPuzzle,
+  DIFFICULTY_BANDS,
+  DIFFICULTY_ORDER,
+  SIZES_BY_DIFFICULTY,
+  THEME_KEYS,
+  generatePuzzle,
+  makeSeed,
+  stringifyPuzzle,
 } from '../../../src/engine/index.js';
 import { createInitialState } from '../../../src/engine/solving/candidates.js';
 import { solveByReference } from '../../../src/engine/solving/reference.js';
@@ -88,7 +93,9 @@ describe('solver soundness at scale', () => {
             pin: { suspectId: suspect, cell },
             maxNodes: 2_000_000,
           });
-          expect(pinned.count, `${seed}: removing suspect ${suspect} from cell ${cell} was not forced`).toBe(0);
+          expect(pinned.count, `${seed}: removing suspect ${suspect} from cell ${cell} was not forced`).toBe(
+            0,
+          );
           checked++;
         }
       }

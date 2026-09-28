@@ -1,7 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import {
-  DIFFICULTY_BANDS, GenerationError, MAX_GRID_SIZE, NAME_POOL, PORTRAIT_KEYS, Rng,
-  THEMES, THEME_KEYS, generatePuzzle, makeSeed, toScene, verifyPuzzle,
+  DIFFICULTY_BANDS,
+  GenerationError,
+  MAX_GRID_SIZE,
+  NAME_POOL,
+  PORTRAIT_KEYS,
+  Rng,
+  THEMES,
+  THEME_KEYS,
+  generatePuzzle,
+  makeSeed,
+  toScene,
+  verifyPuzzle,
 } from '../../src/engine/index.js';
 // The scene index is deliberately not public: consumers get verifyPuzzle
 // instead. Tests may look inside.
@@ -55,8 +65,14 @@ describe('themes', () => {
     for (const theme of THEMES) {
       for (const room of theme.roomKeys) {
         const here = theme.objects.filter((object) => object.rooms.includes(room));
-        expect(here.some((object) => object.walkable), `${theme.key}/${room} needs somewhere to stand`).toBe(true);
-        expect(here.some((object) => !object.walkable), `${theme.key}/${room} needs something solid`).toBe(true);
+        expect(
+          here.some((object) => object.walkable),
+          `${theme.key}/${room} needs somewhere to stand`,
+        ).toBe(true);
+        expect(
+          here.some((object) => !object.walkable),
+          `${theme.key}/${room} needs something solid`,
+        ).toBe(true);
       }
     }
   });
@@ -64,13 +80,26 @@ describe('themes', () => {
   it('mark only sensible things as walkable', () => {
     // Somewhere a person could plausibly stand or sit — a bed, not a bookshelf.
     const standable = new Set([
-      'bed', 'carpet', 'chair', 'sofa', 'bench', 'gardenchair', 'bathtub',
-      'car', 'oilstain', 'mat', 'pallet', 'steppingstone', 'sandbox', 'pond',
+      'bed',
+      'carpet',
+      'chair',
+      'sofa',
+      'bench',
+      'gardenchair',
+      'bathtub',
+      'car',
+      'oilstain',
+      'mat',
+      'pallet',
+      'steppingstone',
+      'sandbox',
+      'pond',
     ]);
     for (const theme of THEMES) {
       for (const object of theme.objects) {
-        expect(standable.has(object.key), `${theme.key}/${object.key} walkable=${object.walkable}`)
-          .toBe(object.walkable);
+        expect(standable.has(object.key), `${theme.key}/${object.key} walkable=${object.walkable}`).toBe(
+          object.walkable,
+        );
       }
     }
   });
@@ -129,8 +158,8 @@ describe('floor plans', () => {
     for (const { rooms } of plans) {
       for (const room of rooms) {
         total++;
-        const boxArea = (room.bounds.maxRow - room.bounds.minRow + 1)
-          * (room.bounds.maxColumn - room.bounds.minColumn + 1);
+        const boxArea =
+          (room.bounds.maxRow - room.bounds.minRow + 1) * (room.bounds.maxColumn - room.bounds.minColumn + 1);
         if (room.cells.length !== boxArea) irregular++;
       }
     }
@@ -144,8 +173,7 @@ describe('floor plans', () => {
   });
 
   it('refuse to build more rooms than the theme can name', () => {
-    expect(() => generateRooms(new Rng('short'), 10, 7, ['only', 'three', 'names']))
-      .toThrow(/room names/);
+    expect(() => generateRooms(new Rng('short'), 10, 7, ['only', 'three', 'names'])).toThrow(/room names/);
   });
 });
 
@@ -237,26 +265,28 @@ describe('generated puzzles', () => {
   });
 
   it('accept custom themes without touching the generator', () => {
-    const custom = [{
-      key: 'attic',
-      roomKeys: ['loft', 'nook', 'landing', 'closet', 'eaves', 'stair', 'store'],
-      objects: THEMES[1]!.objects.map((object) => ({
-        ...object,
-        rooms: ['loft', 'nook', 'landing', 'closet', 'eaves', 'stair', 'store'],
-      })),
-    }];
+    const custom = [
+      {
+        key: 'attic',
+        roomKeys: ['loft', 'nook', 'landing', 'closet', 'eaves', 'stair', 'store'],
+        objects: THEMES[1]!.objects.map((object) => ({
+          ...object,
+          rooms: ['loft', 'nook', 'landing', 'closet', 'eaves', 'stair', 'store'],
+        })),
+      },
+    ];
     const { core } = generatePuzzle(makeSeed('attic', 6, 4711), { themes: custom });
     expect(core.themeKey).toBe('attic');
     expect(verifyPuzzle(core).ok).toBe(true);
   });
 
   it('refuse a seed from another generator version', () => {
-    expect(() => generatePuzzle(makeSeed(THEME_KEYS[0]!, 6, 1, 1)))
-      .toThrow(GenerationError);
+    expect(() => generatePuzzle(makeSeed(THEME_KEYS[0]!, 6, 1, 1))).toThrow(GenerationError);
   });
 
   it('give up with a clear message rather than running forever', () => {
-    expect(() => generatePuzzle(makeSeed('garage', 10, 5), { maxAttempts: 0 }))
-      .toThrow(/within the attempt budget/);
+    expect(() => generatePuzzle(makeSeed('garage', 10, 5), { maxAttempts: 0 })).toThrow(
+      /within the attempt budget/,
+    );
   });
 });

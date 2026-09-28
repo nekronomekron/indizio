@@ -26,10 +26,14 @@ const CONTRADICTION: PropagationResult = { changed: false, contradiction: true }
 
 function pointsToward(direction: Direction, from: Cell, to: Cell, size: number): boolean {
   switch (direction) {
-    case 'west': return columnOf(from, size) < columnOf(to, size);
-    case 'east': return columnOf(from, size) > columnOf(to, size);
-    case 'north': return rowOf(from, size) < rowOf(to, size);
-    case 'south': return rowOf(from, size) > rowOf(to, size);
+    case 'west':
+      return columnOf(from, size) < columnOf(to, size);
+    case 'east':
+      return columnOf(from, size) > columnOf(to, size);
+    case 'north':
+      return rowOf(from, size) < rowOf(to, size);
+    case 'south':
+      return rowOf(from, size) > rowOf(to, size);
   }
 }
 
@@ -160,7 +164,9 @@ function applyCardClue(context: ClueContext, clue: Clue): PropagationResult {
     case 'DIRECTION_OF_SUSPECT':
       return {
         changed: constrainPairwise(
-          state, owner, clue.otherId,
+          state,
+          owner,
+          clue.otherId,
           (from, to) => pointsToward(clue.direction, from, to, size),
           reason,
         ),
@@ -170,7 +176,9 @@ function applyCardClue(context: ClueContext, clue: Clue): PropagationResult {
     case 'DIAGONAL_OF':
       return {
         changed: constrainPairwise(
-          state, owner, clue.otherId,
+          state,
+          owner,
+          clue.otherId,
           (from, to) => isDiagonal(from, to, size),
           reason,
         ),
